@@ -3,10 +3,6 @@
 		{
 			"name": "V9_IDE_PORT",
 			"path": "V9_IDE_PORT"
-		},
-		{
-			"name": "211021-120624-megaatmega2560",
-			"path": "..\\..\\PlatformIO\\Projects\\211021-120624-megaatmega2560"
 		}
 	]
 }
