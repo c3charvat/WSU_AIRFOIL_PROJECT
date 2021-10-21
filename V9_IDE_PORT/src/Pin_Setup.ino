@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include <SpeedyStepper.h>
 
-int button = 16; // encoder click on Creality Melzi screen
-int beeper = 27; // factory beeper on Creality Melzi screen
+int BUTTON = 35; // encoder click on Creality Melzi screen
+int BEEPER = 27; // factory beeper on Creality Melzi screen
 const int MOTOR0_STEP_PIN = A0;  // X axis 
 const int MOTOR0_DIRECTION_PIN = A1;  // X axis
 const int MOTOR0_ENABLE = 38;  // X axis
@@ -46,7 +46,7 @@ pinMode(MOTOR4_ENABLE , OUTPUT);
 // Extras 
 // pinMode(4, OUTPUT); // Fan Pin Initilization 
 pinMode(beeper, OUTPUT); // Beeper on LCD
-pinMode(35, INPUT); // Encoder button
+pinMode(BUTTON, INPUT); // Encoder button
 pinMode(17, INPUT); // Encoder Move Direction
 pinMode(23, INPUT); // Encoder Move Direction 
 // Stepper Enables 

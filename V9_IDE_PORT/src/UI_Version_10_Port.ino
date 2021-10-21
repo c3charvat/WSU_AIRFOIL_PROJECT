@@ -1,4 +1,16 @@
-// Demo #2 Full UI Implemtation
+/* Air Foil Project code
+Written by: Collin Charvat
+liscence: N/A
+This program was written to drive the Dual Airfoil experiment at Wright State Uni. 
+The main gaols of this code are to drive 5 steppers in multiple different modes of operation/
+They are:
+LCD Static - As Soon as an axis is commanded to move, move and the stay there and hold until otherwise.
+LCD Trigger - allow the end user to input muiltple axis destinations then press a menu selection to move all axis at once
+LCD w. Ext. Trigger - The same as above, but the menu does nothing instead the system waits on a physical trigger to begin motion
+Serial Static- As soon as data is passed in via serial move.
+Serial W. Ext. Trigger - allow the user to program the desired destination the press the external trigger to move
+*/ 
+
 #include <Arduino.h>  // Include Github links here
 #include <U8g2lib.h>
 #include <SpeedyStepper.h>
@@ -6,6 +18,12 @@
 #include <TMCStepper_UTILITY.h>
 using namespace TMC2208_n;
 #define DRIVER_ADDRESS 0b00
+/*
+In the Case of this set up since the drivers are in Uart mode the adress of the Driver is the adress of the Rx and Tx pins on the driver
+since we are not multiplexing the drivers meaning there is only one Uart wire per driver.
+*/
+
+
 
 TMC2209Stepper driverX(A9, 40, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE) Software serial X axis
 
@@ -26,29 +44,7 @@ int AOA_MAX = 500; // Angle of attack max in 360 degrees
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Define the LCD Pins ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/ 25, /* data=*/ 29, /* CS=*/ 27, /* reset=*/ 16);
 // Define the LCD Type and Pins Reset is currently pin 29 which us unused or unconnected on the board.
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MOTION CONTROL PIN DEFINE  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// int button = 16; // encoder click on Creality Melzi screen
-// int beeper = 27; // factory beeper on Creality Melzi screen
-// const int MOTOR0_STEP_PIN = A0;  // e axis "AoA Top"
-// const int MOTOR0_DIRECTION_PIN = A1;  // e axis
-// const int MOTOR0_ENABLE = 38;  // e axis
-// SpeedyStepper Estepper; // initalize stepper 1
-// const int MOTOR1_STEP_PIN = A6;  // z axis "AoA Bottom"
-// const int MOTOR1_DIRECTION_PIN = A7;  // z axis
-// const int MOTOR1_ENABLE = A2;  // z axis
-// SpeedyStepper Zstepper;
-// const int MOTOR2_STEP_PIN = 46;  // x axis  "X motion"
-// const int MOTOR2_DIRECTION_PIN = 48;  // x axis
-// const int MOTOR2_ENABLE = A8;  // x axis
-// SpeedyStepper Xstepper;
-// const int MOTOR3_STEP_PIN = 26;  // z axis "Y motion"
-// const int MOTOR3_DIRECTION_PIN = 28;  // z axis
-// const int MOTOR3_ENABLE = 24;  // z axis;
-// SpeedyStepper Ystepper;
-// //const int MOTOR4_STEP_PIN = **;  // z axis "Y motion"
-// //const int MOTOR4_DIRECTION_PIN = **;  // z axis // Extra setpper for new mtoherboard
-// //const int MOTOR4_ENABLE = **;  // z axis;
-// //SpeedyStepper E2stepper;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MOTION CONTROL  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 SpeedyStepper Xstepper; // Initalize Stepper X Class
 SpeedyStepper Ystepper;
@@ -174,8 +170,8 @@ void setup(void) {
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
   PIN_SETUP(); // Initilize all the Pins 
-  SET_ACELL(-70, 500, 500, 500); // Set motor acceleration
-  SET_SPEED(100, 2000, 200, 200); // Set motor Speed
+  SET_ACELL(-100, 500, 500, 500); // Set motor acceleration
+  SET_SPEED(150, 2000, 200, 200); // Set motor Speed
   u8g2.begin(/* menu_select_pin= */ 35, /* menu_next_pin= */ 17, /* menu_prev_pin= */ 23, /* menu_home_pin= */ 52 );
   // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion. 
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands

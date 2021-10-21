@@ -39,7 +39,7 @@ int SERIAL_UI (void){
     u8g2.clearBuffer();
     Draw_dialog(u8g2,0,0,128,64,"Serial Mode\n" ,TempString0,TempString1,TempString2,TempString3, "Return", false);
     u8g2.sendBuffer();
-    if (digitalRead(16) == LOW ) { // if the encoder is pressed go back to LCD MODE (I used digital read here to simulate a long press)
+    if (digitalRead(BUTTON) == LOW ) { // if the encoder is pressed go back to LCD MODE (I used digital read here to simulate a long press)
       u8g2.clearBuffer();
     Draw_dialog(u8g2,0,0,128,64,"Serial Mode\n" ,TempString0,TempString1,TempString2,TempString3, "Return", true);
       delay(400);
