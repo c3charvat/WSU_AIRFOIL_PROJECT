@@ -29,7 +29,7 @@ float ABS_POS( float input, int selection) { // input array is [Postion,Current 
   }
   if (selection == 3) {
     // X pos
-    if (input >Xpos_MAX) {                                  // MAX X POS
+    if (input > Xpos_MAX) {                                  // MAX X POS
       Angle_Error(3);// Display Error message
       return 0; //Dont Move
     }
@@ -82,4 +82,5 @@ float ABS_POS( float input, int selection) { // input array is [Postion,Current 
     Somthing_Error();
     return 0; // since nothing was set just head back because the steppers wont move
   }
+  return NULL;
 }

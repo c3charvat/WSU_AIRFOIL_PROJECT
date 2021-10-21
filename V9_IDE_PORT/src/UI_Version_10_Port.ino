@@ -27,31 +27,34 @@ int AOA_MAX = 500; // Angle of attack max in 360 degrees
 U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/ 25, /* data=*/ 29, /* CS=*/ 27, /* reset=*/ 16);
 // Define the LCD Type and Pins Reset is currently pin 29 which us unused or unconnected on the board.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MOTION CONTROL PIN DEFINE  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int button = 16; // encoder click on Creality Melzi screen
-int beeper = 27; // factory beeper on Creality Melzi screen
-const int MOTOR0_STEP_PIN = A0;  // e axis "AoA Top"
-const int MOTOR0_DIRECTION_PIN = A1;  // e axis
-const int MOTOR0_ENABLE = 38;  // e axis
-SpeedyStepper Estepper; // initalize stepper 1
-const int MOTOR1_STEP_PIN = A6;  // z axis "AoA Bottom"
-const int MOTOR1_DIRECTION_PIN = A7;  // z axis
-const int MOTOR1_ENABLE = A2;  // z axis
-SpeedyStepper Zstepper;
-const int MOTOR2_STEP_PIN = 46;  // x axis  "X motion"
-const int MOTOR2_DIRECTION_PIN = 48;  // x axis
-const int MOTOR2_ENABLE = A8;  // x axis
-SpeedyStepper Xstepper;
-const int MOTOR3_STEP_PIN = 26;  // z axis "Y motion"
-const int MOTOR3_DIRECTION_PIN = 28;  // z axis
-const int MOTOR3_ENABLE = 24;  // z axis;
+// int button = 16; // encoder click on Creality Melzi screen
+// int beeper = 27; // factory beeper on Creality Melzi screen
+// const int MOTOR0_STEP_PIN = A0;  // e axis "AoA Top"
+// const int MOTOR0_DIRECTION_PIN = A1;  // e axis
+// const int MOTOR0_ENABLE = 38;  // e axis
+// SpeedyStepper Estepper; // initalize stepper 1
+// const int MOTOR1_STEP_PIN = A6;  // z axis "AoA Bottom"
+// const int MOTOR1_DIRECTION_PIN = A7;  // z axis
+// const int MOTOR1_ENABLE = A2;  // z axis
+// SpeedyStepper Zstepper;
+// const int MOTOR2_STEP_PIN = 46;  // x axis  "X motion"
+// const int MOTOR2_DIRECTION_PIN = 48;  // x axis
+// const int MOTOR2_ENABLE = A8;  // x axis
+// SpeedyStepper Xstepper;
+// const int MOTOR3_STEP_PIN = 26;  // z axis "Y motion"
+// const int MOTOR3_DIRECTION_PIN = 28;  // z axis
+// const int MOTOR3_ENABLE = 24;  // z axis;
+// SpeedyStepper Ystepper;
+// //const int MOTOR4_STEP_PIN = **;  // z axis "Y motion"
+// //const int MOTOR4_DIRECTION_PIN = **;  // z axis // Extra setpper for new mtoherboard
+// //const int MOTOR4_ENABLE = **;  // z axis;
+// //SpeedyStepper E2stepper;
+
+SpeedyStepper Xstepper; // Initalize Stepper X Class
 SpeedyStepper Ystepper;
-//const int MOTOR4_STEP_PIN = **;  // z axis "Y motion"
-//const int MOTOR4_DIRECTION_PIN = **;  // z axis // Extra setpper for new mtoherboard
-//const int MOTOR4_ENABLE = **;  // z axis;
-//SpeedyStepper E2stepper;
-
-
-
+SpeedyStepper Zstepper;
+SpeedyStepper E0stepper;
+SpeedyStepper E1stepper;
 
 // Stepper settings
 int Stepper_acell[5]; // setpper accleration array initliazation // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
@@ -80,10 +83,10 @@ boolean newData = false;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 const char *Main_menu =     // Define the Main Menu options
-  "A.O.A Top\n"
-  "A.O.A Bottom\n"
   "X Movement\n"
   "Y Movement\n"
+  "A.O.A Top\n"
+  "A.O.A Bottom\n"
   "T.Continious->Start\n"
   "Settings";
 
@@ -131,18 +134,20 @@ float movevar[5]; // E ,Z, X, Y , E2 // modified for new motherboard this wont g
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`End Variables~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Acelleration/ Speed Set/ Trigger Functions  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void SET_ACELL(float e, float z, float x, float y) {
-  Estepper.setAccelerationInRevolutionsPerSecondPerSecond(e);
-  Zstepper.setAccelerationInStepsPerSecondPerSecond(z);
-  Xstepper.setAccelerationInStepsPerSecondPerSecond(x); // Change to mm/s when the system is being implmented
-  Ystepper.setAccelerationInStepsPerSecondPerSecond(y); // Change to mm/s when the system is being implmented
+void SET_ACELL(float x, float y, float E0, float E1) {
+  Xstepper.setAccelerationInRevolutionsPerSecondPerSecond(x);
+  Ystepper.setAccelerationInStepsPerSecondPerSecond(y);
+  Zstepper.setAccelerationInStepsPerSecondPerSecond(y); // By Default the Z axis will allways be attached to the Y (Verticle Axis)
+  E0stepper.setAccelerationInStepsPerSecondPerSecond(E0); // Change to mm/s when the system is being implmented
+  E1stepper.setAccelerationInStepsPerSecondPerSecond(E1); // Change to mm/s when the system is being implmented
   //  E2stepper.setAccelerationInStepsPerSecondPerSecond(*put axis its mirrioring here*);
 }
-void SET_SPEED(int e, int z, int x, int y) {
-  Estepper.setSpeedInRevolutionsPerSecond(e);
-  Zstepper.setSpeedInStepsPerSecond(z);
-  Xstepper.setSpeedInStepsPerSecond(x); // Change to mm/s^2 when the system is being implmented
-  Ystepper.setSpeedInStepsPerSecond(y); // Change to mm/s^2 when the system is being implmented
+void SET_SPEED(int x, int y, int E0, int E1) {
+  Xstepper.setSpeedInRevolutionsPerSecond(x);
+  Ystepper.setSpeedInStepsPerSecond(y);
+  Zstepper.setSpeedInStepsPerSecond(y); // Change to mm/s^2 when the system is being implmented
+  E0stepper.setSpeedInStepsPerSecond(E0); // Change to mm/s^2 when the system is being implmented ?
+  E1stepper.setSpeedInStepsPerSecond(E1);
   //  E2stepper.setSpeedInStepsPerSecond(*Axis its mirrioring here*);
 }
 void TRIGGER_WAIT(int pin) {
@@ -166,27 +171,13 @@ void setup(void) {
   driverX.rms_current(850); // mA
   driverX.microsteps(64);
   driverX.pwm_ofs_auto ();
-  Serial.print("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
-  Serial.print("");
+  Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
+  Serial.println("");
+  PIN_SETUP(); // Initilize all the Pins 
   SET_ACELL(-70, 500, 500, 500); // Set motor acceleration
   SET_SPEED(100, 2000, 200, 200); // Set motor Speed
-  Estepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
-  Zstepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
-  Xstepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
-  Ystepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
-  pinMode(beeper, OUTPUT);
-  pinMode(A0, OUTPUT);
-  pinMode(A1, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(38, OUTPUT);
-  pinMode(35, INPUT);
-  pinMode(17, INPUT);
-  pinMode(23, INPUT);
-  //pinMode(MOTOR2_ENABLE, OUTPUT);// enabling the pin as an output
-  //digitalWrite(4, HIGH);
-  //digitalWrite(MOTOR1_ENABLE, LOW);
-  digitalWrite(38, LOW);
   u8g2.begin(/* menu_select_pin= */ 35, /* menu_next_pin= */ 17, /* menu_prev_pin= */ 23, /* menu_home_pin= */ 52 );
+  // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion. 
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
   u8g2.setFont(u8g2_font_6x12_tr);
 }
@@ -205,6 +196,27 @@ void loop(void) {
   //      " ok ");
   //  }
   if ( current_selection == 1 ) {
+        // X movement
+    //u8g2.userInterfaceInputValue( "X movment:", "", &X_value[0] , 0, 3 , 1 , " *-* Thousands of MM "); // Removed at the request of Dr. Y Functionality preserved
+    u8g2.userInterfaceInputValue( "X movment:", "", &X_value[1] , 0, 3 , 1 , " *-* Hundreds of MM ");
+    u8g2.userInterfaceInputValue( "X movment:", "", &X_value[2] , 0, 60 , 2 , " *-* Tens/Ones MM ");
+    u8g2.userInterfaceInputValue( "X movment:", "", &X_value[3] , 0, 9 , 1 , " *-* Decimal MM ");
+    Xpos = X_value[0] * 1000 + X_value[1] * 100 + X_value[2] + X_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
+    // move function call here
+    MOVE_FUNCTION();
+  }
+  if ( current_selection == 2 ) {
+        // Y movemnt
+    //u8g2.userInterfaceInputValue( "Y movment:", "", &Y_value[0] , 0, 3 , 1 , " *-* Thousands of MM "); // Removed at the request of Dr. Y Functionality preserved
+    u8g2.userInterfaceInputValue( "Y movment:", "", &Y_value[1] , 0, 3 , 1 , " *-* Hundreds of MM ");
+    u8g2.userInterfaceInputValue( "Y movment:", "", &Y_value[2] , 0, 60 , 2 , " *-* Tens/Ones MM ");
+    u8g2.userInterfaceInputValue( "Y movment:", "", &Y_value[3] , 0, 9 , 1 , " *-* Decimal MM ");
+    Ypos = Y_value[0] * 1000 + Y_value[1] * 100 + Y_value[2] + Y_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
+    /// move function call here
+    MOVE_FUNCTION();
+
+  }
+  if ( current_selection == 3 ) {
     u8g2.userInterfaceInputValue( "AOA Top:", "", &AoA_t_value[0] , 0, 5 , 1 , " 0-3 Hundreds Degrees");
     u8g2.userInterfaceInputValue( "AOA Top:", "", &AoA_t_value[1] , 0, 99 , 2 , " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue( "AOA Top:", "", &AoA_t_value[2] , 0, 9 , 1 , " 0-9 Decimal Degree");
@@ -218,7 +230,7 @@ void loop(void) {
     //Serial.print(H_value); // DEBUG Serial Print out
     //Serial.print(value);-
   }
-  if ( current_selection == 2 ) {
+  if ( current_selection == 4 ) {
     u8g2.userInterfaceInputValue( "AOA Bottom:", "", &AoA_b_value[0] , 0, 3 , 1 , " 0-3 Hundreds Degrees");
     u8g2.userInterfaceInputValue( "AOA Bottom:", "", &AoA_b_value[1] , 0, 99 , 2 , " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue( "AOA Bottom:", "", &AoA_b_value[2] , 0, 9 , 1 , " 0-9 Decimal Degree");
@@ -228,40 +240,20 @@ void loop(void) {
     MOVE_FUNCTION();
     // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step
   }
-  if ( current_selection == 3 ) {
-    // X movement
-    //u8g2.userInterfaceInputValue( "X movment:", "", &X_value[0] , 0, 3 , 1 , " *-* Thousands of MM "); // Removed at the request of Dr. Y Functionality preserved
-    u8g2.userInterfaceInputValue( "X movment:", "", &X_value[1] , 0, 3 , 1 , " *-* Hundreds of MM ");
-    u8g2.userInterfaceInputValue( "X movment:", "", &X_value[2] , 0, 60 , 2 , " *-* Tens/Ones MM ");
-    u8g2.userInterfaceInputValue( "X movment:", "", &X_value[3] , 0, 9 , 1 , " *-* Decimal MM ");
-    Xpos = X_value[0] * 1000 + X_value[1] * 100 + X_value[2] + X_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
-    // move function call here
-    MOVE_FUNCTION();
-  }
-  if ( current_selection == 4 ) {
-    // Y movemnt
-    //u8g2.userInterfaceInputValue( "X movment:", "", &Y_value[0] , 0, 3 , 1 , " *-* Thousands of MM "); // Removed at the request of Dr. Y Functionality preserved
-    u8g2.userInterfaceInputValue( "X movment:", "", &Y_value[1] , 0, 3 , 1 , " *-* Hundreds of MM ");
-    u8g2.userInterfaceInputValue( "X movment:", "", &Y_value[2] , 0, 60 , 2 , " *-* Tens/Ones MM ");
-    u8g2.userInterfaceInputValue( "X movment:", "", &Y_value[3] , 0, 9 , 1 , " *-* Decimal MM ");
-    Ypos = Y_value[0] * 1000 + Y_value[1] * 100 + Y_value[2] + Y_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
-    /// move function call here
-    MOVE_FUNCTION();
-  }
   if ( current_selection == 5 ) {
     // Go Buttom for The Continious mode
     // create an if statment witha ready bool here So Go only works once per update of the data. in the move function
     u8g2.userInterfaceMessage("", "", "Ready to Go?", " Ok \n Cancel ");
     if (Go_Pressed == 1 ) {
-      digitalWrite(27, HIGH);// Sound Buzzer That The Control Borad is waiting on user
-      while ((!Estepper.motionComplete()) || (!Zstepper.motionComplete()) || (!Xstepper.motionComplete()) || (!Ystepper.motionComplete())) { // While
-        Estepper.processMovement();
-        Zstepper.processMovement();
-        Xstepper.processMovement();
-        Ystepper.processMovement();
-        //E2stepper.processMovement();
+      // digitalWrite(27, HIGH);// Sound Buzzer That The Control Borad is waiting on user
+      while ((!E0stepper.motionComplete()) || (!E1stepper.motionComplete()) || (!Zstepper.motionComplete()) || (!Xstepper.motionComplete()) || (!Ystepper.motionComplete())) { // While
+      Xstepper.processMovement();
+      Ystepper.processMovement();
+      Zstepper.processMovement();   // moving the Steppers here was a simple soltuion to having to do system interups and blah blah.
+      E0stepper.processMovement();
+      E1stepper.processMovement();
       }
-      digitalWrite(27, LOW);// turn the anoying thing off
+     // digitalWrite(27, LOW);// turn the anoying thing off
       Serial.println("Go Pressed\n ");
       Serial.print(current_selection);
       Go_Pressed = 0;
