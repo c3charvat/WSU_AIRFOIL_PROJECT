@@ -16,6 +16,7 @@ Serial W. Ext. Trigger - allow the user to program the desired destination the p
 #include <SpeedyStepper.h>
 #include <TMCStepper.h>
 #include <TMCStepper_UTILITY.h>
+#include <SoftwareReset.h>
 using namespace TMC2208_n;
 #define DRIVER_ADDRESS 0b00
 /*
@@ -26,6 +27,11 @@ since we are not multiplexing the drivers meaning there is only one Uart wire pe
 
 
 TMC2209Stepper driverX(A9, 40, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE) Software serial X axis
+TMC2209Stepper driverY(A11, 42, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE) Software serial X axis
+TMC2209Stepper driverZ(A12, 44, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE) Software serial X axis
+TMC2209Stepper driverE0(A10, A5, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE) Software serial X axis
+TMC2209Stepper driverE1(A4, A3, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE) Software serial X axis
+
 
 #ifdef U8X8_HAVE_HW_SPI // UI Communications protocal not sure if this is neassary or not used from example.
 #include <SPI.h>
@@ -46,7 +52,7 @@ U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/ 25, /* data=*/ 29, /* CS=*
 // Define the LCD Type and Pins Reset is currently pin 29 which us unused or unconnected on the board.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MOTION CONTROL  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-SpeedyStepper Xstepper; // Initalize Stepper X Class
+SpeedyStepper Xstepper; // Initalize Stepper Class
 SpeedyStepper Ystepper;
 SpeedyStepper Zstepper;
 SpeedyStepper E0stepper;
@@ -103,8 +109,9 @@ const char *Motion_select = // Communcations method select menu
   "Serial Cont. Ext.T.\n";
 
 const char *Error_String = // Error strings
-  "Go Back\n"
-  "Main Menu\n";
+  "Acknowledge\n"
+  "Main Menu\n"
+  "Hard Restart\n";
 
 uint8_t current_selection = 0; // Keep track of current selection in menu
 uint8_t Sub_selection = 0;
@@ -159,14 +166,7 @@ void TRIGGER_WAIT(int pin) {
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SETUP lOOP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void setup(void) {
   Serial.begin(230400); // Begin serial ouput communication for debug and input of value array.
-   driverX.beginSerial(115200);
-    Serial.print("got here 1");
-    driverX.begin();
-    Serial.print("got here 2");
-  driverX.begin();
-  driverX.rms_current(850); // mA
-  driverX.microsteps(64);
-  driverX.pwm_ofs_auto ();
+  DRIVER_SETUP();
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
   PIN_SETUP(); // Initilize all the Pins 

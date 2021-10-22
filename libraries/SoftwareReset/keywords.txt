@@ -1,0 +1,10 @@
+#######################################
+# Class (KEYWORD1)
+# Methods and Functions (KEYWORD2)
+# Constants (LITERAL1)
+#######################################
+
+softwareReset	KEYWORD2
+STANDARD	LITERAL1
+ALTERNATIVE	LITERAL1
+SKETCH	LITERAL1

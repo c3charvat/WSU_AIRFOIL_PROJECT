@@ -45,7 +45,7 @@ pinMode(MOTOR4_DIRECTION_PIN , OUTPUT);
 pinMode(MOTOR4_ENABLE , OUTPUT);
 // Extras 
 // pinMode(4, OUTPUT); // Fan Pin Initilization 
-pinMode(beeper, OUTPUT); // Beeper on LCD
+pinMode(BEEPER, OUTPUT); // Beeper on LCD
 pinMode(BUTTON, INPUT); // Encoder button
 pinMode(17, INPUT); // Encoder Move Direction
 pinMode(23, INPUT); // Encoder Move Direction 
