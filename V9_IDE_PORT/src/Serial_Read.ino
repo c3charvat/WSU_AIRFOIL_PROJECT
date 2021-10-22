@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Serial Read Functions~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~Serial Read Functions~~~~~~~~~~~~~~~~~~~
 void recvWithStartEndMarkers() {
   static boolean recvInProgress = false;
   static byte ndx = 0;
