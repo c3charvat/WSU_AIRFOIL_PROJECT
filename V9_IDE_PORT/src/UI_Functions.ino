@@ -1,12 +1,12 @@
 // Cutsom UI Functions Go Here
-
+void MAIN_MENU(){
 //MAIN MENU UI Function 
   // Head back to Main meanu
   current_selection = u8g2.userInterfaceSelectionList(   // Bings up the Main Menu
                         "Air Foil Control",
                         current_selection,
                         Main_menu);
-
+}
 //Serial UI Function 
 
 // potentiall replace the void pass in with a pass in of the postition variables? ~~~ Find way to make this refresh with every serial input
@@ -29,12 +29,12 @@ int SERIAL_UI (void){
     // End serial Stuff
     // Serial UI String Printout 
    String TempString0 = String(CurrentPositions[0]); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
-   TempString0 += " X Pos";
-   String TempString1 = String(CurrentPositions[1]); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
+   TempString0 += " X Pos"; // Just adding to the String here 
+      String TempString1 = String(CurrentPositions[1]); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
    TempString1 += " Y Pos";
       String TempString2 = String(CurrentPositions[2]); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
    TempString2 += " AoA Top";
-         String TempString3 = String(CurrentPositions[3]); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
+      String TempString3 = String(CurrentPositions[3]); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
    TempString3 += " AoA Bottom:";
     u8g2.clearBuffer();
     Draw_dialog(u8g2,0,0,128,64,"Serial Mode\n" ,TempString0,TempString1,TempString2,TempString3, "Return", false);
