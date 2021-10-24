@@ -1,4 +1,4 @@
-# WSU_AIRFOIL_PROJECT\
+# WSU_AIRFOIL_PROJECT
 Source code for the WSU Dual Airfoil Senior Design project.\
 The function of this project is to drive 5 steppers in the dsired mode.\
 They are:\
@@ -21,11 +21,11 @@ Spread-cycle or Silent Steptick enabled.\
 Full LCD implementation using SPI.\
 Full System UI, with user input enabled through an encoder.\
 FUTURE:\
-ARM Stm32f446ZE Branch with Custom PlatformIO implantation.\
+ARM Stm32f446ZE Branch with Custom PlatformIO implantation.
 
 Written by:\
 Collin C. Charvat\
 charvat.3@wright.edu\
 c3charvat@gmail.com\
 B.S. Mechanical Engineering, Wright State University. 22'\
-College of Engineering and Computer Science.\
+College of Engineering and Computer Science.
