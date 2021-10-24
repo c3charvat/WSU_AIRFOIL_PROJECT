@@ -3,21 +3,21 @@ Source code for the WSU Dual Airfoil Senior Design project.\
 Problem Statement:\
 Wright State graduate and undergraduate students would like to research\
 the affects of dual airfoils on lift and pressure across the airfoils.\
-The current set up for this system enables the user to set the angle
-of attack (AoA) on each of the airfoils as well as set gap and stagger between them.
-The gap and stagger motion is provided by electrical actuators moving on plastic 
-linear berrings driven by a Texas Instruments DAQ. Programed in LabVIEW.
+The current set up for this system enables the user to set the angle\
+of attack (AoA) on each of the airfoils as well as set gap and stagger between them.\
+The gap and stagger motion is provided by electrical actuators moving on plastic \
+linear berrings driven by a Texas Instruments DAQ. Programed in LabVIEW.\
 The AoA was set manual via an arbitrary sharpy scale on a mental plate.
 
-This presented three major issues:
-Year to year no one could actually program, or control this system.
-This system proved to be non-repeatable. (A fundemtal characteristic of an experiment)
-Friction / system stiffness of the linear berrings further reduced the repeatability.
+This presented three major issues:\
+Year to year no one could actually program, or control this system.\
+This system proved to be non-repeatable. (A fundemtal characteristic of an experiment)\
+Friction / system stiffness of the linear berrings further reduced the repeatability.\
 Using arbitrary scale made the system qualitative.
 
 Key project Objectives:\
-*Document all decisions, reasoning, choices, code and files for year to year use.
-*Enable repeatability with a resolution of .1mm gap and stagger and .05* AoA.
+*Document all decisions, reasoning, choices, code and files for year to year use.\
+*Enable repeatability with a resolution of .1mm gap and stagger and .05* AoA.\
 *Use readily available parts to enable maintenance and keep the price down.
 
 The function of this project is to drive 5 steppers in the desired modes.\
@@ -26,7 +26,7 @@ LCD static- Motor move as soon as data is available from LCD\
 LCD Trigger - Motors wait on a "go" button to be pressed in the LCD\
 LCD W. Ext. T. - Motors wait on external physical trigger.\
 Serial - motors move as soon as serial data is a available.\
-Serial W. Ext. T. - Motors move on the press of an physical switch.\
+Serial W. Ext. T. - Motors move on the press of an physical switch.
 
 
 Key features:\
