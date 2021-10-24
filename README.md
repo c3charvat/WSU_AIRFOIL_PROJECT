@@ -17,5 +17,8 @@ Written in Arduino for ease of use for non code centered users.
 PlatformIO configured with nessary libraries installed 
 (remember to change the path of the libraries in platform.ini)
 Spread-cycle or Silent Steptick enabled.
-Full LCD implementation with SPI
-Full System UI.
+Full LCD implementation using SPI.
+Full System UI, with user input enabled through an encoder.
+FUTURE:
+ARM Stm32f446ZE Branch with Custom PlatformIO implantation.
+
