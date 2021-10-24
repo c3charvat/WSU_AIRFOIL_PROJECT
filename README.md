@@ -11,13 +11,12 @@ Key features:\
 Custom G code implementation.\
 Implemtiaton of Uart stepper control.\
 Native 256 and interpolated 256 micro stepping capable.\
-Spread Cycle or Silent Steptick enabled.\
+Selectable Spread Cycle or Silent Steptick enabled.\
 Low cost use of a 3d printer motherboard.\
 Written in Arduino for ease of use for non code centered users.\
 PlatformIO configured with nessary libraries provided.\
 (For year to year support of Senior design teams).\
 (remember to change the path of the libraries in platform.ini)\
-Spread-cycle or Silent Steptick enabled.\
 Full LCD implementation using SPI.\
 Full System UI, with user input enabled through an encoder.\
 FUTURE:\
