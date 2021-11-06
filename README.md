@@ -2,7 +2,7 @@
 Source code for the WSU Dual Airfoil Senior Design project.\
 Problem Statement:\
 Wright State graduate and undergraduate students would like to research\
-the affects of dual airfoils on lift and pressure across the airfoils.\
+the affects of dual airfoils on lift and pressure.\
 The current set up for this system enables the user to set the angle\
 of attack (AoA) on each of the airfoils as well as set gap and stagger between them.\
 The gap and stagger motion is provided by electrical actuators moving on plastic \
