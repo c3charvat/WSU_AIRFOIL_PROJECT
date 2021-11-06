@@ -1,10 +1,10 @@
 #include <Arduino.h>
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Error Messages ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void Angle_Error(int a) { // pass in an intager corresponding to the axis that has an error 
+bool  Angle_Error(int a) { // pass in an intager corresponding to the axis that has an error 
   uint8_t Error_selection;
   const char *Axis[4] = {"AoA Top\n", "AoA Bottom\n", "X Axis\n", "Y Axis\n"};
-  Error_selection = u8g2.userInterfaceMessage("Error:", Axis[a], "input is over the max allowed\n", Error_String);  // make this more comprhensive
+  Error_selection = u8g2.userInterfaceMessage("Error:", Axis[a-1], "input is over the max allowed\n", Error_String);  // make this more comprhensive
   // if Com_selection = 1 the selction is serial
   //    Go to a satic screen with the read outs of each Stepper and "LCD" mode button that retuns to main menu
   // if Com_selectio == 2 selection is LCD
@@ -12,11 +12,12 @@ void Angle_Error(int a) { // pass in an intager corresponding to the axis that h
 
   if ( Error_selection == 1) {
     // Ok go back to where the function was called from This option works because where this error is called 
-    return;
+    return 0;
   }
   if ( Error_selection == 2) {
     // Head back to Main meanu
     MAIN_MENU();
+    return 0;
   }
 }
 void Somthing_Error(void) {
@@ -38,7 +39,7 @@ void Somthing_Error(void) {
   }
   if ( Error_selection ==3){
     // Hard Restart
-    softwareReset::standard();
+    //softwareReset::standard();
   }
 }
 void Parsing_Error(void){
