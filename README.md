@@ -41,7 +41,7 @@ PlatformIO configured with nessary libraries provided.\
 (remember to change the path of the libraries in platform.ini)\
 Full LCD implementation using SPI.\
 Full System UI, with user input enabled through an encoder.\
-FUTURE:\
+Prosessor and IDE:\
 ARM Stm32f446ZE Branch with Custom PlatformIO implantation.
 
 Written by:\
