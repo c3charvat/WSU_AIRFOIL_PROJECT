@@ -1,4 +1,4 @@
-# WSU_AIRFOIL_PROJECT
+# WRIGHT STATE DUAL AIRFOIL_PROJECT
 Source code for the WSU Dual Airfoil Senior Design project.\
 Problem Statement:\
 Wright State graduate and undergraduate students would like to research\
