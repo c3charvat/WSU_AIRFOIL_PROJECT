@@ -1,6 +1,6 @@
 # WRIGHT STATE DUAL AIRFOIL PROJECT
 Source code for the WSU Dual Airfoil Senior Design project.\
-Problem Statement:\
+# Problem Statement:
 Wright State graduate and undergraduate students would like to research\
 the affects of dual airfoils on lift and pressure.\
 The current set up for this system enables the user to set the angle\
