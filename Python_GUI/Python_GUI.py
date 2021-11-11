@@ -737,7 +737,9 @@ def setPort(event):
 def hideSetting(event):  # hide the settings menu
 	settingDlg.destroy()
 
-rowSplit = 7
+def moveButton(val):
+     # do Some Stuff here 
+
 
 if __name__ == '__main__':
 	APP_TITLE = 'AirFoil Control GUI'
@@ -775,6 +777,9 @@ if __name__ == '__main__':
 	### Root Function ###
 	root = tk.Tk()
 	root.title(APP_TITLE) # PaneWindow
+	root.geometry('800x600')
+	root.resizable(False,False)
+	root.configure(bg='#dddddd')
 	try:
 		ico = tk.PhotoImage(file=fname+'.png')
 	except:
@@ -787,25 +792,29 @@ if __name__ == '__main__':
 	showTimestampVar = tk.BooleanVar()
 	showSentTextVar = tk.BooleanVar()
 	dispHexVar = tk.BooleanVar()
-
+	rowSplit = 8
+    # Grid Initilization 
 	# lock the space between the input bar and the text box *Input bar
 	tk.Grid.rowconfigure(root, 0, weight=1)
 	# Expand the text box as the sreen expands
-	tk.Grid.rowconfigure(root, 1, weight=10)
-	tk.Grid.rowconfigure(root, 2, weight=10)
-	tk.Grid.rowconfigure(root, 3, weight=10)
-	tk.Grid.rowconfigure(root, 4, weight=10)
+	tk.Grid.rowconfigure(root, 1, weight=1)
+	tk.Grid.rowconfigure(root, 2, weight=1)
+	tk.Grid.rowconfigure(root, 3, weight=1)
+	tk.Grid.rowconfigure(root, 4, weight=1)
 	tk.Grid.rowconfigure(root, 5, weight=1) 
 	tk.Grid.rowconfigure(root, 6, weight=1) # Start bottom Rows : Send Box
-	tk.Grid.rowconfigure(root, 7, weight=50) # Serial Text box
+	tk.Grid.rowconfigure(root, 7, weight=1) # Serial Text box
 	tk.Grid.rowconfigure(root, 8, weight=1)  # Select port stuff 
 	tk.Grid.rowconfigure(root, 9, weight=1)
-	
+	tk.Grid.rowconfigure(root, 10, weight=1)
+	tk.Grid.rowconfigure(root, 11, weight=1)
+	tk.Grid.rowconfigure(root, 12, weight=1)
+	tk.Grid.rowconfigure(root, 13, weight=1)
 
 	tk.Grid.columnconfigure(root, 0, weight=1)
 	tk.Grid.columnconfigure(root, 1, weight=1)
 	tk.Grid.columnconfigure(root, 2, weight=1)
-	tk.Grid.columnconfigure(root, 3, weight=50)
+	tk.Grid.columnconfigure(root, 3, weight=1)
 	tk.Grid.columnconfigure(root, 4, weight=1)
 	tk.Grid.columnconfigure(root, 5, weight=1)
 	tk.Grid.columnconfigure(root, 6, weight=1)
@@ -817,30 +826,54 @@ if __name__ == '__main__':
 	txText.bind('<Down>', downKeyCmd)
 	txText.bind('<Button-3>', showTxTextMenu)
 	
- 
+ ## Begin Movment mode 
+	# Enter Button Code
+	
 	# Radio Button Code 
-	v = tk.IntVar()
-	v.set(1)
+	radioBtn1Select = tk.IntVar()
+	radioBtn2Select= tk.IntVar()
+	
  # initializing the choice, i.e. Python
-	languages = [("Python",0),
-			("Perl", 1),
-			("Java", 2),
-			("C++", 3),
-			("C", 4)]
-	frame = LabelFrame(root, text='Select Beverage', padx=10,pady=2, bg= '#dddddd')
-	for language, val in languages:
-		radioBtn=tk.Radiobutton(frame, 
-					text=language,
+	Increment = [(".05",0),
+			(".1", 1),
+			("1", 2),
+			("10", 3),
+			("100", 4)]
+	Axis = [("X Axis", 0),
+         ("Y Axis", 1),
+         ("AoA Top", 2),
+         ("AoA Bottom", 3),
+         ("Move X&Y",4),
+         ("Move AoAT&B",5)]
+	frame1 = LabelFrame(root, text='''Movment Ammount''',padx=3,pady=2, bg= '#dddddd')
+	frame1.grid(row=0,column=0,rowspan=5)
+	frame2 = LabelFrame(root, text='''Movment Ammount''', padx=3,pady=2, bg= '#dddddd')
+	frame2.grid(row=0,column=1,rowspan=6)
+	for Increment, val in Increment:
+		radioBtn1=tk.Radiobutton(frame1, 
+					text=Increment,
 					indicatoron = 0,
 					padx = 2, 
 					width=10,
-					variable=v, 
+					variable=radioBtn1Select, 
 					value=val)
-		radioBtn.grid(row=2+val,column=0, padx=4, pady=2,sticky=tk.NW )
-	frame.grid(row=0,column=0)
- 
- 
+		radioBtn1.grid(row=1+val,column=0, padx=20, pady=2,sticky=tk.NW )
+	for Axis, val in Axis:
+		radioBtn2=tk.Radiobutton(frame2, 
+					text=Axis,
+					indicatoron = 0,
+					padx = 2, 
+					width=15,
+					variable=radioBtn2Select, 
+					value=val)
+		radioBtn2.grid(row=1+val,column=1, padx=20, pady=2,sticky=tk.NW )
 	# End Radio button code 
+	MoveBtn = tk.Button(root, width=10,height=4, text='Move',
+						state=tk.DISABLED, command= moveButton)
+	MoveBtn.grid(row=3, column=3, padx=4, pady=4)
+ 
+ 
+ ## End Movment UI Code 
 	sendBtn = tk.Button(root, width=12, text='Send',
 						state=tk.DISABLED, command=lambda: sendCmd(None))
 	sendBtn.grid(row=0+rowSplit, column=6, padx=4, pady=4, sticky=tk.NE)
