@@ -1,3 +1,5 @@
+#https://wiki.python.org/moin/TkInter
+#https://towardsdatascience.com/top-10-python-gui-frameworks-for-developers-adca32fbe6fc
 from tkinter import *
 
 root = Tk()
