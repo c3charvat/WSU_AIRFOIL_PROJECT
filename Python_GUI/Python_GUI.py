@@ -738,7 +738,8 @@ def hideSetting(event):  # hide the settings menu
 	settingDlg.destroy()
 
 def moveButton(val):
-     # do Some Stuff here 
+     # do Some Stuff here
+     a=1
 
 
 if __name__ == '__main__':
@@ -845,9 +846,10 @@ if __name__ == '__main__':
          ("AoA Bottom", 3),
          ("Move X&Y",4),
          ("Move AoAT&B",5)]
+	
 	frame1 = LabelFrame(root, text='''Movment Ammount''',padx=3,pady=2, bg= '#dddddd')
 	frame1.grid(row=0,column=0,rowspan=5)
-	frame2 = LabelFrame(root, text='''Movment Ammount''', padx=3,pady=2, bg= '#dddddd')
+	frame2 = LabelFrame(root, text='Axis Select', padx=3,pady=2, bg= '#dddddd')
 	frame2.grid(row=0,column=1,rowspan=6)
 	for Increment, val in Increment:
 		radioBtn1=tk.Radiobutton(frame1, 
