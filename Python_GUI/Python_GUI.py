@@ -1,5 +1,5 @@
-#https://wiki.python.org/moin/TkInter
-#https://towardsdatascience.com/top-10-python-gui-frameworks-for-developers-adca32fbe6fc
+# https://wiki.python.org/moin/TkInter
+# https://towardsdatascience.com/top-10-python-gui-frameworks-for-developers-adca32fbe6fc
 # from tkinter import *
 
 # root = Tk()
@@ -16,7 +16,7 @@
 # mylabel1.grid(row=0,column=0)
 # mylabel2.grid(row=1,column=0)
 # mybutton.grid(row=2,column=0)
-# # creating an event loop 
+# # creating an event loop
 # root.mainloop()
 
 ######################################################################################
@@ -290,56 +290,66 @@
 # root.mainloop()  # Stating the main loop / Thread
 
 import tkinter as tk
-from tkinter import ttk as ttk
+from tkinter import Button, Label, ttk as ttk
 from tkinter import scrolledtext as tkscroll
 from tkinter import messagebox as msgbox
+from tkinter import *
 import serial
 import serial.tools.list_ports as list_ports
 import time
 import json
 
-def get_str_of_chr(chr_in_byte): # converts revived data into the approprate charcter 
-	cd = ord(chr_in_byte) # ord converts a chacter into its hex value
-	if 0x20 <= cd and cd <= 0x7e or 0xa1 <= cd: # if the chacters is less than or equal to 0x20 raw encoding (space) and (less than  = the "~" 0x7e OR less than inverted bang 0xA1)
-		if cd == 92: # if the character is a \
+
+def get_str_of_chr(chr_in_byte):  # converts revived data into the approprate charcter
+	cd = ord(chr_in_byte)  # ord converts a chacter into its hex value
+	# if the chacters is less than or equal to 0x20 raw encoding (space) and (less than  = the "~" 0x7e OR less than inverted bang 0xA1)
+	if 0x20 <= cd and cd <= 0x7e or 0xa1 <= cd:
+		if cd == 92:  # if the character is a \
 			return '\\\\'
-		return chr(cd) # Else retun the chacter of the ord number 
+		return chr(cd)  # Else retun the chacter of the ord number
 	else:
 		if cd == 9:     # if its a Tab
-			return '\t' 
-		elif cd == 10: # if its a new line 
+			return '\t'
+		elif cd == 10:  # if its a new line
 			return '\n'
-		elif cd == 13: # if its a Carriage return 
+		elif cd == 13:  # if its a Carriage return
 			return '\\r'
-	return '\\x{:02x}'.format(cd) # \\ prints a backslash, x prints an x and {:02x prints the hex of the ASCII 2 charcter  }
+	# \\ prints a backslash, x prints an x and {:02x prints the hex of the ASCII 2 charcter  }
+	return '\\x{:02x}'.format(cd)
+
 
 def get_hexstr_of_chr(chr_in_byte):
-	cd = ord(chr_in_byte)      # find the hex of the chacter passed in 
-	st = '{:02X}'.format(cd)   # Format the chacter passed in see above 
-	if cd == 10:             # if we have a new line charcter 
+	cd = ord(chr_in_byte)      # find the hex of the chacter passed in
+	st = '{:02X}'.format(cd)   # Format the chacter passed in see above
+	if cd == 10:             # if we have a new line charcter
 		st += '\n'          # add the new line character ot the end of the string
 	else:
-		st += ' '  # otherwise put a space 
+		st += ' '  # otherwise put a space
 	return st
+
 
 def is_hex_digit(a_byte):
 	return b'0' <= a_byte and a_byte <= b'9' or b'A' <= a_byte and a_byte <= b'F' or b'a' <= a_byte and a_byte <= b'f'
 
+
 def is_oct_digit(a_byte):
 	return b'0' <= a_byte and a_byte <= b'7'
 
+
 def decode_esc(str_of_chr):
-	sbs = bytes([ord(c) for c in str_of_chr]) # for the number of characters in the string loop throught and convert them to a byte 
-	dbs = b'' # create and enpty byte 
-	err = None # error state
-	idx = 0 # index
-	while idx < len(sbs): # while less than the length of the byte array
-		by = sbs[idx:idx+1] # here we make an array of the current byte and the next one 
+	# for the number of characters in the string loop throught and convert them to a byte
+	sbs = bytes([ord(c) for c in str_of_chr])
+	dbs = b''  # create and enpty byte
+	err = None  # error state
+	idx = 0  # index
+	while idx < len(sbs):  # while less than the length of the byte array
+		# here we make an array of the current byte and the next one
+		by = sbs[idx:idx+1]
 		if by == b'\\':     # if the byte is the \\ meaning the ending bytes has been reached "\\r\n" or similar
 			idx += 1        # We increment forward by one byte to look at the ending bytes
-			by = sbs[idx:idx+1] # take in the new ending bytes
-			if by == b'\\' or by == b"'" or by == b'"':  # if the bytes in the array are " or ' or \\ 
-				dbs += by   # add them to the byte string 
+			by = sbs[idx:idx+1]  # take in the new ending bytes
+			if by == b'\\' or by == b"'" or by == b'"':  # if the bytes in the array are " or ' or \\
+				dbs += by   # add them to the byte string
 			elif by == b'0' and not is_oct_digit(sbs[idx+1:idx+2]):
 				dbs += b'\0'
 			elif by == b'a':
@@ -357,12 +367,14 @@ def decode_esc(str_of_chr):
 			elif by == b'r':
 				dbs += b'\r'
 			elif by == b'x':
-				if is_hex_digit(sbs[idx+1:idx+2]): # if its not one of special charcters above 
+				# if its not one of special charcters above
+				if is_hex_digit(sbs[idx+1:idx+2]):
 					if is_hex_digit(sbs[idx+2:idx+3]):
 						dbs += bytes([int(sbs[idx+1:idx+3], 16)])
 						idx += 3
 						continue
-				err = {'from': idx-1, 'to': idx+3, 'msg': f'Value Error: invalid {str_of_chr[idx-1:idx+3]} escape at position {idx-1}'}
+				err = {'from': idx-1, 'to': idx+3,
+					   'msg': f'Value Error: invalid {str_of_chr[idx-1:idx+3]} escape at position {idx-1}'}
 				break
 			elif is_oct_digit(by):
 				od = 1
@@ -384,12 +396,14 @@ def decode_esc(str_of_chr):
 				else:
 					ch = ''
 					to = idx
-				err = {'from': idx-1, 'to': to, 'msg': f"Syntax Error: invalid escape sequence '\\{ch}' at position {idx-1}"}
+				err = {'from': idx-1, 'to': to,
+					   'msg': f"Syntax Error: invalid escape sequence '\\{ch}' at position {idx-1}"}
 				break
 		else:
 			dbs += by
 		idx += 1
 	return dbs, err
+
 
 def sendCmd(event):
 	global sentTexts, sentTextsPtr
@@ -408,7 +422,7 @@ def sendCmd(event):
 		if lst > 0 and sentTexts[lst-1] != txt or lst == 0:
 			sentTexts.append(txt)
 		sentTextsPtr = len(sentTexts)
-		if lineEndingCbo.current() == 1:   #line ending data
+		if lineEndingCbo.current() == 1:  # line ending data
 			bs += b'\n'
 		elif lineEndingCbo.current() == 2:
 			bs += b'\r'
@@ -423,6 +437,7 @@ def sendCmd(event):
 			writeConsole(txt, 1)
 		txText.delete(0, tk.END)
 
+
 def upKeyCmd(event):
 	global sentTextsPtr, lastTxText
 	if sentTextsPtr == len(sentTexts):
@@ -431,6 +446,7 @@ def upKeyCmd(event):
 		sentTextsPtr -= 1
 		txText.delete(0, tk.END)
 		txText.insert(tk.END, sentTexts[sentTextsPtr])
+
 
 def downKeyCmd(event):
 	global sentTextsPtr
@@ -441,6 +457,7 @@ def downKeyCmd(event):
 			txText.insert(tk.END, lastTxText)
 		else:
 			txText.insert(tk.END, sentTexts[sentTextsPtr])
+
 
 def changePort(event):
 	global portDesc
@@ -469,8 +486,10 @@ def changePort(event):
 		writeConsole('done.\n', 2)
 		#msgbox.showinfo(APP_TITLE, '{} opened.'.format(portDesc))
 
+
 def changeBaudrate(event):
 	currentPort.baudrate = BAUD_RATES[baudrateCbo.current()]
+
 
 def clearOutputCmd():
 	global isEndByNL, lastUpdatedBy
@@ -480,11 +499,12 @@ def clearOutputCmd():
 	isEndByNL = True
 	lastUpdatedBy = 2
 
+
 def showTxTextMenu(event):
 	if txText.selection_present():
-		sta=tk.NORMAL
+		sta = tk.NORMAL
 	else:
-		sta=tk.DISABLED
+		sta = tk.DISABLED
 	for i in range(2):
 		txTextMenu.entryconfigure(i, state=sta)
 	try:
@@ -496,6 +516,7 @@ def showTxTextMenu(event):
 		txTextMenu.tk_popup(event.x_root, event.y_root)
 	finally:
 		txTextMenu.grab_release()
+
 
 def showRxTextMenu(event):
 	if len(rxText.tag_ranges(tk.SEL)):
@@ -511,12 +532,14 @@ def showRxTextMenu(event):
 	finally:
 		rxTextMenu.grab_release()
 
+
 def writeConsole(txt, upd=0):
 	global isEndByNL, lastUpdatedBy
 	tm = ''
 	ad = ''
 	if upd != 2 and showTimestampVar.get():
-		tm = time.strftime('%H:%M:%S.{}'.format(repr(time.time()).split('.')[1][:3]))
+		tm = time.strftime('%H:%M:%S.{}'.format(
+			repr(time.time()).split('.')[1][:3]))
 	if not upd:
 		if not lastUpdatedBy and isEndByNL or lastUpdatedBy:
 			if showSentTextVar.get() and showTimestampVar.get():
@@ -545,7 +568,7 @@ def writeConsole(txt, upd=0):
 				ad += '\n'
 	else:
 		return
-	if upd !=2 and lastUpdatedBy == 2:
+	if upd != 2 and lastUpdatedBy == 2:
 		ad = '\n' + ad
 	ad += txt
 	rxText.configure(state=tk.NORMAL)
@@ -559,49 +582,56 @@ def writeConsole(txt, upd=0):
 		isEndByNL = False
 	lastUpdatedBy = upd
 
-def rxPolling(): # Pull Data in 
+
+def rxPolling():  # Pull Data in
 	if not currentPort.is_open:
 		return
 	preset = time.perf_counter_ns()
 	try:
-		while currentPort.in_waiting > 0 and time.perf_counter_ns()-preset < 2000000: # loop duration about 2ms
-			ch = currentPort.read() # read the current data on the port
-			tm = time.strftime('%H:%M:%S.{}'.format(repr(time.time()).split('.')[1][:3]))
+		while currentPort.in_waiting > 0 and time.perf_counter_ns()-preset < 2000000:  # loop duration about 2ms
+			ch = currentPort.read()  # read the current data on the port
+			tm = time.strftime('%H:%M:%S.{}'.format(
+				repr(time.time()).split('.')[1][:3]))
 			txt = ''
-			if dispHexVar.get(): # If display in Hex is true turn the chacter to it hex value
+			if dispHexVar.get():  # If display in Hex is true turn the chacter to it hex value
 				txt += get_hexstr_of_chr(ch)
-			else: # else of the chacter is desired in a string convert the 
+			else:  # else of the chacter is desired in a string convert the
 				txt += get_str_of_chr(ch)
 			writeConsole(txt)
 	except serial.SerialException as se:
 		closePort()
-		msgbox.showerror(APP_TITLE, "Couldn't access the {} port".format(portDesc))
-	root.after(10, rxPolling) # polling in 10ms interval
+		msgbox.showerror(
+			APP_TITLE, "Couldn't access the {} port".format(portDesc))
+	root.after(10, rxPolling)  # polling in 10ms interval
 
-def listPortsPolling(): # list the current Com Ports avalible 
+
+def listPortsPolling():  # list the current Com Ports avalible
 	global ports
 	ps = {p.name: p.description for p in list_ports.comports()}
 	pn = sorted(ps)
 	if pn != portCbo['values']:
 		portCbo['values'] = pn
-		if len(ports) == 0: # if no port before
+		if len(ports) == 0:  # if no port before
 			portCbo['state'] = 'readonly'
 			portCbo.set('Select port')
 			enableSending()
-		elif len(pn) == 0: # now if no port
+		elif len(pn) == 0:  # now if no port
 			portCbo['state'] = tk.DISABLED
 			portCbo.set('No port')
 			disableSending()
 		ports = ps
-	root.after(1000, listPortsPolling) # polling every 1 second
+	root.after(1000, listPortsPolling)  # polling every 1 second
+
 
 def disableSending():
 	sendBtn['state'] = tk.DISABLED
 	txText.unbind('<Return>')
 
+
 def enableSending():
 	sendBtn['state'] = tk.NORMAL
 	txText.bind('<Return>', sendCmd)
+
 
 def closePort():
 	if currentPort.is_open:
@@ -612,8 +642,10 @@ def closePort():
 		portCbo.set('Select port')
 		root.title(APP_TITLE)
 
+
 def showAbout():
 	msgbox.showinfo(APP_TITLE, 'Designed by ZulNs\n@Gorontalo, 13 April 2021')
+
 
 def exitRoot():
 	data = {}
@@ -633,7 +665,8 @@ def exitRoot():
 		jfile.close()
 	root.destroy()
 
-def setting():
+
+def setting():  # settings Menu
 	global settingDlg, dataBitsCbo, parityCbo, stopBitsCbo
 	settingDlg = tk.Toplevel()
 	settingDlg.title('Port Setting')
@@ -646,9 +679,12 @@ def setting():
 	tk.Grid.columnconfigure(settingDlg, 0, weight=1)
 	tk.Grid.columnconfigure(settingDlg, 1, weight=1)
 	tk.Grid.columnconfigure(settingDlg, 2, weight=1)
-	tk.Label(settingDlg, text='Data bits:').grid(row=0, column=1, padx=0, pady=12, sticky=tk.NE)
-	tk.Label(settingDlg, text='Parity:').grid(row=1, column=1, padx=0, pady=0, sticky=tk.NS+tk.E)
-	tk.Label(settingDlg, text='Stop bits:').grid(row=2, column=1, padx=0, pady=12, sticky=tk.NE)
+	tk.Label(settingDlg, text='Data bits:').grid(
+		row=0, column=1, padx=0, pady=12, sticky=tk.NE)
+	tk.Label(settingDlg, text='Parity:').grid(
+		row=1, column=1, padx=0, pady=0, sticky=tk.NS+tk.E)
+	tk.Label(settingDlg, text='Stop bits:').grid(
+		row=2, column=1, padx=0, pady=12, sticky=tk.NE)
 	dataBitsCbo = ttk.Combobox(settingDlg, width=10, state='readonly')
 	dataBitsCbo.grid(row=0, column=2, padx=12, pady=12, sticky=tk.NE)
 	dataBitsCbo['values'] = DATABITS
@@ -663,9 +699,10 @@ def setting():
 	stopBitsCbo.set(currentPort.stopbits)
 	tk.Button(settingDlg, text='Default', width=10, command=defaultSetting).\
 		grid(row=1, column=0, padx=12, pady=0, sticky=tk.NS+tk.W)
-	tk.Button(settingDlg, text='OK', width=10, command=lambda:setPort(None)).\
+	tk.Button(settingDlg, text='OK', width=10, command=lambda: setPort(None)).\
 		grid(row=3, column=1, padx=0, pady=12, sticky=tk.S)
-	cancelBtn = tk.Button(settingDlg, text='Cancel', width=10, command=lambda:hideSetting(None))
+	cancelBtn = tk.Button(settingDlg, text='Cancel',
+						  width=10, command=lambda: hideSetting(None))
 	cancelBtn.grid(row=3, column=2, padx=12, pady=12, sticky=tk.S)
 	settingDlg.bind('<Return>', setPort)
 	settingDlg.bind('<Escape>', hideSetting)
@@ -683,10 +720,12 @@ def setting():
 	settingDlg.grab_set()
 	cancelBtn.focus_set()
 
+
 def defaultSetting():
 	dataBitsCbo.set(serial.EIGHTBITS)
 	parityCbo.current(PARITY.index(serial.PARITY_NONE))
 	stopBitsCbo.set(serial.STOPBITS_ONE)
+
 
 def setPort(event):
 	currentPort.bytesize = DATABITS[dataBitsCbo.current()]
@@ -694,18 +733,27 @@ def setPort(event):
 	currentPort.stopbits = STOPBITS[stopBitsCbo.current()]
 	settingDlg.destroy()
 
-def hideSetting(event):
+
+def hideSetting(event):  # hide the settings menu
 	settingDlg.destroy()
 
+rowSplit = 7
+
 if __name__ == '__main__':
-	APP_TITLE = 'Serial Monitor'
-	BAUD_RATES = (300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 76800, 115200, 23040, 500000, 1000000, 2000000)
-	DATABITS = (serial.FIVEBITS, serial.SIXBITS, serial.SEVENBITS, serial.EIGHTBITS)
-	PARITY = (serial.PARITY_EVEN, serial.PARITY_ODD, serial.PARITY_NONE, serial.PARITY_MARK, serial.PARITY_SPACE)
+	APP_TITLE = 'AirFoil Control GUI'
+	BAUD_RATES = (300, 1200, 2400, 4800, 9600, 19200, 38400, 57600,
+				  76800, 115200, 23040, 500000, 1000000, 2000000)
+	# set serial Data bit size see: https://pythonhosted.org/pyserial/pyserial_api.html
+	DATABITS = (serial.FIVEBITS, serial.SIXBITS,
+				serial.SEVENBITS, serial.EIGHTBITS)
+	PARITY = (serial.PARITY_EVEN, serial.PARITY_ODD,
+			  serial.PARITY_NONE, serial.PARITY_MARK, serial.PARITY_SPACE)
 	PARITY_VAL = ('Even', 'Odd', 'None', 'Mark', 'Space')
-	STOPBITS = (serial.STOPBITS_ONE, serial.STOPBITS_ONE_POINT_FIVE, serial.STOPBITS_TWO)
+	STOPBITS = (serial.STOPBITS_ONE,
+				serial.STOPBITS_ONE_POINT_FIVE, serial.STOPBITS_TWO)
 	ports = {p.name: p.description for p in list_ports.comports()}
-	currentPort = serial.Serial(port=None, baudrate=9600, timeout=0, write_timeout=0)
+	currentPort = serial.Serial(
+		port=None, baudrate=9600, timeout=0, write_timeout=0)
 	portDesc = ''
 	sentTexts = []
 	sentTextsPtr = 0
@@ -724,10 +772,11 @@ if __name__ == '__main__':
 	if jfile:
 		jfile.close()
 
+	### Root Function ###
 	root = tk.Tk()
-	root.title(APP_TITLE)
+	root.title(APP_TITLE) # PaneWindow
 	try:
-		ico = tk.PhotoImage(file = fname+'.png')
+		ico = tk.PhotoImage(file=fname+'.png')
 	except:
 		pass
 	if ico:
@@ -739,51 +788,91 @@ if __name__ == '__main__':
 	showSentTextVar = tk.BooleanVar()
 	dispHexVar = tk.BooleanVar()
 
+	# lock the space between the input bar and the text box *Input bar
 	tk.Grid.rowconfigure(root, 0, weight=1)
-	tk.Grid.rowconfigure(root, 1, weight=999)
-	tk.Grid.rowconfigure(root, 2, weight=1)
+	# Expand the text box as the sreen expands
+	tk.Grid.rowconfigure(root, 1, weight=10)
+	tk.Grid.rowconfigure(root, 2, weight=10)
+	tk.Grid.rowconfigure(root, 3, weight=10)
+	tk.Grid.rowconfigure(root, 4, weight=10)
+	tk.Grid.rowconfigure(root, 5, weight=1) 
+	tk.Grid.rowconfigure(root, 6, weight=1) # Start bottom Rows : Send Box
+	tk.Grid.rowconfigure(root, 7, weight=50) # Serial Text box
+	tk.Grid.rowconfigure(root, 8, weight=1)  # Select port stuff 
+	tk.Grid.rowconfigure(root, 9, weight=1)
+	
 
 	tk.Grid.columnconfigure(root, 0, weight=1)
 	tk.Grid.columnconfigure(root, 1, weight=1)
 	tk.Grid.columnconfigure(root, 2, weight=1)
-	tk.Grid.columnconfigure(root, 3, weight=999)
+	tk.Grid.columnconfigure(root, 3, weight=50)
 	tk.Grid.columnconfigure(root, 4, weight=1)
 	tk.Grid.columnconfigure(root, 5, weight=1)
 	tk.Grid.columnconfigure(root, 6, weight=1)
 
 	txText = tk.Entry(root)
-	txText.grid(row=0, column=0, columnspan=6, padx=4, pady=8, sticky=tk.N+tk.EW)
+	txText.grid(row=0+rowSplit, column=0, columnspan=6,
+				padx=4, pady=8, sticky=tk.N+tk.EW)
 	txText.bind('<Up>', upKeyCmd)
 	txText.bind('<Down>', downKeyCmd)
 	txText.bind('<Button-3>', showTxTextMenu)
+	
+ 
+	# Radio Button Code 
+	v = tk.IntVar()
+	v.set(1)
+ # initializing the choice, i.e. Python
+	languages = [("Python",0),
+			("Perl", 1),
+			("Java", 2),
+			("C++", 3),
+			("C", 4)]
+	frame = LabelFrame(root, text='Select Beverage', padx=10,pady=2, bg= '#dddddd')
+	for language, val in languages:
+		radioBtn=tk.Radiobutton(frame, 
+					text=language,
+					indicatoron = 0,
+					padx = 2, 
+					width=10,
+					variable=v, 
+					value=val)
+		radioBtn.grid(row=2+val,column=0, padx=4, pady=2,sticky=tk.NW )
+	frame.grid(row=0,column=0)
+ 
+ 
+	# End Radio button code 
+	sendBtn = tk.Button(root, width=12, text='Send',
+						state=tk.DISABLED, command=lambda: sendCmd(None))
+	sendBtn.grid(row=0+rowSplit, column=6, padx=4, pady=4, sticky=tk.NE)
 
-	sendBtn = tk.Button(root, width=12, text='Send', state=tk.DISABLED, command=lambda:sendCmd(None))
-	sendBtn.grid(row=0, column=6, padx=4, pady=4, sticky=tk.NE)
-
-	rxText = tkscroll.ScrolledText(root, height=20, state=tk.DISABLED, font=('Courier', 10), wrap=tk.WORD)
-	rxText.grid(row=1, column=0, columnspan=7, padx=4, sticky=tk.NSEW)
+	rxText = tkscroll.ScrolledText(
+		root, height=20, state=tk.DISABLED, font=('Courier', 10), wrap=tk.WORD)
+	rxText.grid(row=1+rowSplit,column=0, columnspan=7, padx=4, sticky=tk.NSEW)
 	rxText.bind('<Button-3>', showRxTextMenu)
 
-	autoscrollCbt = tk.Checkbutton(root, text='Autoscroll', variable=autoscrollVar, onvalue=True, offvalue=False)
-	autoscrollCbt.grid(row=2, column=0, padx=4, pady=4, sticky=tk.SW)
+	autoscrollCbt = tk.Checkbutton(
+		root, text='Autoscroll', variable=autoscrollVar, onvalue=True, offvalue=False)
+	autoscrollCbt.grid(row=2+rowSplit, column=0, padx=4, pady=4, sticky=tk.SW)
 	di = data.get('autoscroll')
 	if di != None:
 		autoscrollVar.set(di)
 
-	showTimestampCbt = tk.Checkbutton(root, text='Show timestamp', variable=showTimestampVar, onvalue=True, offvalue=False)
-	showTimestampCbt.grid(row=2, column=1, padx=4, pady=4, sticky=tk.SW)
+	showTimestampCbt = tk.Checkbutton(
+		root, text='Show timestamp', variable=showTimestampVar, onvalue=True, offvalue=False)
+	showTimestampCbt.grid(row=2+rowSplit, column=1, padx=4, pady=4, sticky=tk.SW)
 	di = data.get('showtimestamp')
 	if di != None:
 		showTimestampVar.set(di)
 
-	showSentTextCbt = tk.Checkbutton(root, text='Show sent text', variable=showSentTextVar, onvalue=True, offvalue=False)
-	showSentTextCbt.grid(row=2, column=2, padx=4, pady=4, sticky=tk.SW)
+	showSentTextCbt = tk.Checkbutton(
+		root, text='Show sent text', variable=showSentTextVar, onvalue=True, offvalue=False)
+	showSentTextCbt.grid(row=2+rowSplit, column=2, padx=4, pady=4, sticky=tk.SW)
 	di = data.get('showsenttext')
 	if di != None:
 		showSentTextVar.set(di)
 
 	portCbo = ttk.Combobox(root, width=10)
-	portCbo.grid(row=2, column=3, padx=4, pady=4, sticky=tk.SE)
+	portCbo.grid(row=2+rowSplit, column=3, padx=4, pady=4, sticky=tk.SE)
 	portCbo.bind('<<ComboboxSelected>>', changePort)
 	portCbo['values'] = sorted(ports)
 	if len(ports) > 0:
@@ -794,8 +883,9 @@ if __name__ == '__main__':
 		portCbo.set('No port')
 
 	lineEndingCbo = ttk.Combobox(root, width=14, state='readonly')
-	lineEndingCbo.grid(row=2, column=4, padx=4, pady=4, sticky=tk.SE)
-	lineEndingCbo['values'] = ('No line ending', 'Newline', 'Carriage return', 'Both CR & NL')
+	lineEndingCbo.grid(row=2+rowSplit, column=4, padx=4, pady=4, sticky=tk.SE)
+	lineEndingCbo['values'] = (
+		'No line ending', 'Newline', 'Carriage return', 'Both CR & NL')
 	di = data.get('lineending')
 	if di != None:
 		lineEndingCbo.current(di)
@@ -803,7 +893,7 @@ if __name__ == '__main__':
 		lineEndingCbo.current(0)
 
 	baudrateCbo = ttk.Combobox(root, width=12, state='readonly')
-	baudrateCbo.grid(row=2, column=5, padx=4, pady=4, sticky=tk.SE)
+	baudrateCbo.grid(row=2+rowSplit, column=5, padx=4, pady=4, sticky=tk.SE)
 	baudrateCbo['values'] = list(str(b) + ' baud' for b in BAUD_RATES)
 	baudrateCbo.bind('<<ComboboxSelected>>', changeBaudrate)
 	di = data.get('baudrateindex')
@@ -811,23 +901,29 @@ if __name__ == '__main__':
 		baudrateCbo.current(di)
 		currentPort.baudrate = BAUD_RATES[di]
 	else:
-		baudrateCbo.current(4) # 9600 baud
+		baudrateCbo.current(4)  # 9600 baud
 		currentPort.baudrate = BAUD_RATES[4]
 
-	clearBtn = tk.Button(root, width=12, text='Clear output', command=clearOutputCmd)
-	clearBtn.grid(row=2, column=6, padx=4, pady=4, sticky=tk.SE)
+	clearBtn = tk.Button(
+		root, width=12, text='Clear output', command=clearOutputCmd)
+	clearBtn.grid(row=2+rowSplit, column=6, padx=4, pady=4, sticky=tk.SE)
 
 	txTextMenu = tk.Menu(txText, tearoff=0)
-	txTextMenu.add_command(label='Cut', accelerator='Ctrl+X', command=lambda:txText.event_generate('<<Cut>>'))
-	txTextMenu.add_command(label='Copy', accelerator='Ctrl+C', command=lambda:txText.event_generate('<<Copy>>'))
-	txTextMenu.add_command(label='Paste', accelerator='Ctrl+V', command=lambda:txText.event_generate('<<Paste>>'))
+	txTextMenu.add_command(label='Cut', accelerator='Ctrl+X',
+						   command=lambda: txText.event_generate('<<Cut>>'))
+	txTextMenu.add_command(label='Copy', accelerator='Ctrl+C',
+						   command=lambda: txText.event_generate('<<Copy>>'))
+	txTextMenu.add_command(label='Paste', accelerator='Ctrl+V',
+						   command=lambda: txText.event_generate('<<Paste>>'))
 
 	rxTextMenu = tk.Menu(rxText, tearoff=0)
-	rxTextMenu.add_command(label='Copy', accelerator='Ctrl+C', command=lambda:rxText.event_generate('<<Copy>>'))
+	rxTextMenu.add_command(label='Copy', accelerator='Ctrl+C',
+						   command=lambda: rxText.event_generate('<<Copy>>'))
 	rxTextMenu.add_separator()
 	rxTextMenu.add_command(label='Close active port', command=closePort)
 	rxTextMenu.add_separator()
-	rxTextMenu.add_checkbutton(label='Display in hexadecimal code', onvalue=True, offvalue=False, variable=dispHexVar)
+	rxTextMenu.add_checkbutton(label='Display in hexadecimal code',
+							   onvalue=True, offvalue=False, variable=dispHexVar)
 	rxTextMenu.add_separator()
 	rxTextMenu.add_command(label='Port setting', command=setting)
 	rxTextMenu.add_separator()
@@ -843,7 +939,7 @@ if __name__ == '__main__':
 	root.minsize(rw, 233)
 	root.geometry(f'{rw}x{rh}+{int((sw-rw)/2)}+{int((sh-rh)/2)-30}')
 	wtx =\
-"""
+		"""
 ************************************************************************************
 * Welcome to Python GUI Serial Monitor as an alternative to Arduino Serial Monitor *
 * Use up and down arrow keys to select previously-entered text from history list.  *
