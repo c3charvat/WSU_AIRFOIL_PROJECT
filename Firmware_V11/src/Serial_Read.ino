@@ -17,7 +17,7 @@ void recvWithStartEndMarkers()
   char rc;
   while (Serial.available() > 0 && newData == false)
   {
-    Serial.println("Got to while (Serial.available() > 0 && newData == false) in recvWithStartEndMarkers()"); // Debug output
+   // Serial.println("Got to while (Serial.available() > 0 && newData == false) in recvWithStartEndMarkers()"); // Debug output
     rc = Serial.read(); // Look at the next character 
     if (recvInProgress == true) // if we are recording 
     {
@@ -68,7 +68,7 @@ bool parseData()
   Serial.println("Got to parse data\n");
   char *strtokIndx; // this is used by strtok() as an index
   //char * LeadChar; // Getting the lead Charter of the command
-  float Temp_Pos[5] = {0, 0, 0, 0, 0};
+  float Temp_Pos[5] = {Xpos, Ypos, AoA[0], AoA[1], NULL};
   int Setting_Num;      // Acelleration = 0 Speed = 1
   int Temp_Settings[5]; // only passed into the global varible if this function completes sucessfully
 
@@ -170,11 +170,15 @@ bool parseData()
         // }
         // We are incrementing at the end of the loop so it stops before it could fall into the else statment when it reaches the end of the string
       }                             // End While loop
-    }                               // If it makes it out of the while loop with out getting kicked out
-    Position_Data[0] = Temp_Pos[0]; // set the global varibles
-    Position_Data[1] = Temp_Pos[1];
-    Position_Data[2] = Temp_Pos[2];
-    Position_Data[3] = Temp_Pos[3];
+    }                    // If it makes it out of the while loop with out getting kicked out
+    Xpos= Temp_Pos[0]; // set the global varibles
+    Ypos = Temp_Pos[1];
+    AoA[0]= Temp_Pos[2];
+    AoA[1] = Temp_Pos[3];
+    Serial.println(Xpos);
+    Serial.println(Ypos);
+    Serial.println(AoA[0]);
+    Serial.println(AoA[1]);
     Serial.println("Heading to \"MOVE_FUNCTION()\".");
     MOVE_FUNCTION();
     return true; // Tell the system that the function worked

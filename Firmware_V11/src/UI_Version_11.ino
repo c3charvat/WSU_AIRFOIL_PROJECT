@@ -98,6 +98,8 @@ uint8_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 float CurrentPositions[5] = {0, 0, 0, 0, 0}; // AoA_Top, AoA_Bottom,X,Y,E2  -> " E Z X Y E2 " // modified for new motherboard
 float movevar[5]={0,0,0,0,0}; // E ,Z, X, Y , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool Abs_pos_error= false;
+
 const char *Main_menu =     // Define the Main Menu options
   "X Movement\n"
   "Y Movement\n"
@@ -248,6 +250,14 @@ void loop(void) {
       movevar[1] = ABS_POS(Ypos, 2); // Y and Z Move  // Pull Data From LCD MENU VARIBLES
       movevar[2] = ABS_POS(AoA[0], 3); // E0 Move AoA Top
       movevar[3] = ABS_POS(AoA[1], 4); // E1 Move AoA Bottom
+      if (Abs_pos_error==true){
+      movevar[0] =0;
+      movevar[1] =0;
+      movevar[2] =0;
+      movevar[3] =0;
+      Go_Pressed = 0;
+      MAIN_MENU();
+      }
     Xstepper.setupRelativeMoveInSteps(movevar[0] / (Degree_per_step[0] / Micro_stepping[0]));
     Ystepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[1] / Micro_stepping[1]));
     Zstepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[1] / Micro_stepping[1]));
