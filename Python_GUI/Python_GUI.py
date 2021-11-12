@@ -12,6 +12,9 @@ import serial
 import serial.tools.list_ports as list_ports
 import time
 import json
+#import pandas as pd
+import csv
+import os
 
 
 def get_str_of_chr(chr_in_byte):  # converts revived data into the approprate charcter
@@ -358,7 +361,7 @@ def closePort():
 
 
 def showAbout():
-	msgbox.showinfo(APP_TITLE, 'Designed by ZulNs\n@Gorontalo, 13 April 2021')
+	msgbox.showinfo(APP_TITLE, 'Designed by Collin Charvat\n Monitor credit: ZulNs\n@Gorontalo,\n Fall 21`~Spring 22`')
 
 
 def exitRoot():
@@ -436,7 +439,7 @@ def setting():  # settings Menu
  
 def filePathSettings():  # settings Menu
 	global filePathDlg, filePath, pText
-	filePath = tk.StringVar()
+	#filePath = tk.StringVar()
 	#filePath="C:\\Users\\Collin\\Documents\\WSU_AIRFOIL_GITHUB\\WSU_AIRFOIL_PROJECT"
 	filePathDlg = tk.Toplevel()
 	filePathDlg.title('File Path Menu')
@@ -497,20 +500,134 @@ def setFilePath(event):
     filePath.set(txt)
     filePathDlg.destroy()
 
-	
-
-
 def hideSetting(event):  # hide the settings menu
 	settingDlg.destroy()
 
 def hideFilePath(event):  # hide the settings menu
 	filePathDlg.destroy()
 
-def moveButton(val):
-	 # do Some Stuff here
-	 a=1
 
+def moveButton(event):
+	# get the value of the Senario Radio button
+	index=scenariobBtnSelect.get()
+	tempstring=scenarioCommands[index]
+	txt = str(tempstring)
+	lst = len(sentTexts)
+	if txt == '{about}':
+		showAbout()
+	if txt != '':
+		bs, err = decode_esc(txt)
+		if err:
+			writeConsole(err['msg'] + '\n', 2)
+			txText.xview(err['from'])
+			txText.selection_range(err['from'], err['to'])
+			txText.icursor(err['to'])
+			return
+		if lst > 0 and sentTexts[lst-1] != txt or lst == 0:
+			sentTexts.append(txt)
+		sentTextsPtr = len(sentTexts)
+		if lineEndingCbo.current() == 1:  # line ending data
+			bs += b'\n'
+		elif lineEndingCbo.current() == 2:
+			bs += b'\r'
+		elif lineEndingCbo.current() == 3:
+			bs += b'\r\n'
+		currentPort.write(bs)
+		if showSentTextVar.get():
+			if dispHexVar.get():
+				txt = ''.join([get_hexstr_of_chr(bytes([i])) for i in bs])
+			else:
+				txt = ''.join([get_str_of_chr(bytes([i])) for i in bs])
+			writeConsole(txt, 1)
+		txText.delete(0, tk.END)
 
+  
+  
+  
+  
+def scenariobInit(event):
+    global file, scenarioCommands
+    scenarioCommands=[]
+    header=[]
+    rows=[]
+    #print(portCbo.current()) debug
+    if portCbo.current() == -1:
+        msgbox.showwarning("Error 1", "Warning:\n Set Your Port Before Clicking Init.")
+        return
+    # Disable the button 
+    scenarioInitBtn['state'] = tk.DISABLED
+    # Begin Read code
+    isFilePathSet=bool(filePath.get()) # if the currently set path is empty 
+    # if error -> Display message -> "Could not open the CSV File\n Check the File Path!"-> Re enable the init button
+    #else we are going to read the file
+    if isFilePathSet == True:
+        # in here w go to the requested file set in the path menu
+        try:
+        	file = open(filePath,"r")
+        	csvreader = csv.reader(file)
+        except FileNotFoundError:
+            msgbox.showwarning("Error 1", "Warning:\n File Not Found!! Check Your Set Path")
+            scenarioInitBtn['state'] = tk.NORMAL
+            return
+        else:
+            pass
+    else:
+        # here we are going to the local path contined in this file
+        script_path = os.path.abspath(__file__)  # i.e. /path/to/dir/foobar.py
+        script_dir = os.path.split(script_path)[0]  # i.e. /path/to/dir/
+        rel_path =r'Scenariodata.csv'
+        abs_file_path = os.path.join(script_dir, rel_path)
+        #print(abs_file_path) Debug
+        # open the file
+        try:
+        	file = open(abs_file_path,"r")
+        	csvreader = csv.reader(file)
+        except FileNotFoundError:
+        	msgbox.showwarning("Error 2", "Warning:\n File Not Found!! Check Your Set Path")
+        	scenarioInitBtn['state'] = tk.NORMAL
+        	return
+        else:
+            pass
+    # begin reading the file
+    header=next(csvreader)
+    i=0
+    for row in csvreader:
+        rows.append(row) # read one row at a time and shove it into the array
+    	# read the # of Rows -> if the Number of rows is >7 then -> 
+        if i > 7:
+            # display disp message -> "More senarios found than able to display\n Be careful that the data you want is in the correct format!"
+            msgbox.showwarning("More Rows dtected than can be used", "Warning:\n More Rows detected Than can be used!\n Check formatting\n Program Will Continue")
+            i=i+1
+    file.close() # close he file  we are done with it and it occupies a thread. 
+    # Translate the data into G code and store it in te varible scenariocommands
+    i=0
+    for row in rows:
+        tempvarX=rows[i][1] # Zero position is a label
+        tempvarY=rows[i][2] 
+        tempvarAT=rows[i][3] 
+        tempvarAB=rows[i][4]
+        # traslate it into strings of g-code 
+        Startstring='<G '
+        Endstring='>'
+        X='X' # space is provided by the start string
+        Y=' Y' # space is required to seperate the commands
+        AoAT=' AoAT'
+        AoAB=' AoAB'
+        XCommand=X+tempvarX
+        YCommand=Y+tempvarY
+        ATCommand=AoAT+tempvarAT
+        ABCommand=AoAB+tempvarAB
+        FinalCommand=Startstring+XCommand+YCommand+ATCommand+ABCommand+Endstring
+        scenarioCommands.append(FinalCommand) # sore the value as g code.
+        i=i+1
+        #print(FinalCommand) # debug
+    scenarioBtn['state'] = tk.NORMAL
+    
+    
+    
+    
+    
+    
 if __name__ == '__main__':
 	APP_TITLE = 'AirFoil Control GUI'
 	BAUD_RATES = (300, 1200, 2400, 4800, 9600, 19200, 38400, 57600,
@@ -544,8 +661,9 @@ if __name__ == '__main__':
 	if jfile:
 		jfile.close()
 
-	### Root Function ###
+	### Root Function #######################################################################
 	root = tk.Tk()
+	filePath = tk.StringVar()
 	root.title(APP_TITLE) # PaneWindow
 	root.geometry('1000x600')
 	root.resizable(False,False)
@@ -670,10 +788,10 @@ if __name__ == '__main__':
 						command= moveButton,bg='#ff0000',fg='#000000',font=12)
 	stopBtn.grid(row=4, column=6, padx=4, pady=4)
 	scenarioBtn = tk.Button(root, width=20,height=4, text='Move to Senario',
-						state=tk.DISABLED, command= moveButton)
+						state=tk.DISABLED, command= lambda:moveButton(None))
 	scenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
-	scenarioInitilizeBtn = tk.Button(root, width=20,height=4, text='Scenario Init.') #command=scenariobInit )
-	scenarioInitilizeBtn.grid(row=3, column=4, padx=4, pady=4)
+	scenarioInitBtn = tk.Button(root, width=20,height=4, text='Scenario Init.', command=lambda:scenariobInit(None) )
+	scenarioInitBtn.grid(row=3, column=4, padx=4, pady=4)
 	#ScenarioBtn = tk.Button(root, width=20,height=8, text='Move to Senario',
 	#					state=tk.DISABLED, command= moveButton)
 	#ScenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
@@ -785,7 +903,6 @@ if __name__ == '__main__':
 * Welcome to Python GUI Serial Monitor as an alternative to Arduino Serial Monitor *
 * Use up and down arrow keys to select previously-entered text from history list.  *
 * Right click on output console for additional menus.                              *
-* Monitor Credit: Designed by ZulNs @Gorontalo, 13 April 2021                      *
 ************************************************************************************
 """
 	writeConsole(wtx, 2)
