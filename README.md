@@ -1,6 +1,6 @@
-# WSU_AIRFOIL_PROJECT
-Source code for the WSU Dual Airfoil Senior Design project.\
-Problem Statement:\
+# WRIGHT STATE DUAL AIRFOIL PROJECT
+Source code for the WSU Dual Airfoil Senior Design project.
+# Problem Statement:
 Wright State graduate and undergraduate students would like to research\
 the affects of dual airfoils on lift and pressure.\
 The current set up for this system enables the user to set the angle\
@@ -15,7 +15,7 @@ This system proved to be non-repeatable. (A fundemtal characteristic of an exper
 Friction / system stiffness of the linear berrings further reduced the repeatability.\
 Using arbitrary scale made the system qualitative.
 
-Key project Objectives:\
+# Key project objectives:
 *Document all decisions, reasoning, choices, code and files for year to year use.\
 *Enable repeatability with a resolution of .1mm gap and stagger and .05* AoA.\
 *Use readily available parts to enable maintenance and keep the price down.
@@ -29,7 +29,7 @@ Serial - motors move as soon as serial data is a available.\
 Serial W. Ext. T. - Motors move on the press of an physical switch.
 
 
-Key features:\
+# Key features:
 Custom G code implementation.\
 Implemtiaton of Uart stepper control.\
 Native 256 and interpolated 256 micro stepping capable.\
@@ -44,7 +44,7 @@ Full System UI, with user input enabled through an encoder.\
 Prosessor and IDE:\
 ARM Stm32f446ZE Branch with Custom PlatformIO implantation.
 
-Written by:\
+# Written by:
 Collin C. Charvat\
 charvat.3@wright.edu\
 c3charvat@gmail.com\
