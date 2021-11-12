@@ -1,293 +1,7 @@
 # https://wiki.python.org/moin/TkInter
 # https://towardsdatascience.com/top-10-python-gui-frameworks-for-developers-adca32fbe6fc
-# from tkinter import *
+# 
 
-# root = Tk()
-# # Creating my label widget
-
-# def myClick():
-#     myLabel =Label(root, text="look i made a button do somthing")
-#     myLabel.pack()
-
-# mylabel1 = Label(root, text="hello world")
-# mylabel2= Label(root, text="My Name")
-# mybutton = Button(root, text= " Push Me", command = myClick(), padx=10,pady=10)
-# # Putting it on to the screen
-# mylabel1.grid(row=0,column=0)
-# mylabel2.grid(row=1,column=0)
-# mybutton.grid(row=2,column=0)
-# # creating an event loop
-# root.mainloop()
-
-######################################################################################
-# This tutorial is provided by WeeW-Stack
-# To get the details of this Tutorial you can take a look on the following link:
-# https: // youtu.be/tBgTSdzkSGM
-# Enjoy
-######################################################################################
-
-# from tkinter import *
-# import serial.tools.list_ports
-# import threading
-# import signal
-# import time
-
-# # Dealing with interrupt issue at thread level
-
-
-# def signal_handler(signum, frame):
-#     sys.exit()
-
-
-# # Dealing with interrupt issue at thread level
-# signal.signal(signal.SIGINT, signal_handler)
-
-
-# # Class to manage the dynamic animation on the GUI
-# class Graphics():
-#     pass
-
-# # function that will toggle the Pin
-
-
-# def togglePin():
-
-#     if toggle_Pin_btn["text"] in "Pin High":
-#         print("Pin HIGH")
-#         pin_on = "1C13\n"
-#         ser.write(pin_on.encode())
-#         toggle_Pin_btn["text"] = "Pin Low"
-
-#     else:
-#         print("Pin LOW")
-#         pin_off = "0C13\n"
-#         ser.write(pin_off.encode())
-#         toggle_Pin_btn["text"] = "Pin High"
-
-# # function To get / stop the ADC data
-
-
-# def getADC():
-#     global serialData, graph
-#     if get_ADC_btn["text"] in "Start ADC":
-#         get_ADC_btn["text"] = "Stop ADC"
-#         print("ADC ON")
-#         pin_on = "AA001\n"
-#         ser.write(pin_on.encode())
-#         serialData = True
-#         t1 = threading.Thread(target=readSerial)
-#         t1.deamon = True
-#         t1.start()
-
-#     else:
-#         print("ADC Off")
-#         serialData = False
-#         pin_off = "AA000\n"
-#         ser.write(pin_off.encode())
-#         get_ADC_btn["text"] = "Start ADC"
-#         graph.canvas.itemconfig(
-#             graph.text, text="---")
-
-# # Function to initialize the GUI
-
-
-# def connect_menu_init():
-#     global root, connect_btn, refresh_btn, graph, toggle_Pin_btn, get_ADC_btn
-#     root = Tk()
-#     root.title("Serial communication")
-
-#     # the size as we have new Gui
-#     root.geometry("800x600")
-
-#     root.config(bg="white")
-
-#     port_lable = Label(root, text="Available Port(s): ", bg="white")
-#     port_lable.grid(column=1, row=2, pady=20, padx=10)
-
-#     port_bd = Label(root, text="Baude Rate: ", bg="white")
-#     port_bd.grid(column=1, row=3, pady=20, padx=10)
-
-#     refresh_btn = Button(root, text="R", height=2,
-#                          width=10, command=update_coms)
-#     refresh_btn.grid(column=3, row=2)
-
-#     connect_btn = Button(root, text="Connect", height=2,
-#                          width=10, state="disabled", command=connexion)
-#     connect_btn.grid(column=3, row=4)
-#     baud_select()
-#     update_coms()
-
-#     graph = Graphics()
-
-#     graph.canvas = Canvas(root, width=300, height=300,
-#                           bg="white", highlightthickness=0)
-#     graph.canvas.grid(row=6, columnspan=5)
-
-#     # part to hide the canvas until needed
-#     graph.canvas.grid_remove()
-
-#     # Dynamic update
-#     graph.outer = graph.canvas.create_arc(
-#         10, 10, 290, 290, start=90, extent=100, outline="#f11", fill="#f11", width=2)
-#     # Static
-#     graph.canvas.create_oval(
-#         75, 75, 225, 225, outline="#f11", fill="white", width=2)
-#     # Dynamic update
-#     graph.text = graph.canvas.create_text(
-#         150, 150, anchor=E, font=("Helvetica", "20"), text="---")
-#     # Static
-#     graph.canvas.create_text(
-#         175, 150, anchor=CENTER, font=("Helvetica", "20"), text="mV")
-
-#     # Part for the toggle Pin + adding it to global variable
-#     toggle_Pin_btn = Button(root, text="Pin High", height=2,
-#                             width=10, command=togglePin)
-#     toggle_Pin_btn.grid(column=1, row=5)
-#     toggle_Pin_btn.grid_remove()
-#     # 1 btn to start / stop reading the ADC data
-#     get_ADC_btn = Button(root, text="Start ADC", height=2,
-#                          width=10, command=getADC)
-#     get_ADC_btn.grid(column=2, row=5)
-#     get_ADC_btn.grid_remove()
-
-
-# # Function to Enable disable the connect Btn
-# def connect_check(args):
-#     if "-" in clicked_com.get() or "-" in clicked_bd.get():
-#         connect_btn["state"] = "disable"
-#     else:
-#         connect_btn["state"] = "active"
-
-
-# # Function to list the Baudes
-# def baud_select():
-#     global clicked_bd, drop_bd
-#     clicked_bd = StringVar()
-#     bds = ["-",
-#            "300",
-#            "600",
-#            "1200",
-#            "2400",
-#            "4800",
-#            "9600",
-#            "14400",
-#            "19200",
-#            "28800",
-#            "38400",
-#            "56000",
-#            "57600",
-#            "115200",
-#            "128000",
-#            "256000"]
-#     clicked_bd.set(bds[0])
-#     drop_bd = OptionMenu(root, clicked_bd, *bds, command=connect_check)
-#     drop_bd.config(width=20)
-#     drop_bd.grid(column=2, row=3, padx=50)
-
-# # Function to Get the available COMs connected to the PC
-
-
-# def update_coms():
-#     global clicked_com, drop_COM
-#     ports = serial.tools.list_ports.comports()
-#     coms = [com[0] for com in ports]
-#     coms.insert(0, "-")
-#     try:
-#         drop_COM.destroy()
-#     except:
-#         pass
-#     clicked_com = StringVar()
-#     clicked_com.set(coms[0])
-#     drop_COM = OptionMenu(root, clicked_com, *coms, command=connect_check)
-#     drop_COM.config(width=20)
-#     drop_COM.grid(column=2, row=2, padx=50)
-#     connect_check(0)
-
-# # Function (Thread 3) to Manage the GUI animation
-
-
-# def graph_control(graph):
-#     graph.canvas.itemconfig(
-#         graph.outer, exten=int(359*graph.sensor/1000))
-#     graph.canvas.itemconfig(
-#         graph.text, text=f"{int(3.3*graph.sensor)}")
-
-# # Function (Thread 2) to Manage Reading the UART data from MCU
-
-
-# def readSerial():
-#     print("thread start")
-#     global serialData, graph
-#     average = 0
-#     sampling = 50
-#     sample = 0
-#     while serialData:
-#         data = ser.readline()
-#         if len(data) > 0:
-#             try:
-#                 sensor = int(data.decode('utf8'))
-#                 data_sensor = int(data.decode('utf8'))
-#                 average += data_sensor
-#                 sample += 1
-#                 if sample == sampling:
-#                     sensor = int(average/sampling)
-#                     average = 0
-#                     sample = 0
-#                 # print(sensor)
-#                     graph.sensor = sensor
-#                     t2 = threading.Thread(target=graph_control, args=(graph,))
-#                     t2.deamon = True
-#                     t2.start()
-
-#             except:
-#                 pass
-
-# # Function to connect / Disconnect serial Com
-
-
-# def connexion():
-#     global ser, serialData, toggle_Pin_btn
-#     if connect_btn["text"] in "Disconnect":
-#         connect_btn["text"] = "Connect"
-#         refresh_btn["state"] = "active"
-#         drop_bd["state"] = "active"
-#         drop_COM["state"] = "active"
-#         toggle_Pin_btn.grid_remove()
-#         # 3 Hide the ADC widgets
-#         graph.canvas.grid_remove()
-#         get_ADC_btn.grid_remove()
-
-#     else:
-#         connect_btn["text"] = "Disconnect"
-#         refresh_btn["state"] = "disable"
-#         drop_bd["state"] = "disable"
-#         drop_COM["state"] = "disable"
-#         port = clicked_com.get()
-#         baud = clicked_bd.get()
-#         # Hide the btn when the connection ends
-#         try:
-#             ser = serial.Serial(port, baud, timeout=0)
-#         except:
-#             pass
-#         # Show the toggle Pin and comment The serial read + Remove
-#         toggle_Pin_btn.grid()
-#         # 2 Show the adc widget
-#         graph.canvas.grid()
-#         get_ADC_btn.grid()
-
-# # Dealing with interrupt issue at thread level
-
-
-# def close_window():
-#     global root, serialData
-#     serialData = False
-#     time.sleep(0.25)
-#     root.destroy()
-
-
-# connect_menu_init()  # Start the GUI & Initialization
-# root.protocol("WM_DELETE_WINDOW", close_window)  # When Closing the Window
-# root.mainloop()  # Stating the main loop / Thread
 
 import tkinter as tk
 from tkinter import Button, Label, ttk as ttk
@@ -313,7 +27,7 @@ def get_str_of_chr(chr_in_byte):  # converts revived data into the approprate ch
 		elif cd == 10:  # if its a new line
 			return '\n'
 		elif cd == 13:  # if its a Carriage return
-			return '\\r'
+			return "\\r"
 	# \\ prints a backslash, x prints an x and {:02x prints the hex of the ASCII 2 charcter  }
 	return '\\x{:02x}'.format(cd)
 
@@ -719,12 +433,57 @@ def setting():  # settings Menu
 	settingDlg.resizable(0, 0)
 	settingDlg.grab_set()
 	cancelBtn.focus_set()
+ 
+def filePathSettings():  # settings Menu
+	global filePathDlg, filePath, pText
+	filePath = tk.StringVar()
+	#filePath="C:\\Users\\Collin\\Documents\\WSU_AIRFOIL_GITHUB\\WSU_AIRFOIL_PROJECT"
+	filePathDlg = tk.Toplevel()
+	filePathDlg.title('File Path Menu')
+	if ico:
+		filePathDlg.iconphoto(False, ico)
+	tk.Grid.rowconfigure(filePathDlg, 0, weight=1)
+	tk.Grid.rowconfigure(filePathDlg, 1, weight=1)
+	tk.Grid.rowconfigure(filePathDlg, 2, weight=1)
+	tk.Grid.rowconfigure(filePathDlg, 3, weight=1)
+	tk.Grid.columnconfigure(filePathDlg, 0, weight=1)
+	tk.Grid.columnconfigure(filePathDlg, 1, weight=1)
+	tk.Grid.columnconfigure(filePathDlg, 2, weight=1)
+	tk.Label(filePathDlg, text='File Path: Ex:C:\\Users\\Collin\\Documents\\WSU_AIRFOIL_GITHUB\\WSU_AIRFOIL_PROJECT').grid(row=0, column=1, padx=0, pady=12, sticky=tk.NE)
+	# Insert the Faile path menu here
+	pText = tk.Entry(filePathDlg)
+	pText.grid(row=2, column=1, columnspan=3,
+				padx=4, pady=8, sticky=tk.N+tk.EW)
+	pText.bind('<Up>', upKeyCmd)
+	pText.bind('<Down>', downKeyCmd)
+	tk.Button(filePathDlg, text='Default', width=10, command=defaultFilePath).grid(row=1, column=0, padx=12, pady=0, sticky=tk.NS+tk.W)
+	tk.Button(filePathDlg, text='OK', width=10, command=lambda:setFilePath(None)).grid(row=3, column=1, padx=0, pady=12, sticky=tk.S)
+	cancelBtn = tk.Button(filePathDlg, text='Cancel',width=10, command=lambda:hideFilePath(None))
+	cancelBtn.grid(row=3, column=2, padx=12, pady=12, sticky=tk.S)
+	filePathDlg.bind('<Return>',setFilePath )
+	filePathDlg.bind('<Escape>',hideFilePath)
+	filePathDlg.update()
+	rw = root.winfo_width()
+	rh = root.winfo_height()
+	rx = root.winfo_rootx()
+	ry = root.winfo_rooty()
+	dw = filePathDlg.winfo_width()
+	dh = filePathDlg.winfo_height()
+	filePathDlg.geometry(f'{dw}x{dh}+{rx+int((rw-dw)/2)}+{ry+int((rh-dh)/2)}')
+	filePathDlg.minsize(dw, dh)
+	filePathDlg.maxsize(dw, dh)
+	filePathDlg.resizable(0, 0)
+	filePathDlg.grab_set()
+	cancelBtn.focus_set()
 
 
 def defaultSetting():
 	dataBitsCbo.set(serial.EIGHTBITS)
 	parityCbo.current(PARITY.index(serial.PARITY_NONE))
 	stopBitsCbo.set(serial.STOPBITS_ONE)
+ 
+def defaultFilePath():
+	filePath.set(r'C:\\Users\\Collin\\Documents\\WSU_AIRFOIL_GITHUB\\WSU_AIRFOIL_PROJECT')
 
 
 def setPort(event):
@@ -733,13 +492,23 @@ def setPort(event):
 	currentPort.stopbits = STOPBITS[stopBitsCbo.current()]
 	settingDlg.destroy()
 
+def setFilePath(event):
+    txt = str(pText.get())
+    filePath.set(txt)
+    filePathDlg.destroy()
+
+	
+
 
 def hideSetting(event):  # hide the settings menu
 	settingDlg.destroy()
 
+def hideFilePath(event):  # hide the settings menu
+	filePathDlg.destroy()
+
 def moveButton(val):
-     # do Some Stuff here
-     a=1
+	 # do Some Stuff here
+	 a=1
 
 
 if __name__ == '__main__':
@@ -778,7 +547,7 @@ if __name__ == '__main__':
 	### Root Function ###
 	root = tk.Tk()
 	root.title(APP_TITLE) # PaneWindow
-	root.geometry('800x600')
+	root.geometry('1000x600')
 	root.resizable(False,False)
 	root.configure(bg='#dddddd')
 	try:
@@ -794,7 +563,7 @@ if __name__ == '__main__':
 	showSentTextVar = tk.BooleanVar()
 	dispHexVar = tk.BooleanVar()
 	rowSplit = 8
-    # Grid Initilization 
+	# Grid Initilization 
 	# lock the space between the input bar and the text box *Input bar
 	tk.Grid.rowconfigure(root, 0, weight=1)
 	# Expand the text box as the sreen expands
@@ -819,7 +588,8 @@ if __name__ == '__main__':
 	tk.Grid.columnconfigure(root, 4, weight=1)
 	tk.Grid.columnconfigure(root, 5, weight=1)
 	tk.Grid.columnconfigure(root, 6, weight=1)
-
+ 
+ # Send Text Menu
 	txText = tk.Entry(root)
 	txText.grid(row=0+rowSplit, column=0, columnspan=6,
 				padx=4, pady=8, sticky=tk.N+tk.EW)
@@ -833,6 +603,7 @@ if __name__ == '__main__':
 	# Radio Button Code 
 	radioBtn1Select = tk.IntVar()
 	radioBtn2Select= tk.IntVar()
+	scenariobBtnSelect= tk.IntVar()
 	
  # initializing the choice, i.e. Python
 	Increment = [(".05",0),
@@ -841,16 +612,23 @@ if __name__ == '__main__':
 			("10", 3),
 			("100", 4)]
 	Axis = [("X Axis", 0),
-         ("Y Axis", 1),
-         ("AoA Top", 2),
-         ("AoA Bottom", 3),
-         ("Move X&Y",4),
-         ("Move AoAT&B",5)]
-	
-	frame1 = LabelFrame(root, text='''Movment Ammount''',padx=3,pady=2, bg= '#dddddd')
+		 ("Y Axis", 1),
+		 ("AoA Top", 2),
+		 ("AoA Bottom", 3),
+		 ("Move X&Y",4),
+		 ("Move AoAT&B",5)]
+	Scenario =[("Scenario 0",0),
+			("Scenario 1",1),
+			("Scenario 2",2),
+			("Scenario 3",3),
+			("Scenario 4",4),
+			("Scenario 5",5)]
+	frame1 = LabelFrame(root, text='''Movment Ammount''',padx=10,pady=3, bg= '#dddddd')
 	frame1.grid(row=0,column=0,rowspan=5)
-	frame2 = LabelFrame(root, text='Axis Select', padx=3,pady=2, bg= '#dddddd')
+	frame2 = LabelFrame(root, text='Axis Select', padx=3,pady=5, bg= '#dddddd')
 	frame2.grid(row=0,column=1,rowspan=6)
+	frame3 = LabelFrame(root, text='Scenario Select', padx=3,pady=5, bg= '#dddddd')
+	frame3.grid(row=0,column=3, rowspan=5)
 	for Increment, val in Increment:
 		radioBtn1=tk.Radiobutton(frame1, 
 					text=Increment,
@@ -859,7 +637,7 @@ if __name__ == '__main__':
 					width=10,
 					variable=radioBtn1Select, 
 					value=val)
-		radioBtn1.grid(row=1+val,column=0, padx=20, pady=2,sticky=tk.NW )
+		radioBtn1.grid(row=1+val,column=0, padx=4, pady=2,sticky=tk.NW )
 	for Axis, val in Axis:
 		radioBtn2=tk.Radiobutton(frame2, 
 					text=Axis,
@@ -868,21 +646,47 @@ if __name__ == '__main__':
 					width=15,
 					variable=radioBtn2Select, 
 					value=val)
-		radioBtn2.grid(row=1+val,column=1, padx=20, pady=2,sticky=tk.NW )
+		radioBtn2.grid(row=1+val,column=0, padx=5, pady=2,sticky=tk.NW )
+	for Scenario, val in Scenario:
+	  	ScenarioBtn2=tk.Radiobutton(frame3, 
+						text=Scenario,
+						indicatoron = 0,
+						padx = 2, 
+						width=15,
+						variable=scenariobBtnSelect, 
+						value=val)
+	  	ScenarioBtn2.grid(row=1+val,column=0, padx=5, pady=2,sticky=tk.NW )
 	# End Radio button code 
-	MoveBtn = tk.Button(root, width=10,height=4, text='Move',
+	moveBtn = tk.Button(root, width=20,height=4, text='Move',
 						state=tk.DISABLED, command= moveButton)
-	MoveBtn.grid(row=3, column=3, padx=4, pady=4)
+	moveBtn.grid(row=3, column=2, padx=4, pady=4)
+	homeAllBtn = tk.Button(root, width=20,height=4, text='Home All Axis',
+						state=tk.DISABLED, command= moveButton,font=12)
+	homeAllBtn.grid(row=3, column=6, padx=4, pady=4)
+	homeBtn = tk.Button(root, width=20,height=4, text='Home Selected axis',
+						state=tk.DISABLED, command= moveButton)
+	homeBtn.grid(row=4, column=2, padx=4, pady=4)
+	stopBtn = tk.Button(root, width=20,height=4, text='E STOP',
+						command= moveButton,bg='#ff0000',fg='#000000',font=12)
+	stopBtn.grid(row=4, column=6, padx=4, pady=4)
+	scenarioBtn = tk.Button(root, width=20,height=4, text='Move to Senario',
+						state=tk.DISABLED, command= moveButton)
+	scenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
+	scenarioInitilizeBtn = tk.Button(root, width=20,height=4, text='Scenario Init.', command=scenariobInit )
+	scenarioInitilizeBtn.grid(row=3, column=4, padx=4, pady=4)
+	#ScenarioBtn = tk.Button(root, width=20,height=8, text='Move to Senario',
+	#					state=tk.DISABLED, command= moveButton)
+	#ScenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
  
  
  ## End Movment UI Code 
-	sendBtn = tk.Button(root, width=12, text='Send',
+	sendBtn = tk.Button(root, width=25, text='Send',
 						state=tk.DISABLED, command=lambda: sendCmd(None))
 	sendBtn.grid(row=0+rowSplit, column=6, padx=4, pady=4, sticky=tk.NE)
 
 	rxText = tkscroll.ScrolledText(
 		root, height=20, state=tk.DISABLED, font=('Courier', 10), wrap=tk.WORD)
-	rxText.grid(row=1+rowSplit,column=0, columnspan=7, padx=4, sticky=tk.NSEW)
+	rxText.grid(row=1+rowSplit,column=0, columnspan=8, padx=4, sticky=tk.NSEW)
 	rxText.bind('<Button-3>', showRxTextMenu)
 
 	autoscrollCbt = tk.Checkbutton(
@@ -961,6 +765,8 @@ if __name__ == '__main__':
 							   onvalue=True, offvalue=False, variable=dispHexVar)
 	rxTextMenu.add_separator()
 	rxTextMenu.add_command(label='Port setting', command=setting)
+	rxTextMenu.add_separator()
+	rxTextMenu.add_command(label='Scenario File Path', command=filePathSettings)
 	rxTextMenu.add_separator()
 	rxTextMenu.add_command(label='About', command=showAbout)
 
