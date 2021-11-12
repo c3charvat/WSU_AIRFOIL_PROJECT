@@ -672,7 +672,7 @@ if __name__ == '__main__':
 	scenarioBtn = tk.Button(root, width=20,height=4, text='Move to Senario',
 						state=tk.DISABLED, command= moveButton)
 	scenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
-	scenarioInitilizeBtn = tk.Button(root, width=20,height=4, text='Scenario Init.', command=scenariobInit )
+	scenarioInitilizeBtn = tk.Button(root, width=20,height=4, text='Scenario Init.') #command=scenariobInit )
 	scenarioInitilizeBtn.grid(row=3, column=4, padx=4, pady=4)
 	#ScenarioBtn = tk.Button(root, width=20,height=8, text='Move to Senario',
 	#					state=tk.DISABLED, command= moveButton)
