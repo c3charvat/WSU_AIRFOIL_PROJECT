@@ -53,13 +53,20 @@ U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/ PE13, /* data=*/ PE15, /* 
 int TRIGGER_PIN = 24; // Temp0 pin on Melzi board
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MOTION CONTROL  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Initalize Stepper Class
+/*
+In the case of this project:
+Speedy Stepper is driving the steppers movment through the traditional Step,Dir interface of the driver. 
+This simplifies things greatly in code at the cost of speed. Which on the 180MHz this board runs on is not an issue.
+The advanced features of the Stepper Driver are handled via Uart. 
+*/
 SpeedyStepper Xstepper; 
 SpeedyStepper Ystepper;
 SpeedyStepper Zstepper;
 SpeedyStepper E0stepper;
 SpeedyStepper E1stepper;
 // Stepper settings
-uint8_t*  Acceleration; // for the LCD UI
+
+uint8_t*  Acceleration; // For The Acceleration setting in the LCD UI
 uint8_t*  Speed;        // For the LCD UI
 int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard
 float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard

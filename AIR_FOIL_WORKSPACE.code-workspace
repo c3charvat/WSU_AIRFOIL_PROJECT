@@ -1,8 +1,15 @@
 {
-	"folders": [
-		{
-			"name": "V9_IDE_PORT",
-			"path": "V9_IDE_PORT"
-		}
-	]
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "name": "Firmware_V11",
+            "path": "Firmware_V11"
+        },
+        {
+            "name": "SD_test",
+            "path": "..\\SD_test"
+        }
+    ]
 }

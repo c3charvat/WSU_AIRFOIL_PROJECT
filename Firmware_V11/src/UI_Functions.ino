@@ -59,6 +59,7 @@ void SERIAL_UI(void)
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Setup for a Button ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // The following is a custom menu i wrote for the serial UI LCD menu 
+// See here for examples https://p3dt.net/u8g2sim/
 void Draw_button(U8G2 u8g2, uint8_t x, uint8_t y, uint8_t width, String str, bool clicked)
 {
   if (clicked)
