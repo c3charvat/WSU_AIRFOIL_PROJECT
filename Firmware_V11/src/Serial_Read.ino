@@ -75,6 +75,11 @@ bool parseData()
   //strtok(tempChars, " ");// get the first part - the string // This returns the first token "G"
   strtokIndx = strtok(tempChars, " "); // get the first part - the string // This returns the first token "G"
   Serial.println(strtokIndx[0]);
+  if (strtokIndx[0] == 'R' || strtokIndx[0] == 'r')
+  {
+    // Simulated Estop AkA Just Kill power to the board
+    digitalWrite(Reset,LOW); // Lmao This is one way to skin the cat rather than bothering with software
+  }
   if (strtokIndx[0] == 'G' || strtokIndx[0] == 'g')
   {                                         // Begin G code parsing
     Serial.println("IT Starts With A G\n"); // G code Section
@@ -96,21 +101,25 @@ bool parseData()
         {
           if (strtokIndx[0] == 'X' || strtokIndx[0] == 'x')
           { // if the first character is X
-            // Home X axis here
+            Xstepper.moveToHomeInRevolutions(-1,20,20,PG6);
           }
           if (strtokIndx[0] == 'Y' || strtokIndx[0] == 'y')
           { // if the first character is Y
             // Home The Y Axis
+            Ystepper.moveToHomeInRevolutions(-1,20,20,PG9);
+            Zstepper.moveToHomeInRevolutions(-1,20,20,PG13);
           }
           if (strtokIndx[0] == 'A' || strtokIndx[0] == 'a')
           { // if the first character is A -> Meaning AoA
             if (strtokIndx[3] == 'T' || strtokIndx[3] == 't')
             { // if the third character is T -> Meaning AoAT
               // Home AoA Top here
+              E0stepper.moveToHomeInRevolutions(-1,20,20,PG10);
             }
             if (strtokIndx[3] == 'B' || strtokIndx[3] == 'b')
             { // if the third character is B -> Meaning AoAB
               // Home AoA Bottom here
+              E1stepper.moveToHomeInRevolutions(-1,20,20,PG11);
             }
           }
         } // end while

@@ -16,7 +16,6 @@ import json
 import csv
 import os
 
-
 def get_str_of_chr(chr_in_byte):  # converts revived data into the approprate charcter
 	cd = ord(chr_in_byte)  # ord converts a chacter into its hex value
 	# if the chacters is less than or equal to 0x20 raw encoding (space) and (less than  = the "~" 0x7e OR less than inverted bang 0xA1)
@@ -506,12 +505,9 @@ def hideSetting(event):  # hide the settings menu
 def hideFilePath(event):  # hide the settings menu
 	filePathDlg.destroy()
 
-
-def moveButton(event):
-	# get the value of the Senario Radio button
-	index=scenariobBtnSelect.get()
-	tempstring=scenarioCommands[index]
-	txt = str(tempstring)
+def GcodeSend(event):
+	global tempString
+	txt = str(tempString)
 	lst = len(sentTexts)
 	if txt == '{about}':
 		showAbout()
@@ -540,8 +536,60 @@ def moveButton(event):
 				txt = ''.join([get_str_of_chr(bytes([i])) for i in bs])
 			writeConsole(txt, 1)
 		txText.delete(0, tk.END)
+	#del tempString[:] # cleat Temp String Back out
+	#print(tempString)
 
-  
+def scenarioMove(event):
+	# get the value of the Senario Radio button
+	global tempString
+	index=scenariobBtnSelect.get()
+	tempString=scenarioCommands[index]
+	GcodeSend(None)
+ 
+def Stop(event):
+    global tempString
+    tempString='<R>' # pass in the Reset String
+    GcodeSend(None)
+    
+def homeAll(event):
+    global tempString
+    tempString='<G H>' # pass in the Home String
+    GcodeSend(None)
+    
+def homeAxis(event):
+    global tempString
+    axisCommands=['<G H X>','<G H Y>','<G H AoAT>','<G H AoAB>','<G H X Y>','<G H AoAT AoAB>']
+    index=axisBtnSelect.get()
+    tempString=axisCommands[index]
+    GcodeSend(None)
+ 
+def moveButton(event):
+    global tempString
+    increment=['.05>','.1>','1>','10>','100>']
+    middleIncrement=['.05','.1','1','10','100']
+    Axis=['<G X','<G Y','<G AoAT','<G AoAB','<G X',' Y','<G AoAT',' AoAB']
+    ammtIndex= incremnetBtnSelect.get()
+    axisIndex=axisBtnSelect.get()
+    if axisIndex < 5:
+        selectedAmmount=increment[ammtIndex]
+        selectedAxis=Axis[axisIndex]
+        tempString=selectedAxis+selectedAmmount
+        print(tempString)
+    if axisIndex ==4: # Axis has a middle increment
+        selectedAmmountLast=increment[ammtIndex]
+        selectedAmmountmiddle=middleIncrement[ammtIndex]
+        tempString=Axis[axisIndex]+selectedAmmountmiddle+Axis[axisIndex+1]+selectedAmmountLast
+        print(tempString)
+    if axisIndex ==5:
+        selectedAmmountLast=increment[ammtIndex]
+        selectedAmmountmiddle=middleIncrement[ammtIndex]
+        tempString=Axis[axisIndex+1]+selectedAmmountmiddle+Axis[axisIndex+2]+selectedAmmountLast
+        print(tempString)
+    GcodeSend(None)
+    
+    
+    
+    
   
   
   
@@ -719,8 +767,8 @@ if __name__ == '__main__':
 	# Enter Button Code
 	
 	# Radio Button Code 
-	radioBtn1Select = tk.IntVar()
-	radioBtn2Select= tk.IntVar()
+	incremnetBtnSelect= tk.IntVar()
+	axisBtnSelect= tk.IntVar()
 	scenariobBtnSelect= tk.IntVar()
 	
  # initializing the choice, i.e. Python
@@ -753,7 +801,7 @@ if __name__ == '__main__':
 					indicatoron = 0,
 					padx = 2, 
 					width=10,
-					variable=radioBtn1Select, 
+					variable=incremnetBtnSelect, 
 					value=val)
 		radioBtn1.grid(row=1+val,column=0, padx=4, pady=2,sticky=tk.NW )
 	for Axis, val in Axis:
@@ -762,7 +810,7 @@ if __name__ == '__main__':
 					indicatoron = 0,
 					padx = 2, 
 					width=15,
-					variable=radioBtn2Select, 
+					variable=axisBtnSelect, 
 					value=val)
 		radioBtn2.grid(row=1+val,column=0, padx=5, pady=2,sticky=tk.NW )
 	for Scenario, val in Scenario:
@@ -775,20 +823,17 @@ if __name__ == '__main__':
 						value=val)
 	  	ScenarioBtn2.grid(row=1+val,column=0, padx=5, pady=2,sticky=tk.NW )
 	# End Radio button code 
-	moveBtn = tk.Button(root, width=20,height=4, text='Move',
-						state=tk.DISABLED, command= moveButton)
+	moveBtn = tk.Button(root, width=20,height=4, text='Move', command=lambda:moveButton(None))
 	moveBtn.grid(row=3, column=2, padx=4, pady=4)
-	homeAllBtn = tk.Button(root, width=20,height=4, text='Home All Axis',
-						state=tk.DISABLED, command= moveButton,font=12)
+	homeAllBtn = tk.Button(root, width=20,height=4, text='Home All Axis', command= lambda:homeAll(None),font=12)
 	homeAllBtn.grid(row=3, column=6, padx=4, pady=4)
-	homeBtn = tk.Button(root, width=20,height=4, text='Home Selected axis',
-						state=tk.DISABLED, command= moveButton)
+	homeBtn = tk.Button(root, width=20,height=4, text='Home Selected axis', command= lambda:homeAxis(None))
 	homeBtn.grid(row=4, column=2, padx=4, pady=4)
 	stopBtn = tk.Button(root, width=20,height=4, text='E STOP',
-						command= moveButton,bg='#ff0000',fg='#000000',font=12)
+						command=lambda: Stop(None),bg='#ff0000',fg='#000000',font=12)
 	stopBtn.grid(row=4, column=6, padx=4, pady=4)
 	scenarioBtn = tk.Button(root, width=20,height=4, text='Move to Senario',
-						state=tk.DISABLED, command= lambda:moveButton(None))
+						state=tk.DISABLED, command= lambda:scenarioMove(None))
 	scenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
 	scenarioInitBtn = tk.Button(root, width=20,height=4, text='Scenario Init.', command=lambda:scenariobInit(None) )
 	scenarioInitBtn.grid(row=3, column=4, padx=4, pady=4)
