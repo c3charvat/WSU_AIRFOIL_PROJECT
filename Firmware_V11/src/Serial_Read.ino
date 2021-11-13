@@ -175,11 +175,11 @@ bool parseData()
     Ypos = Temp_Pos[1];
     AoA[0]= Temp_Pos[2];
     AoA[1] = Temp_Pos[3];
-    Serial.println(Xpos);
-    Serial.println(Ypos);
-    Serial.println(AoA[0]);
-    Serial.println(AoA[1]);
-    Serial.println("Heading to \"MOVE_FUNCTION()\".");
+    //Serial.println(Xpos);
+    //Serial.println(Ypos);
+    //Serial.println(AoA[0]); // Debug code here 
+    //Serial.println(AoA[1]);
+    //Serial.println("Heading to \"MOVE_FUNCTION()\".");
     MOVE_FUNCTION();
     return true; // Tell the system that the function worked
   }              // End G code parsing
@@ -363,13 +363,13 @@ bool parseData()
 void showParsedData() // Debug Function
 { // show parsed data and move
   Serial.print("X Pos");
-  Serial.println(Position_Data[0]);
+  Serial.println(Xpos);
   Serial.print("Y Pos"); // debug stuff here
-  Serial.println(Position_Data[1]);
+  Serial.println(Ypos);
   Serial.print("\nAoA Top");
-  Serial.println(Position_Data[2]);
+  Serial.println(AoA[0]);
   Serial.print("AoA Bottom ");
-  Serial.println(Position_Data[3]);
+  Serial.println(AoA[1]);
   //Serial.print("AoA Bottom Speed");
   //Serial.println(Speed_Data[1]);
   //Serial.print("AoA Bottom Speed");

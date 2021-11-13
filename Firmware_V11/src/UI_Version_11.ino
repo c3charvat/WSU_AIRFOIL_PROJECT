@@ -40,10 +40,14 @@ TMC2209Stepper driverE1(PF2, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Dr
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Physcial System Char~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /* In This section are the maximum travel distances for each of the axis */ 
+int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard // mirrior Axis have to have the same value
+float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard
 const int Xpos_MAX = 500; // Max X length in MM
 const int Ypos_MAX = 500;// MAy Y length in MM
-const int X_Lead_p=2;// X lead screw pitch 
-const int Y_Lead_p=2;// Y lead screw pitch
+const int X_Lead_p=2;// X lead screw pitch in mm 
+const int Y_Lead_p=2;// Y lead screw pitch in mm
+float X_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[0])*Micro_stepping[0];
+float Y_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[1])*Micro_stepping[1];
 const int AOA_MAX = 500; // Angle of attack max in 360 degrees
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pin Define~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Define the LCD Pins ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,8 +72,6 @@ SpeedyStepper E1stepper;
 
 uint8_t*  Acceleration; // For The Acceleration setting in the LCD UI
 uint8_t*  Speed;        // For the LCD UI
-int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard
-float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Serial Input Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 const byte numChars = 64; // Max Number of charcter read from serial in one input
@@ -77,7 +79,6 @@ char receivedChars[numChars]={};// Initialize a charcter array
 char tempChars[numChars]={};//temporary char array used when parsing since "strtok" causes data loss
 
 // variables to hold the parsed data
-float Position_Data[5]={0,0,0,0,0};//Postiton Data is stored here after beeing passed into from the temp varibles 
 int Speed_Data[5]={0,0,0,0,0}; //Hold the Speed Data being passed in via serial
 int Acell_Data[5]={0,0,0,0,0};//Hold the acelleration data being passed in via serial 
 bool newData = false; // Cotrol Entry into the Serial Reader 
