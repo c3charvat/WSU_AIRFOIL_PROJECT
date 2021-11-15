@@ -29,8 +29,8 @@ const int Reset=PB0;
 
 void PIN_SETUP(){
 // RESET
-pinMode(Reset,OUTPUT);
-digitalWrite(Reset,HIGH);
+//pinMode(Reset,OUTPUT);
+//digitalWrite(Reset,HIGH);
 // X Stepper
 
 pinMode(MOTOR0_STEP_PIN, OUTPUT);

@@ -26,9 +26,9 @@ movevar[3]=0;
   { // if in static mode
     Serial.println("Motion_selection == 1 or 4");
     // Normal Mode LCD
-    Xstepper.setupRelativeMoveInSteps(movevar[0] *X_to_micro); // Future: Make these iun terms of MM
-    Ystepper.setupRelativeMoveInSteps(movevar[1] *Y_to_micro);
-    Zstepper.setupRelativeMoveInSteps(movevar[1] *Y_to_micro);
+    Xstepper.setupRelativeMoveInSteps(movevar[0] / (Degree_per_step[2] / Micro_stepping[2])); // Future: Make these iun terms of MM
+    Ystepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[2] / Micro_stepping[2]));
+    Zstepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[2] / Micro_stepping[2]));
     E0stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2])); // Future: Make these in terms of degrees
     E1stepper.setupRelativeMoveInSteps(movevar[3] / (Degree_per_step[3] / Micro_stepping[3]));
     // Call A Blocking Function that Stops the Machine from doing anything else while the stepper is moving

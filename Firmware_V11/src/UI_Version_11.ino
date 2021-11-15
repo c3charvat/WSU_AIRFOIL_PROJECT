@@ -46,8 +46,6 @@ const int Xpos_MAX = 500; // Max X length in MM
 const int Ypos_MAX = 500;// MAy Y length in MM
 const int X_Lead_p=2;// X lead screw pitch in mm 
 const int Y_Lead_p=2;// Y lead screw pitch in mm
-float X_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[0])*Micro_stepping[0];
-float Y_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[1])*Micro_stepping[1];
 const int AOA_MAX = 500; // Angle of attack max in 360 degrees
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pin Define~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Define the LCD Pins ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -168,7 +166,10 @@ void TRIGGER_WAIT(int pin) {
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SETUP lOOP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void setup(void) {
+  const float X_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[0])*Micro_stepping[0];
+  const float Y_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[1])*Micro_stepping[1];
   Serial.begin(9600); // Begin serial ouput communication for debug and input of value array.
+  Serial.println(X_to_micro);
   //SD_setup();
   //delay(5000); // dely five seconds so the monitor can connect first 
   DRIVER_SETUP();
