@@ -250,7 +250,42 @@ def showRxTextMenu(event):
 
 
 def writeConsole(txt, upd=0):
-    global isEndByNL, lastUpdatedBy
+    global isEndByNL, lastUpdatedBy,Ystr,Xstr,Tstr,Bstr,internalData,recv,newtxt
+    newtxt=''
+    for x in txt:
+        if x == '%':
+            print("Data")
+            if internalData.get() == True:
+                internalData.set(False)
+            else:
+                internalData.set(True)  # set to global
+            print(internalData.get())
+        elif internalData.get() == True:
+            print(x)
+            print("else")
+            if x == 'X':
+                print("set X")
+                recv.set(1)
+            elif x == 'Y':
+                recv.set(2)
+            elif x =='T':
+                recv.set(3)
+            elif x =='B':
+                recv.set(4)
+            else: # it has to be one of the numbers follwing it 
+                #print(recv.get())
+                if recv.get()==1:
+                    Xstr=Xstr+x
+                    print(Xstr)
+                elif recv.get()==2:
+                    Ystr=Ystr+x
+                    #print(Ystr)
+                elif recv.get()==3:
+                    Tstr=Tstr+x
+                else:
+                    Bstr=Bstr+x
+        else:
+            newtxt=newtxt+x
     tm = ''
     ad = ''
     if upd != 2 and showTimestampVar.get():
@@ -286,7 +321,7 @@ def writeConsole(txt, upd=0):
         return
     if upd != 2 and lastUpdatedBy == 2:
         ad = '\n' + ad
-    ad += txt
+    ad += newtxt
     rxText.configure(state=tk.NORMAL)
     rxText.insert(tk.END, ad)
     if autoscrollVar.get() or upd == 2:
@@ -300,14 +335,6 @@ def writeConsole(txt, upd=0):
 
 
 def rxPolling():  # Pull Data in
-    global Xpos,Ypos,AoAT,AoAB
-    internalData= False
-    recv=IntVar()
-    recv.set(0)
-    Xstr=''
-    Ystr=''
-    Tstr=''
-    Bstr=''
     preset = time.perf_counter_ns()
     try:
         while currentPort.in_waiting > 0 and time.perf_counter_ns()-preset < 2000000:  # loop duration about 2ms
@@ -322,35 +349,7 @@ def rxPolling():  # Pull Data in
                 txt += get_str_of_chr(ch)
             #print(txt)
             #print(" word lenght" + str(len(txt)))
-            if txt == '%':
-                if internalData == True:
-                    internalData = False
-                else:
-                    internalData = True #set to global 
-            else:
-                if internalData == True:
-                    if txt == 'X':
-                        recv.set(1)
-                    elif txt == 'Y':
-                        recv.set(2)
-                    elif txt =='T':
-                        recv.set(3)
-                    elif txt =='B':
-                        recv.set(4)
-                    else: # it has to be one of the numbers follwing it 
-                        if recv.get()==1:
-                            Xstr=Xstr+txt
-                            print(Xstr)
-                        elif recv.get()==2:
-                            Ystr=Ystr+txt
-                            #print(Ystr)
-                        elif recv.get()==3:
-                            Tstr=Tstr+txt
-                        else:
-                            Bstr=Bstr+txt   
-                    print(Xstr)
-                else:
-                    writeConsole(txt)
+            writeConsole(txt)
     except serial.SerialException as se:
         closePort()
         msgbox.showerror(
@@ -766,6 +765,16 @@ if __name__ == '__main__':
     showSentTextVar = tk.BooleanVar()
     dispHexVar = tk.BooleanVar()
     rowSplit = 8
+    internalData= BooleanVar(root,False)
+    recv=IntVar()
+    Xstr=''
+    Ystr=''
+    Tstr=''
+    Bstr=''
+    Xpos=0.00
+    Ypos=0.00
+    AoAT=0.00
+    AoAB=0.00
     # Grid Initilization 
     # lock the space between the input bar and the text box *Input bar
     tk.Grid.rowconfigure(root, 0, weight=1)
