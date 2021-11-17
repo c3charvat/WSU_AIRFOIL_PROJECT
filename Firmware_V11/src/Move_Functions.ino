@@ -20,6 +20,7 @@ movevar[3]=0;
       movevar[1] = ABS_POS(Ypos, 1);   // Y and Z Move  // Pull Data From LCD MENU VARIBLES
       movevar[2] = ABS_POS(AoA[0], 2); // E0 Move AoA Top
       movevar[3] = ABS_POS(AoA[1], 3); // E1 Move AoA Bottom
+      gui_output_function();
   }
   // End parsing out data
   if (Motion_selection == 1 || Motion_selection == 4)

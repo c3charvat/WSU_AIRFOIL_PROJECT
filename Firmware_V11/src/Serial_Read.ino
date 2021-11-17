@@ -369,8 +369,11 @@ bool parseData()
   }
 } // End Parsing Function
 
-void showParsedData() // Debug Function
+void showParsedData() 
+/* This function is purely debug related and is not used for any functional purpose it can be commented out in code 
+At any time do not comment out this function or you will break the entire system.*/
 { // show parsed data and move
+  Serial.println("Parsed Data Debug output");
   Serial.print("X Pos");
   Serial.println(Xpos);
   Serial.print("Y Pos"); // debug stuff here
@@ -383,8 +386,25 @@ void showParsedData() // Debug Function
   //Serial.println(Speed_Data[1]);
   //Serial.print("AoA Bottom Speed");
   //Serial.println(Acell_Data[1]);
-  //MOVE_FUNCTION();
+  //MOVE_FUNCTION(); // Revmoved When this function was truned to debug 
   // move function goes here
+}
+void gui_output_function()
+{
+  /* Python GUI Function --> This function just prints the current postion over serial.
+Thiis is so python GUI can read it and know where stepper is currently, It is also usefull for postioning debug It is ignored by the GUI using the 
+ "%" symbol -> That means Any Data passed to the gui after the % symbol and before aother % symbol will be ignored by the text output of the GUI. 
+ The data is serperated by X,Y,AT,AB  */
+ Serial.print("%"); // Start the Data Transfer
+ Serial.print("X");
+ Serial.print(Xpos);
+ Serial.print("Y");
+ Serial.print(Ypos);
+ Serial.print("T");
+ Serial.print(AoA[0]);
+ Serial.print("B");
+ Serial.print(AoA[1]);
+ Serial.print("%"); // End Data transfer. 
 }
 void serial_flush_buffer()
 {
