@@ -257,13 +257,13 @@ def Setpos():
     #print(Bstr)
     try:
         Xpos=float(Xstr)
-        #print(Xpos)
+        print(Xpos)
         Ypos=float(Ystr)
-        #print(Ypos)
+        print(Ypos)
         AoAT=float(Tstr)
-        #print(AoAT)
+        print(AoAT)
         AoAB=float(Bstr)
-        #print(AoAB)
+        print(AoAB)
         Xstr=''
         Ystr=''
         Tstr=''
@@ -277,14 +277,14 @@ def writeConsole(txt, upd=0):
     newtxt=''
     for x in txt:
         if x == '%':
-            print("Data")
+            #print("Data")
             if internalData.get() == True:
                 internalData.set(False)
             else:
                 internalData.set(True)
                 oneshot.set(True)# set to global
-            print(internalData.get())
-            print(oneshot.get())
+            #print(internalData.get())
+            #print(oneshot.get())
         elif internalData.get() == True:
             #print(x)
             #print("else")
@@ -313,7 +313,7 @@ def writeConsole(txt, upd=0):
             #print(internalData.get())
             newtxt=newtxt+x
     if internalData.get() == False and oneshot.get() == True: # if we are out of the range of the % data and we have came accrosss a % previously update internal varible
-        print("Headed to Set Pos")
+        #print("Headed to Set Pos")
         Setpos()
         oneshot.set(False)
     tm = ''
@@ -630,9 +630,17 @@ def homeAxis(event):
     GcodeSend(None)
  
 def moveButton(event):
-    global tempString
+    global tempString, Xpos, Ypos, AoAT,AoAB
     index=directionBtnSelect.get()
     dir=''
+    print(Xpos)
+    print(Ypos)
+    if Xpos != 0 or Ypos !=0 or AoAT !=0 or AoAB !=0:
+        Xtempstr=str(Xpos)
+    # Take in the foat we are currently at for each axis
+    # add the incremnts to the axis 
+    # conver it to a string with the coreect endings 
+    # pass it to the G code send
     if index == 0:
         dir=''
     else:
