@@ -170,14 +170,15 @@ void setup(void) {
   const float Y_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[1])*Micro_stepping[1];
   Serial.begin(9600); // Begin serial ouput communication for debug and input of value array.
   Serial.println(X_to_micro);
-  //SD_setup();
-  //delay(5000); // dely five seconds so the monitor can connect first 
+  //delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only 
   DRIVER_SETUP();
   PIN_SETUP(); // Initilize all the Pins 
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
   SET_ACELL(400, 400, 400, 400); // Set motor acceleration
   SET_SPEED(1000,1200, 1400, 1600); // Set motor Speed
+/* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
+
   u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE9, /* menu_prev_pin= */ PE12, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
   // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion. 
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands

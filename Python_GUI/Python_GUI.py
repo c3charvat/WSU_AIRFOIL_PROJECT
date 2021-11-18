@@ -257,13 +257,13 @@ def Setpos():
     #print(Bstr)
     try:
         Xpos=float(Xstr)
-        print(Xpos)
+        #print(Xpos)
         Ypos=float(Ystr)
-        print(Ypos)
+        #print(Ypos)
         AoAT=float(Tstr)
-        print(AoAT)
+        #print(AoAT)
         AoAB=float(Bstr)
-        print(AoAB)
+        #print(AoAB)
         Xstr=''
         Ystr=''
         Tstr=''
@@ -631,40 +631,127 @@ def homeAxis(event):
  
 def moveButton(event):
     global tempString, Xpos, Ypos, AoAT,AoAB
+    selectedAmmount=None
+    selectedAmmountLast=None
+    selectedAmmountmiddle=None
     index=directionBtnSelect.get()
     dir=''
+    tempString=''
+    if index == 0:
+        dir=1
+    else:
+        dir=-1
+    POS=[Xpos,Ypos,AoAT,AoAB]
+    increment=[.05,.1,1,10,100]
+    Xinc=[]
+    Yinc=[]
+    Tinc=[]
+    Binc=[]
     print(Xpos)
     print(Ypos)
     if Xpos != 0 or Ypos !=0 or AoAT !=0 or AoAB !=0:
-        Xtempstr=str(Xpos)
+        for x in range(5):
+            #print("case 1")
+            Xinc.append(str(Xpos+dir*increment[x]))
+            Yinc.append(str(Ypos+dir*increment[x]))
+            Tinc.append(str(AoAT+dir*increment[x]))
+            Binc.append(str(AoAB+dir*increment[x]))
+    else:
+        #print("case 2")
+        for x in range(5):
+            Xinc.append(str(dir*increment[x]))
+            #print(Xinc[x])
+            Yinc.append(str(dir*increment[x]))
+            Tinc.append(str(dir*increment[x]))
+            Binc.append(str(dir*increment[x]))
     # Take in the foat we are currently at for each axis
     # add the incremnts to the axis 
     # conver it to a string with the coreect endings 
     # pass it to the G code send
-    if index == 0:
-        dir=''
-    else:
-        dir='-'
-    increment=['.05>','.1>','1>','10>','100>']
-    middleIncrement=['.05','.1','1','10','100']
+    #increment=['.05>','.1>','1>','10>','100>']
+    #middleIncrement=['.05','.1','1','10','100']
     Axis=['<G X','<G Y','<G AoAT','<G AoAB','<G X',' Y','<G AoAT',' AoAB']
     ammtIndex= incremnetBtnSelect.get()
     axisIndex=axisBtnSelect.get()
-    if axisIndex < 5:
-        selectedAmmount=dir+increment[ammtIndex]
+    if axisIndex == 0: # xaxis
+        selectedAmmount=Xinc[ammtIndex]
+        if float(selectedAmmount)<0 and Xpos+float(selectedAmmount)<0:
+            selectedAmmount=0 # Stop the X and Y axis from hitting the end
+            msgbox.showwarning("X Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
+        if float(selectedAmmount)>0 and Xpos+float(selectedAmmount)>500:
+            selectedAmmount=500
+            msgbox.showwarning("X Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled-> Set to Max\n Pleaase dismiss and continue")
         selectedAxis=Axis[axisIndex]
-        tempString=selectedAxis+selectedAmmount
-        print(tempString)
-    if axisIndex ==4: # Axis has a middle increment
-        selectedAmmountLast=dir+increment[ammtIndex]
-        selectedAmmountmiddle=dir+middleIncrement[ammtIndex]
-        tempString=Axis[axisIndex]+selectedAmmountmiddle+Axis[axisIndex+1]+selectedAmmountLast
-        print(tempString)
+        tempString=selectedAxis+selectedAmmount+'>'
+        #print(tempString)
+    if axisIndex == 1: #yaxis
+        selectedAmmount=Yinc[ammtIndex]
+        print(Ypos+float(selectedAmmount))
+        if float(selectedAmmount)<0 and Ypos+float(selectedAmmount)<0:
+            selectedAmmount=0 # Stop the X and Y axis from hitting the end
+            msgbox.showwarning("Y Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
+        if float(selectedAmmount)>0 and Ypos+float(selectedAmmount)>500:
+            selectedAmmount=500
+            msgbox.showwarning("Y Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled-> Set to Max\n Pleaase dismiss and continue")
+        selectedAxis=Axis[axisIndex]
+        tempString=selectedAxis+selectedAmmount+'>'
+        #print(tempString)
+    if axisIndex == 2: #AoAaxis
+        selectedAmmount=Tinc[ammtIndex]
+        if float(selectedAmmount)<0 and AoAT+float(selectedAmmount)<-20:
+            selectedAmmount=-20 # Stop the X and Y axis from hitting the end
+            msgbox.showwarning("AoAT Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
+        if float(selectedAmmount)>0 and AoAT+float(selectedAmmount)>20:
+            selectedAmmount=20
+            msgbox.showwarning("AoAT Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled-> Set to Max\n Pleaase dismiss and continue")
+        selectedAxis=Axis[axisIndex]
+        tempString=selectedAxis+selectedAmmount+'>'
+        #print(tempString)
+    if axisIndex == 3: #yaxis
+        selectedAmmount=Binc[ammtIndex]
+        if float(selectedAmmount)<0 and AoAB+float(selectedAmmount)<-20:
+            selectedAmmount=-20 # Stop the X and Y axis from hitting the end
+            msgbox.showwarning("AoAB Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
+        if float(selectedAmmount)>0 and AoAB+float(selectedAmmount)>20:
+            selectedAmmount=20
+            msgbox.showwarning("AoAB Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled-> Set to Max\n Pleaase dismiss and continue")
+        selectedAxis=Axis[axisIndex]
+        tempString=selectedAxis+selectedAmmount+'>'
+        #print(tempString)
+    if axisIndex ==4: # Axis has a middle increment X and Y
+        selectedAmmountLast=Yinc[ammtIndex]
+        selectedAmmountmiddle=Xinc[ammtIndex]
+        if float(selectedAmmountLast)<0 and Xpos+float(selectedAmmountLast)<0:
+            selectedAmmountLast=0 # Stop the X and Y axis from hitting the end
+            msgbox.showwarning("X Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
+        if float(selectedAmmountLast)>0 and Xpos+float(selectedAmmountLast)>500: ##### update max distance once the design is finished
+            selectedAmmountLast=500
+            msgbox.showwarning("X Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Max\n Pleaase dismiss and continue")
+        if float(selectedAmmountmiddle)<0 and Ypos+float(selectedAmmountmiddle)<0:
+            selectedAmmountmiddle=0 # Stop the X and Y axis from hitting the end
+            msgbox.showwarning("Y Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
+        if float(selectedAmmountmiddle)>0 and Ypos+float(selectedAmmountmiddle)>500:
+            selectedAmmountmiddle=500
+            msgbox.showwarning("X Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
+        tempString=Axis[axisIndex]+selectedAmmountmiddle+Axis[axisIndex+1]+selectedAmmountLast+'>'
+        #print(tempString)
     if axisIndex ==5:
-        selectedAmmountLast=dir+increment[ammtIndex]
-        selectedAmmountmiddle=dir+middleIncrement[ammtIndex]
-        tempString=Axis[axisIndex+1]+selectedAmmountmiddle+Axis[axisIndex+2]+selectedAmmountLast
-        print(tempString)
+        selectedAmmountLast=Binc[ammtIndex]
+        selectedAmmountmiddle=Tinc[ammtIndex]
+        if float(selectedAmmountLast)<0 and AoAT+float(selectedAmmountLast)<-20:
+            selectedAmmountLast=-20 # Stop the X and Y axis from hitting the end
+            msgbox.showwarning("AoAB Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
+        if float(selectedAmmountLast)>0 and AoAT+float(selectedAmmountLast)>20: ##### update max distance once the design is finished
+            selectedAmmountLast=20
+            msgbox.showwarning("AoAB Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Max\n Pleaase dismiss and continue")
+        if float(selectedAmmountmiddle)<0 and AoAB+float(selectedAmmountmiddle)<-20:
+            selectedAmmountmiddle=-20 # Stop the X and Y axis from hitting the end
+            msgbox.showwarning("AoAT Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
+        if float(selectedAmmountmiddle)>0 and AoAB+float(selectedAmmountmiddle)>20:
+            selectedAmmountmiddle=20
+            msgbox.showwarning("AoAT Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Max\n Pleaase dismiss and continue")
+        tempString=Axis[axisIndex+1]+selectedAmmountmiddle+Axis[axisIndex+2]+selectedAmmountLast+'>'
+        #print(tempString)
     GcodeSend(None)
   
   
@@ -717,6 +804,7 @@ def scenariobInit(event):
     i=0
     for row in csvreader:
         rows.append(row) # read one row at a time and shove it into the array
+
         # read the # of Rows -> if the Number of rows is >7 then -> 
         if i > 7:
             # display disp message -> "More senarios found than able to display\n Be careful that the data you want is in the correct format!"
@@ -944,6 +1032,14 @@ if __name__ == '__main__':
     scenarioBtn.grid(row=3, column=4, padx=4, pady=4)
     scenarioInitBtn = tk.Button(root, width=20,height=4, text='Scenario Init.', command=lambda:scenariobInit(None) )
     scenarioInitBtn.grid(row=2, column=4, padx=4, pady=4)
+    acellSliderFrame = LabelFrame(root, text='''Acceleration MM/s^2''',padx=3,pady=1, bg= '#dddddd')
+    acellSliderFrame.grid(row=4,column=4,columnspan=5)
+    acellerationSlider = Scale(acellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    acellerationSlider.grid(row=5, column=1, columnspan=4)
+    speedSliderFrame= LabelFrame(root, text='''Speed MM/S''',padx=3,pady=1, bg= '#dddddd')
+    speedSliderFrame.grid(row=4,column=1,columnspan=3)
+    speedSlider = Scale(speedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    speedSlider.grid(row=5, column=1, columnspan=4)
     #ScenarioBtn = tk.Button(root, width=20,height=8, text='Move to Senario',
     #					state=tk.DISABLED, command= moveButton)
     #ScenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
