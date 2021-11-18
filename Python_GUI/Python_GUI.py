@@ -676,10 +676,10 @@ def moveButton(event):
     if axisIndex == 0: # xaxis
         selectedAmmount=Xinc[ammtIndex]
         if float(selectedAmmount)<0 and Xpos+float(selectedAmmount)<0:
-            selectedAmmount=0 # Stop the X and Y axis from hitting the end
+            selectedAmmount=str(0) # Stop the X and Y axis from hitting the end
             msgbox.showwarning("X Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
         if float(selectedAmmount)>0 and Xpos+float(selectedAmmount)>500:
-            selectedAmmount=500
+            selectedAmmount=str(500)
             msgbox.showwarning("X Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled-> Set to Max\n Pleaase dismiss and continue")
         selectedAxis=Axis[axisIndex]
         tempString=selectedAxis+selectedAmmount+'>'
@@ -688,10 +688,10 @@ def moveButton(event):
         selectedAmmount=Yinc[ammtIndex]
         print(Ypos+float(selectedAmmount))
         if float(selectedAmmount)<0 and Ypos+float(selectedAmmount)<0:
-            selectedAmmount=0 # Stop the X and Y axis from hitting the end
+            selectedAmmount=str(0) # Stop the X and Y axis from hitting the end
             msgbox.showwarning("Y Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
         if float(selectedAmmount)>0 and Ypos+float(selectedAmmount)>500:
-            selectedAmmount=500
+            selectedAmmount=str(500)
             msgbox.showwarning("Y Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled-> Set to Max\n Pleaase dismiss and continue")
         selectedAxis=Axis[axisIndex]
         tempString=selectedAxis+selectedAmmount+'>'
@@ -699,10 +699,10 @@ def moveButton(event):
     if axisIndex == 2: #AoAaxis
         selectedAmmount=Tinc[ammtIndex]
         if float(selectedAmmount)<0 and AoAT+float(selectedAmmount)<-20:
-            selectedAmmount=-20 # Stop the X and Y axis from hitting the end
+            selectedAmmount=str(-20) # Stop the X and Y axis from hitting the end
             msgbox.showwarning("AoAT Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
         if float(selectedAmmount)>0 and AoAT+float(selectedAmmount)>20:
-            selectedAmmount=20
+            selectedAmmount=str(20)
             msgbox.showwarning("AoAT Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled-> Set to Max\n Pleaase dismiss and continue")
         selectedAxis=Axis[axisIndex]
         tempString=selectedAxis+selectedAmmount+'>'
@@ -710,10 +710,10 @@ def moveButton(event):
     if axisIndex == 3: #yaxis
         selectedAmmount=Binc[ammtIndex]
         if float(selectedAmmount)<0 and AoAB+float(selectedAmmount)<-20:
-            selectedAmmount=-20 # Stop the X and Y axis from hitting the end
+            selectedAmmount=-str(-20) # Stop the X and Y axis from hitting the end
             msgbox.showwarning("AoAB Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled->Set to Min\n Pleaase dismiss and continue")
         if float(selectedAmmount)>0 and AoAB+float(selectedAmmount)>20:
-            selectedAmmount=20
+            selectedAmmount=str(20)
             msgbox.showwarning("AoAB Move Error", "Warning:\n Move requested is outside of range of motion\n Error handled-> Set to Max\n Pleaase dismiss and continue")
         selectedAxis=Axis[axisIndex]
         tempString=selectedAxis+selectedAmmount+'>'
@@ -877,7 +877,7 @@ if __name__ == '__main__':
     root = tk.Tk()
     filePath = tk.StringVar()
     root.title(APP_TITLE) # PaneWindow
-    root.geometry('1000x700')
+    root.geometry('1000x960')
     root.resizable(False,False)
     root.configure(bg='#dddddd')
     try:
@@ -892,7 +892,7 @@ if __name__ == '__main__':
     showTimestampVar = tk.BooleanVar()
     showSentTextVar = tk.BooleanVar()
     dispHexVar = tk.BooleanVar()
-    rowSplit = 10
+    rowSplit = 12
     internalData= BooleanVar(root,False)
     oneshot=tk.BooleanVar(root,False)
     directionVar=tk.IntVar(root,1)
@@ -925,6 +925,10 @@ if __name__ == '__main__':
     tk.Grid.rowconfigure(root, 14, weight=1)
     tk.Grid.rowconfigure(root, 15, weight=1)
     tk.Grid.rowconfigure(root, 16, weight=1)
+    tk.Grid.rowconfigure(root, 17, weight=1)
+    tk.Grid.rowconfigure(root, 18, weight=1)
+    tk.Grid.rowconfigure(root, 19, weight=1)
+    tk.Grid.rowconfigure(root, 20, weight=1)
 
     tk.Grid.columnconfigure(root, 0, weight=1)
     tk.Grid.columnconfigure(root, 1, weight=1)
@@ -974,13 +978,13 @@ if __name__ == '__main__':
             ("Scenario 4",4),
             ("Scenario 5",5)]
     incrementFrame = LabelFrame(root, text='''Movment Ammount''',padx=10,pady=3, bg= '#dddddd')
-    incrementFrame.grid(row=0,column=0,rowspan=4)
+    incrementFrame.grid(row=0,column=0,rowspan=2)
     directionFrame = LabelFrame(root, text='Direction',padx=10,pady=3, bg= '#dddddd')
-    directionFrame.grid(row=4,column=0,rowspan=4)
+    directionFrame.grid(row=3,column=0,rowspan=1)
     axisFrame = LabelFrame(root, text='Axis Select', padx=3,pady=5, bg= '#dddddd')
-    axisFrame.grid(row=0,column=1,rowspan=4)
+    axisFrame.grid(row=0,column=1,rowspan=2)
     scenarioFrame = LabelFrame(root, text='Scenario Select', padx=3,pady=5, bg= '#dddddd')
-    scenarioFrame.grid(row=0,column=3, rowspan=4)
+    scenarioFrame.grid(row=0,column=3, rowspan=2)
     for Increment, val in Increment:
         incrementRadiobtn=tk.Radiobutton(incrementFrame, 
                     text=Increment,
@@ -1007,7 +1011,7 @@ if __name__ == '__main__':
                     width=15,
                     variable=axisBtnSelect, 
                     value=val)
-        radioBtn2.grid(row=1+val,column=0, padx=5, pady=2,sticky=tk.NW )
+        radioBtn2.grid(row=+val,column=0, padx=5, pady=2,sticky=tk.NW )
     for Scenario, val in Scenario:
           ScenarioBtn2=tk.Radiobutton(scenarioFrame, 
                         text=Scenario,
@@ -1019,27 +1023,51 @@ if __name__ == '__main__':
           ScenarioBtn2.grid(row=1+val,column=0, padx=5, pady=2,sticky=tk.NW )
     # End Radio button code 
     moveBtn = tk.Button(root, width=20,height=4, text='Move', command=lambda:moveButton(None))
-    moveBtn.grid(row=2, column=2, padx=4, pady=4)
-    homeAllBtn = tk.Button(root, width=20,height=4, text='Home All Axis', command= lambda:homeAll(None),font=12)
-    homeAllBtn.grid(row=2, column=6, padx=4, pady=4)
+    moveBtn.grid(row=0, column=2, padx=4, pady=4)
     homeBtn = tk.Button(root, width=20,height=4, text='Home Selected axis', command= lambda:homeAxis(None))
-    homeBtn.grid(row=3, column=2, padx=4, pady=4)
+    homeBtn.grid(row=1, column=2, padx=4, pady=4)
+    homeAllBtn = tk.Button(root, width=20,height=4, text='Home All Axis', command= lambda:homeAll(None),font=12)
+    homeAllBtn.grid(row=0, column=6, padx=4, pady=4)
     stopBtn = tk.Button(root, width=20,height=4, text='E STOP',
                         command=lambda: Stop(None),bg='#ff0000',fg='#000000',font=12)
-    stopBtn.grid(row=3, column=6, padx=4, pady=4)
+    stopBtn.grid(row=1, column=6, padx=4, pady=4)
     scenarioBtn = tk.Button(root, width=20,height=4, text='Move to Senario',
                         state=tk.DISABLED, command= lambda:scenarioMove(None))
-    scenarioBtn.grid(row=3, column=4, padx=4, pady=4)
+    scenarioBtn.grid(row=1, column=4, padx=4, pady=4)
     scenarioInitBtn = tk.Button(root, width=20,height=4, text='Scenario Init.', command=lambda:scenariobInit(None) )
-    scenarioInitBtn.grid(row=2, column=4, padx=4, pady=4)
-    acellSliderFrame = LabelFrame(root, text='''Acceleration MM/s^2''',padx=3,pady=1, bg= '#dddddd')
-    acellSliderFrame.grid(row=4,column=4,columnspan=5)
-    acellerationSlider = Scale(acellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
-    acellerationSlider.grid(row=5, column=1, columnspan=4)
-    speedSliderFrame= LabelFrame(root, text='''Speed MM/S''',padx=3,pady=1, bg= '#dddddd')
-    speedSliderFrame.grid(row=4,column=1,columnspan=3)
-    speedSlider = Scale(speedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
-    speedSlider.grid(row=5, column=1, columnspan=4)
+    scenarioInitBtn.grid(row=0, column=4, padx=4, pady=4)
+    XacellSliderFrame = LabelFrame(root, text='''X Axis: Acceleration MM/s^2''',padx=3,pady=1, bg= '#dddddd')
+    XacellSliderFrame.grid(row=3,column=4,columnspan=5)
+    XacellerationSlider = Scale(XacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    XacellerationSlider.grid(row=0, column=1, columnspan=4)
+    XspeedSliderFrame= LabelFrame(root, text='''X Axis: Speed MM/S''',padx=3,pady=1, bg= '#dddddd')
+    XspeedSliderFrame.grid(row=3,column=1,columnspan=3)
+    XspeedSlider = Scale(XspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    XspeedSlider.grid(row=0, column=1, columnspan=4)
+    YacellSliderFrame = LabelFrame(root, text='''Y Axis: Acceleration MM/s^2''',padx=3,pady=1, bg= '#dddddd')
+    YacellSliderFrame.grid(row=4,column=4,columnspan=5)
+    YacellerationSlider = Scale(YacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    YacellerationSlider.grid(row=0, column=1, columnspan=4)
+    YspeedSliderFrame= LabelFrame(root, text='''Y Axis Speed MM/S''',padx=3,pady=1, bg= '#dddddd')
+    YspeedSliderFrame.grid(row=4,column=1,columnspan=3)
+    YspeedSlider = Scale(YspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    YspeedSlider.grid(row=0, column=1, columnspan=4)
+    TacellSliderFrame = LabelFrame(root, text='''Angle of Attack Top: Acceleration Degree/s^2''',padx=3,pady=1, bg= '#dddddd')
+    TacellSliderFrame.grid(row=5,column=4,columnspan=5)
+    TacellerationSlider = Scale(TacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    TacellerationSlider.grid(row=0, column=1, columnspan=4)
+    TspeedSliderFrame= LabelFrame(root, text='''Angle of Attack Top: Speed Degree/S''',padx=3,pady=1, bg= '#dddddd')
+    TspeedSliderFrame.grid(row=5,column=1,columnspan=3)
+    TspeedSlider = Scale(TspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    TspeedSlider.grid(row=0, column=1, columnspan=4)
+    BacellSliderFrame = LabelFrame(root, text='''Angle of Attack Bottom: Acceleration Degree/s^2''',padx=3,pady=1, bg= '#dddddd')
+    BacellSliderFrame.grid(row=6,column=4,columnspan=5)
+    BacellerationSlider = Scale(BacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    BacellerationSlider.grid(row=0, column=1, columnspan=4)
+    BspeedSliderFrame= LabelFrame(root, text='''Angle of Attack Bottom: Speed Degree/S''',padx=3,pady=1, bg= '#dddddd')
+    BspeedSliderFrame.grid(row=6,column=1,columnspan=3)
+    BspeedSlider = Scale(BspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    BspeedSlider.grid(row=0, column=1, columnspan=4)
     #ScenarioBtn = tk.Button(root, width=20,height=8, text='Move to Senario',
     #					state=tk.DISABLED, command= moveButton)
     #ScenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
