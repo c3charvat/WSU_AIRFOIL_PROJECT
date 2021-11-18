@@ -248,9 +248,32 @@ def showRxTextMenu(event):
     finally:
         rxTextMenu.grab_release()
 
-
+def Setpos():
+    global Xpos,Ypos,AoAT,AoAB,Ystr,Xstr,Tstr,Bstr
+    #print("In Set Pos")
+    #print(Xstr)
+    #print(Ystr)
+    #print(Tstr)
+    #print(Bstr)
+    try:
+        Xpos=float(Xstr)
+        #print(Xpos)
+        Ypos=float(Ystr)
+        #print(Ypos)
+        AoAT=float(Tstr)
+        #print(AoAT)
+        AoAB=float(Bstr)
+        #print(AoAB)
+        Xstr=''
+        Ystr=''
+        Tstr=''
+        Bstr=''
+    except:
+        msgbox.showwarning("Error 1", "Warning:\n An Internal Value exception occored Borad and Computer are out of sync!\n Please Home All!")
+    
+    
 def writeConsole(txt, upd=0):
-    global isEndByNL, lastUpdatedBy,Ystr,Xstr,Tstr,Bstr,internalData,recv,newtxt
+    global isEndByNL, lastUpdatedBy,Ystr,Xstr,Tstr,Bstr,internalData,recv,newtxt,oneshot
     newtxt=''
     for x in txt:
         if x == '%':
@@ -258,13 +281,15 @@ def writeConsole(txt, upd=0):
             if internalData.get() == True:
                 internalData.set(False)
             else:
-                internalData.set(True)  # set to global
+                internalData.set(True)
+                oneshot.set(True)# set to global
             print(internalData.get())
+            print(oneshot.get())
         elif internalData.get() == True:
-            print(x)
-            print("else")
+            #print(x)
+            #print("else")
             if x == 'X':
-                print("set X")
+                #print("set X")
                 recv.set(1)
             elif x == 'Y':
                 recv.set(2)
@@ -276,7 +301,7 @@ def writeConsole(txt, upd=0):
                 #print(recv.get())
                 if recv.get()==1:
                     Xstr=Xstr+x
-                    print(Xstr)
+                    #print(Xstr)
                 elif recv.get()==2:
                     Ystr=Ystr+x
                     #print(Ystr)
@@ -285,7 +310,12 @@ def writeConsole(txt, upd=0):
                 else:
                     Bstr=Bstr+x
         else:
+            #print(internalData.get())
             newtxt=newtxt+x
+    if internalData.get() == False and oneshot.get() == True: # if we are out of the range of the % data and we have came accrosss a % previously update internal varible
+        print("Headed to Set Pos")
+        Setpos()
+        oneshot.set(False)
     tm = ''
     ad = ''
     if upd != 2 and showTimestampVar.get():
@@ -601,31 +631,33 @@ def homeAxis(event):
  
 def moveButton(event):
     global tempString
+    index=directionBtnSelect.get()
+    dir=''
+    if index == 0:
+        dir=''
+    else:
+        dir='-'
     increment=['.05>','.1>','1>','10>','100>']
     middleIncrement=['.05','.1','1','10','100']
     Axis=['<G X','<G Y','<G AoAT','<G AoAB','<G X',' Y','<G AoAT',' AoAB']
     ammtIndex= incremnetBtnSelect.get()
     axisIndex=axisBtnSelect.get()
     if axisIndex < 5:
-        selectedAmmount=increment[ammtIndex]
+        selectedAmmount=dir+increment[ammtIndex]
         selectedAxis=Axis[axisIndex]
         tempString=selectedAxis+selectedAmmount
         print(tempString)
     if axisIndex ==4: # Axis has a middle increment
-        selectedAmmountLast=increment[ammtIndex]
-        selectedAmmountmiddle=middleIncrement[ammtIndex]
+        selectedAmmountLast=dir+increment[ammtIndex]
+        selectedAmmountmiddle=dir+middleIncrement[ammtIndex]
         tempString=Axis[axisIndex]+selectedAmmountmiddle+Axis[axisIndex+1]+selectedAmmountLast
         print(tempString)
     if axisIndex ==5:
-        selectedAmmountLast=increment[ammtIndex]
-        selectedAmmountmiddle=middleIncrement[ammtIndex]
+        selectedAmmountLast=dir+increment[ammtIndex]
+        selectedAmmountmiddle=dir+middleIncrement[ammtIndex]
         tempString=Axis[axisIndex+1]+selectedAmmountmiddle+Axis[axisIndex+2]+selectedAmmountLast
         print(tempString)
     GcodeSend(None)
-    
-    
-    
-    
   
   
   
@@ -749,7 +781,7 @@ if __name__ == '__main__':
     root = tk.Tk()
     filePath = tk.StringVar()
     root.title(APP_TITLE) # PaneWindow
-    root.geometry('1000x600')
+    root.geometry('1000x700')
     root.resizable(False,False)
     root.configure(bg='#dddddd')
     try:
@@ -764,8 +796,10 @@ if __name__ == '__main__':
     showTimestampVar = tk.BooleanVar()
     showSentTextVar = tk.BooleanVar()
     dispHexVar = tk.BooleanVar()
-    rowSplit = 8
+    rowSplit = 10
     internalData= BooleanVar(root,False)
+    oneshot=tk.BooleanVar(root,False)
+    directionVar=tk.IntVar(root,1)
     recv=IntVar()
     Xstr=''
     Ystr=''
@@ -792,6 +826,9 @@ if __name__ == '__main__':
     tk.Grid.rowconfigure(root, 11, weight=1)
     tk.Grid.rowconfigure(root, 12, weight=1)
     tk.Grid.rowconfigure(root, 13, weight=1)
+    tk.Grid.rowconfigure(root, 14, weight=1)
+    tk.Grid.rowconfigure(root, 15, weight=1)
+    tk.Grid.rowconfigure(root, 16, weight=1)
 
     tk.Grid.columnconfigure(root, 0, weight=1)
     tk.Grid.columnconfigure(root, 1, weight=1)
@@ -800,6 +837,8 @@ if __name__ == '__main__':
     tk.Grid.columnconfigure(root, 4, weight=1)
     tk.Grid.columnconfigure(root, 5, weight=1)
     tk.Grid.columnconfigure(root, 6, weight=1)
+    tk.Grid.columnconfigure(root, 7, weight=1)
+    tk.Grid.columnconfigure(root, 8, weight=1)
  
  # Send Text Menu
     txText = tk.Entry(root)
@@ -816,6 +855,7 @@ if __name__ == '__main__':
     incremnetBtnSelect= tk.IntVar()
     axisBtnSelect= tk.IntVar()
     scenariobBtnSelect= tk.IntVar()
+    directionBtnSelect=tk.IntVar()
     
  # initializing the choice, i.e. Python
     Increment = [(".05",0),
@@ -823,6 +863,8 @@ if __name__ == '__main__':
             ("1", 2),
             ("10", 3),
             ("100", 4)]
+    Direction = [("+",0),
+            ("-", 1)]
     Axis = [("X Axis", 0),
          ("Y Axis", 1),
          ("AoA Top", 2),
@@ -835,23 +877,34 @@ if __name__ == '__main__':
             ("Scenario 3",3),
             ("Scenario 4",4),
             ("Scenario 5",5)]
-    frame1 = LabelFrame(root, text='''Movment Ammount''',padx=10,pady=3, bg= '#dddddd')
-    frame1.grid(row=0,column=0,rowspan=5)
-    frame2 = LabelFrame(root, text='Axis Select', padx=3,pady=5, bg= '#dddddd')
-    frame2.grid(row=0,column=1,rowspan=6)
-    frame3 = LabelFrame(root, text='Scenario Select', padx=3,pady=5, bg= '#dddddd')
-    frame3.grid(row=0,column=3, rowspan=5)
+    incrementFrame = LabelFrame(root, text='''Movment Ammount''',padx=10,pady=3, bg= '#dddddd')
+    incrementFrame.grid(row=0,column=0,rowspan=4)
+    directionFrame = LabelFrame(root, text='Direction',padx=10,pady=3, bg= '#dddddd')
+    directionFrame.grid(row=4,column=0,rowspan=4)
+    axisFrame = LabelFrame(root, text='Axis Select', padx=3,pady=5, bg= '#dddddd')
+    axisFrame.grid(row=0,column=1,rowspan=4)
+    scenarioFrame = LabelFrame(root, text='Scenario Select', padx=3,pady=5, bg= '#dddddd')
+    scenarioFrame.grid(row=0,column=3, rowspan=4)
     for Increment, val in Increment:
-        radioBtn1=tk.Radiobutton(frame1, 
+        incrementRadiobtn=tk.Radiobutton(incrementFrame, 
                     text=Increment,
                     indicatoron = 0,
                     padx = 2, 
                     width=10,
                     variable=incremnetBtnSelect, 
                     value=val)
-        radioBtn1.grid(row=1+val,column=0, padx=4, pady=2,sticky=tk.NW )
+        incrementRadiobtn.grid(row=1+val,column=0, padx=4, pady=2,sticky=tk.NW )
+    for Direction, val in Direction:
+        directionRadioBtn=tk.Radiobutton(directionFrame, 
+                    text=Direction,
+                    indicatoron = 0,
+                    padx = 2, 
+                    width=10,
+                    variable=directionBtnSelect, 
+                    value=val)
+        directionRadioBtn.grid(row=1+val,column=0, padx=4, pady=2,sticky=tk.NW )
     for Axis, val in Axis:
-        radioBtn2=tk.Radiobutton(frame2, 
+        radioBtn2=tk.Radiobutton(axisFrame, 
                     text=Axis,
                     indicatoron = 0,
                     padx = 2, 
@@ -860,7 +913,7 @@ if __name__ == '__main__':
                     value=val)
         radioBtn2.grid(row=1+val,column=0, padx=5, pady=2,sticky=tk.NW )
     for Scenario, val in Scenario:
-          ScenarioBtn2=tk.Radiobutton(frame3, 
+          ScenarioBtn2=tk.Radiobutton(scenarioFrame, 
                         text=Scenario,
                         indicatoron = 0,
                         padx = 2, 
@@ -870,19 +923,19 @@ if __name__ == '__main__':
           ScenarioBtn2.grid(row=1+val,column=0, padx=5, pady=2,sticky=tk.NW )
     # End Radio button code 
     moveBtn = tk.Button(root, width=20,height=4, text='Move', command=lambda:moveButton(None))
-    moveBtn.grid(row=3, column=2, padx=4, pady=4)
+    moveBtn.grid(row=2, column=2, padx=4, pady=4)
     homeAllBtn = tk.Button(root, width=20,height=4, text='Home All Axis', command= lambda:homeAll(None),font=12)
-    homeAllBtn.grid(row=3, column=6, padx=4, pady=4)
+    homeAllBtn.grid(row=2, column=6, padx=4, pady=4)
     homeBtn = tk.Button(root, width=20,height=4, text='Home Selected axis', command= lambda:homeAxis(None))
-    homeBtn.grid(row=4, column=2, padx=4, pady=4)
+    homeBtn.grid(row=3, column=2, padx=4, pady=4)
     stopBtn = tk.Button(root, width=20,height=4, text='E STOP',
                         command=lambda: Stop(None),bg='#ff0000',fg='#000000',font=12)
-    stopBtn.grid(row=4, column=6, padx=4, pady=4)
+    stopBtn.grid(row=3, column=6, padx=4, pady=4)
     scenarioBtn = tk.Button(root, width=20,height=4, text='Move to Senario',
                         state=tk.DISABLED, command= lambda:scenarioMove(None))
-    scenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
+    scenarioBtn.grid(row=3, column=4, padx=4, pady=4)
     scenarioInitBtn = tk.Button(root, width=20,height=4, text='Scenario Init.', command=lambda:scenariobInit(None) )
-    scenarioInitBtn.grid(row=3, column=4, padx=4, pady=4)
+    scenarioInitBtn.grid(row=2, column=4, padx=4, pady=4)
     #ScenarioBtn = tk.Button(root, width=20,height=8, text='Move to Senario',
     #					state=tk.DISABLED, command= moveButton)
     #ScenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
