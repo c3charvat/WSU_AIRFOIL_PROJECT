@@ -17,7 +17,7 @@ void recvWithStartEndMarkers()
   char rc;
   while (Serial.available() > 0 && newData == false)
   {
-    Serial.println("Got to while (Serial.available() > 0 && newData == false) in recvWithStartEndMarkers()"); // Debug output
+   // Serial.println("Got to while (Serial.available() > 0 && newData == false) in recvWithStartEndMarkers()"); // Debug output
     rc = Serial.read(); // Look at the next character 
     if (recvInProgress == true) // if we are recording 
     {
@@ -68,13 +68,18 @@ bool parseData()
   Serial.println("Got to parse data\n");
   char *strtokIndx; // this is used by strtok() as an index
   //char * LeadChar; // Getting the lead Charter of the command
-  float Temp_Pos[5] = {0, 0, 0, 0, 0};
+  float Temp_Pos[5] = {Xpos, Ypos, AoA[0], AoA[1], NULL};
   int Setting_Num;      // Acelleration = 0 Speed = 1
   int Temp_Settings[5]; // only passed into the global varible if this function completes sucessfully
 
   //strtok(tempChars, " ");// get the first part - the string // This returns the first token "G"
   strtokIndx = strtok(tempChars, " "); // get the first part - the string // This returns the first token "G"
   Serial.println(strtokIndx[0]);
+  if (strtokIndx[0] == 'R' || strtokIndx[0] == 'r')
+  {
+    // Simulated Estop AkA Just Kill power to the board
+    digitalWrite(Reset,LOW); // Lmao This is one way to skin the cat rather than bothering with software
+  }
   if (strtokIndx[0] == 'G' || strtokIndx[0] == 'g')
   {                                         // Begin G code parsing
     Serial.println("IT Starts With A G\n"); // G code Section
@@ -96,21 +101,25 @@ bool parseData()
         {
           if (strtokIndx[0] == 'X' || strtokIndx[0] == 'x')
           { // if the first character is X
-            // Home X axis here
+            Xstepper.moveToHomeInRevolutions(-1,20,20,PG6);
           }
           if (strtokIndx[0] == 'Y' || strtokIndx[0] == 'y')
           { // if the first character is Y
             // Home The Y Axis
+            Ystepper.moveToHomeInRevolutions(-1,20,20,PG9);
+            Zstepper.moveToHomeInRevolutions(-1,20,20,PG13);
           }
           if (strtokIndx[0] == 'A' || strtokIndx[0] == 'a')
           { // if the first character is A -> Meaning AoA
             if (strtokIndx[3] == 'T' || strtokIndx[3] == 't')
             { // if the third character is T -> Meaning AoAT
               // Home AoA Top here
+              E0stepper.moveToHomeInRevolutions(-1,20,20,PG10);
             }
             if (strtokIndx[3] == 'B' || strtokIndx[3] == 'b')
             { // if the third character is B -> Meaning AoAB
               // Home AoA Bottom here
+              E1stepper.moveToHomeInRevolutions(-1,20,20,PG11);
             }
           }
         } // end while
@@ -170,12 +179,16 @@ bool parseData()
         // }
         // We are incrementing at the end of the loop so it stops before it could fall into the else statment when it reaches the end of the string
       }                             // End While loop
-    }                               // If it makes it out of the while loop with out getting kicked out
-    Position_Data[0] = Temp_Pos[0]; // set the global varibles
-    Position_Data[1] = Temp_Pos[1];
-    Position_Data[2] = Temp_Pos[2];
-    Position_Data[3] = Temp_Pos[3];
-    Serial.println("Heading to \"MOVE_FUNCTION()\".");
+    }                    // If it makes it out of the while loop with out getting kicked out
+    Xpos= Temp_Pos[0]; // set the global varibles
+    Ypos = Temp_Pos[1];
+    AoA[0]= Temp_Pos[2];
+    AoA[1] = Temp_Pos[3];
+    //Serial.println(Xpos);
+    //Serial.println(Ypos);
+    //Serial.println(AoA[0]); // Debug code here 
+    //Serial.println(AoA[1]);
+    //Serial.println("Heading to \"MOVE_FUNCTION()\".");
     MOVE_FUNCTION();
     return true; // Tell the system that the function worked
   }              // End G code parsing
@@ -356,22 +369,42 @@ bool parseData()
   }
 } // End Parsing Function
 
-void showParsedData() // Debug Function
+void showParsedData() 
+/* This function is purely debug related and is not used for any functional purpose it can be commented out in code 
+At any time do not comment out this function or you will break the entire system.*/
 { // show parsed data and move
+  Serial.println("Parsed Data Debug output");
   Serial.print("X Pos");
-  Serial.println(Position_Data[0]);
+  Serial.println(Xpos);
   Serial.print("Y Pos"); // debug stuff here
-  Serial.println(Position_Data[1]);
+  Serial.println(Ypos);
   Serial.print("\nAoA Top");
-  Serial.println(Position_Data[2]);
+  Serial.println(AoA[0]);
   Serial.print("AoA Bottom ");
-  Serial.println(Position_Data[3]);
+  Serial.println(AoA[1]);
   //Serial.print("AoA Bottom Speed");
   //Serial.println(Speed_Data[1]);
   //Serial.print("AoA Bottom Speed");
   //Serial.println(Acell_Data[1]);
-  //MOVE_FUNCTION();
+  //MOVE_FUNCTION(); // Revmoved When this function was truned to debug 
   // move function goes here
+}
+void gui_output_function()
+{
+  /* Python GUI Function --> This function just prints the current postion over serial.
+Thiis is so python GUI can read it and know where stepper is currently, It is also usefull for postioning debug It is ignored by the GUI using the 
+ "%" symbol -> That means Any Data passed to the gui after the % symbol and before aother % symbol will be ignored by the text output of the GUI. 
+ The data is serperated by X,Y,AT,AB  */
+ Serial.print("%"); // Start the Data Transfer
+ Serial.print("X");
+ Serial.print(Xpos);
+ Serial.print("Y");
+ Serial.print(Ypos);
+ Serial.print("T");
+ Serial.print(AoA[0]);
+ Serial.print("B");
+ Serial.print(AoA[1]);
+ Serial.print("%"); // End Data transfer. 
 }
 void serial_flush_buffer()
 {

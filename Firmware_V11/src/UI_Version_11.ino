@@ -40,10 +40,12 @@ TMC2209Stepper driverE1(PF2, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Dr
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Physcial System Char~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /* In This section are the maximum travel distances for each of the axis */ 
+int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard // mirrior Axis have to have the same value
+float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard
 const int Xpos_MAX = 500; // Max X length in MM
 const int Ypos_MAX = 500;// MAy Y length in MM
-const int X_Lead_p=2;// X lead screw pitch 
-const int Y_Lead_p=2;// Y lead screw pitch
+const int X_Lead_p=2;// X lead screw pitch in mm 
+const int Y_Lead_p=2;// Y lead screw pitch in mm
 const int AOA_MAX = 500; // Angle of attack max in 360 degrees
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pin Define~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Define the LCD Pins ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,8 +70,6 @@ SpeedyStepper E1stepper;
 
 uint8_t*  Acceleration; // For The Acceleration setting in the LCD UI
 uint8_t*  Speed;        // For the LCD UI
-int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard
-float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Serial Input Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 const byte numChars = 64; // Max Number of charcter read from serial in one input
@@ -77,7 +77,6 @@ char receivedChars[numChars]={};// Initialize a charcter array
 char tempChars[numChars]={};//temporary char array used when parsing since "strtok" causes data loss
 
 // variables to hold the parsed data
-float Position_Data[5]={0,0,0,0,0};//Postiton Data is stored here after beeing passed into from the temp varibles 
 int Speed_Data[5]={0,0,0,0,0}; //Hold the Speed Data being passed in via serial
 int Acell_Data[5]={0,0,0,0,0};//Hold the acelleration data being passed in via serial 
 bool newData = false; // Cotrol Entry into the Serial Reader 
@@ -98,6 +97,8 @@ uint8_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 float CurrentPositions[5] = {0, 0, 0, 0, 0}; // AoA_Top, AoA_Bottom,X,Y,E2  -> " E Z X Y E2 " // modified for new motherboard
 float movevar[5]={0,0,0,0,0}; // E ,Z, X, Y , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+bool Abs_pos_error= false;
+
 const char *Main_menu =     // Define the Main Menu options
   "X Movement\n"
   "Y Movement\n"
@@ -165,15 +166,19 @@ void TRIGGER_WAIT(int pin) {
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SETUP lOOP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void setup(void) {
+  const float X_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[0])*Micro_stepping[0];
+  const float Y_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[1])*Micro_stepping[1];
   Serial.begin(9600); // Begin serial ouput communication for debug and input of value array.
-  //SD_setup();
-  //delay(5000); // dely five seconds so the monitor can connect first 
+  Serial.println(X_to_micro);
+  //delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only 
   DRIVER_SETUP();
   PIN_SETUP(); // Initilize all the Pins 
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
   SET_ACELL(400, 400, 400, 400); // Set motor acceleration
   SET_SPEED(1000,1200, 1400, 1600); // Set motor Speed
+/* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
+
   u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE9, /* menu_prev_pin= */ PE12, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
   // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion. 
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
@@ -248,6 +253,14 @@ void loop(void) {
       movevar[1] = ABS_POS(Ypos, 2); // Y and Z Move  // Pull Data From LCD MENU VARIBLES
       movevar[2] = ABS_POS(AoA[0], 3); // E0 Move AoA Top
       movevar[3] = ABS_POS(AoA[1], 4); // E1 Move AoA Bottom
+      if (Abs_pos_error==true){
+      movevar[0] =0;
+      movevar[1] =0;
+      movevar[2] =0;
+      movevar[3] =0;
+      Go_Pressed = 0;
+      MAIN_MENU();
+      }
     Xstepper.setupRelativeMoveInSteps(movevar[0] / (Degree_per_step[0] / Micro_stepping[0]));
     Ystepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[1] / Micro_stepping[1]));
     Zstepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[1] / Micro_stepping[1]));

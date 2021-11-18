@@ -22,10 +22,15 @@ const int MOTOR3_ENABLE = PA0;  // E0 axis;
 const int MOTOR4_STEP_PIN = PF9;  // z axis "y motion
 const int MOTOR4_DIRECTION_PIN  = PF10;  // z axis // extra setpper for new mtoherboard
 const int MOTOR4_ENABLE= PG2;  // z axis;
+// Reset Pin -> off of the RGB HEADDER J37 
+const int Reset=PB0;
 
 
 
 void PIN_SETUP(){
+// RESET
+//pinMode(Reset,OUTPUT);
+//digitalWrite(Reset,HIGH);
 // X Stepper
 
 pinMode(MOTOR0_STEP_PIN, OUTPUT);

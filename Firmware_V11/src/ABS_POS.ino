@@ -108,5 +108,5 @@ on the fly in the middle of a move.
     Somthing_Error(); // If we get here we have fell through a function we were not suposed to fall through which is a major issue
     return 0; // since nothing was set just head back because the steppers wont move
   }
-  return NULL;
+  return 0; // if it ever gets here this would be a big issue but i cant find a case that actually reaches here
 }

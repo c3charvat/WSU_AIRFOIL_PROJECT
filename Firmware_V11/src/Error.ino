@@ -11,11 +11,13 @@ bool  Angle_Error(int a) { // pass in an intager corresponding to the axis that 
   // Return back to main menu
 
   if ( Error_selection == 1) {
-    // Ok go back to where the function was called from This option works because where this error is called 
+    // Ok go back to where the function was called from This option works because where this error is called
+    Abs_pos_error= true;
     return 0;
   }
   if ( Error_selection == 2) {
     // Head back to Main meanu
+    Abs_pos_error= true;
     MAIN_MENU();
     return 0;
   }

@@ -28,7 +28,7 @@ void SERIAL_UI(void)
       // this temporary copy is necessary to protect the original data
       //   because strtok() used in parseData() replaces the commas with \0
       parseData();
-      showParsedData(); // Print out the AoA T, AoA B, X, Y and move function
+      showParsedData(); // Print out the AoA T, AoA B, X, Y and move function // In order to support the Python GUI the data must be printed with every updata to position Thus this was moved to the move function.
       newData = false;
     }
     // End serial Stuff
