@@ -78,7 +78,7 @@ bool parseData()
   if (strtokIndx[0] == 'R' || strtokIndx[0] == 'r')
   {
     // Simulated Estop AkA Just Kill power to the board
-    digitalWrite(Reset,LOW); // Lmao This is one way to skin the cat rather than bothering with software
+    //digitalWrite(Reset,LOW); // Lmao This is one way to skin the cat rather than bothering with software
   }
   if (strtokIndx[0] == 'G' || strtokIndx[0] == 'g')
   {                                         // Begin G code parsing
@@ -410,5 +410,5 @@ void serial_flush_buffer()
 {
   while (Serial.read() >= 0)
     ; // do nothing
-  Serial.print("Serial Flushed");
+  Serial.print("Serial Flushed\n");
 }

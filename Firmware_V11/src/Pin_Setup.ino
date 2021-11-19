@@ -23,7 +23,7 @@ const int MOTOR4_STEP_PIN = PF9;  // z axis "y motion
 const int MOTOR4_DIRECTION_PIN  = PF10;  // z axis // extra setpper for new mtoherboard
 const int MOTOR4_ENABLE= PG2;  // z axis;
 // Reset Pin -> off of the RGB HEADDER J37 
-const int Reset=PB0;
+//const int Reset=PB0;
 
 
 
@@ -63,7 +63,7 @@ digitalWrite(MOTOR0_ENABLE , LOW); // Set the Enable Pin to Low to Enable the Dr
 digitalWrite(MOTOR1_ENABLE , LOW);
 digitalWrite(MOTOR2_ENABLE , LOW);
 digitalWrite(MOTOR3_ENABLE , LOW);
-digitalWrite(MOTOR0_ENABLE , LOW);
+//digitalWrite(MOTOR0_ENABLE , LOW);
 //SDCard Pins
 //pinMode(PC8, INPUT);
 //pinMode(PC9, INPUT);

@@ -40,13 +40,15 @@ TMC2209Stepper driverE1(PF2, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Dr
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Physcial System Char~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /* In This section are the maximum travel distances for each of the axis */ 
-int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard // mirrior Axis have to have the same value
-float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard
+int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers 
+float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; //mirco stepping for the drivers 
 const int Xpos_MAX = 500; // Max X length in MM
 const int Ypos_MAX = 500;// MAy Y length in MM
-const int X_Lead_p=2;// X lead screw pitch in mm 
+const int X_Lead_p=2;// X lead screw pitch in mm/revolution
 const int Y_Lead_p=2;// Y lead screw pitch in mm
 const int AOA_MAX = 500; // Angle of attack max in 360 degrees
+float X_mm_to_micro= (1/X_Lead_p)*(360/Degree_per_step[0])*(Micro_stepping[0]);
+float Y_mm_to_micro= (1/Y_Lead_p)*(360/Degree_per_step[1])*(Micro_stepping[1]);
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pin Define~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Define the LCD Pins ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/ PE13, /* data=*/ PE15, /* CS=*/ PE14, /* reset=*/ PE10); // 
@@ -261,8 +263,8 @@ void loop(void) {
       Go_Pressed = 0;
       MAIN_MENU();
       }
-    Xstepper.setupRelativeMoveInSteps(movevar[0] / (Degree_per_step[0] / Micro_stepping[0]));
-    Ystepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[1] / Micro_stepping[1]));
+    Xstepper.setupRelativeMoveInSteps(movevar[0]*X_mm_to_micro); // Future: Make these iun terms of MM
+    Ystepper.setupRelativeMoveInSteps(movevar[1]*Y_mm_to_micro);
     Zstepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[1] / Micro_stepping[1]));
     E0stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2])); 
     E1stepper.setupRelativeMoveInSteps(movevar[3] / (Degree_per_step[3] / Micro_stepping[3])); 
