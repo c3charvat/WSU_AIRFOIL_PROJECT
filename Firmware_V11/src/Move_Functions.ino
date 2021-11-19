@@ -27,12 +27,12 @@ movevar[3]=0;
   { // if in static mode
     Serial.println("Motion_selection == 1 or 4");
     // Normal Mode LCD
-    Xstepper.setupRelativeMoveInSteps(movevar[0]*X_mm_to_micro); // Future: Make these iun terms of MM
+    Xstepper.setupRelativeMoveInSteps(movevar[0]*X_mm_to_micro);
     Ystepper.setupRelativeMoveInSteps(movevar[1]*Y_mm_to_micro);
     Zstepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[2] / Micro_stepping[2]));
     E0stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2])); // Future: Make these in terms of degrees
     E1stepper.setupRelativeMoveInSteps(movevar[3] / (Degree_per_step[3] / Micro_stepping[3]));
-    // Call A Blocking Function that Stops the Machine from doing anything else while the stepper is moving
+    // Call A Blocking Function that Stops the Machine from doing anything else while the stepper is moving  This is desired since we aren not updating mid move.
     Serial.println("Entering while loop");
     while ((!E0stepper.motionComplete()) || (!E1stepper.motionComplete()) || (!Zstepper.motionComplete()) || (!Xstepper.motionComplete()) || (!Ystepper.motionComplete()))
     {
@@ -70,7 +70,7 @@ movevar[3]=0;
     // LCD External Trigger mode and Serial External Trigger
     Xstepper.setupRelativeMoveInSteps(movevar[0]*X_mm_to_micro); // Future: Make these iun terms of MM
     Serial.println("Steps to move");
-    Serial.println(movevar[0]*X_mm_to_micro)
+    Serial.println(movevar[0]*X_mm_to_micro);
     Ystepper.setupRelativeMoveInSteps(movevar[1]*Y_mm_to_micro);
     Zstepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[1] / Micro_stepping[1]));
     E0stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2])); // Pre Process Stepper Moves
@@ -93,3 +93,60 @@ movevar[3]=0;
     //return;
   }
 } // End Function
+
+void HomeAll(void)
+{
+  while (digitalRead(ZstepperLimitSw) != LOW  || digitalRead(YstepperLimitSw) != LOW )
+    { // While they arent all complete
+    if (digitalRead(ZstepperLimitSw) != LOW)
+    {
+      Ystepper.setupRelativeMoveInSteps(200);
+    }
+    if (digitalRead(YstepperLimitSw) != LOW ){
+      Zstepper.setupRelativeMoveInSteps(200);
+    }
+    while ((!Zstepper.motionComplete()) || (!Ystepper.motionComplete()))
+    { // While they arent all complete
+      Ystepper.processMovement();
+      Zstepper.processMovement();
+    }
+  }
+  while (digitalRead(XstepperLimitSw) != LOW )
+    { // While they arent all complete
+    if (digitalRead(XstepperLimitSw) != LOW)
+    {
+      Xstepper.setupRelativeMoveInSteps(200);
+    }
+    while(!Xstepper.motionComplete())
+    { // While they arent all complete
+      Xstepper.processMovement();
+    }
+  }
+  while (digitalRead(E0stepperLimitSw) != LOW )
+    { // While they arent all complete
+    if (digitalRead(E0stepperLimitSw) != LOW)
+    {
+      E0stepper.setupRelativeMoveInSteps(200);
+    }
+    while(!E0stepper.motionComplete())
+    { // While they arent all complete
+      E0stepper.processMovement();
+    }
+  }
+  while (digitalRead(E1stepperLimitSw) != LOW )
+    { // While they arent all complete
+    if (digitalRead(E1stepperLimitSw) != LOW)
+    {
+      E1stepper.setupRelativeMoveInSteps(200);
+    }
+    while(!E1stepper.motionComplete())
+    { // While they arent all complete
+      E1stepper.processMovement();
+    }
+  }
+  Xpos=0;
+  Ypos=0;
+  AoA[0]=0;
+  AoA[1]=0;
+  CurrentPositions[] = {0, 0, 0, 0, 0};
+}

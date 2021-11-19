@@ -79,8 +79,8 @@ char receivedChars[numChars]={};// Initialize a charcter array
 char tempChars[numChars]={};//temporary char array used when parsing since "strtok" causes data loss
 
 // variables to hold the parsed data
-int Speed_Data[5]={0,0,0,0,0}; //Hold the Speed Data being passed in via serial
-int Acell_Data[5]={0,0,0,0,0};//Hold the acelleration data being passed in via serial 
+int Speed_Data[5]={0,0,0,0,0}; //Hold the Speed Data
+int Acell_Data[5]={0,0,0,0,0};//Hold the acelleration data 
 bool newData = false; // Cotrol Entry into the Serial Reader 
 // ~~~~~~~~~~~~~~~~~~~ LCD Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~ Angle of Attack Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -179,6 +179,7 @@ void setup(void) {
   Serial.println("");
   SET_ACELL(400, 400, 400, 400); // Set motor acceleration
   SET_SPEED(1000,1200, 1400, 1600); // Set motor Speed
+  gui_output_function(); // initilize the GUI 
 /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 
   u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE9, /* menu_prev_pin= */ PE12, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin

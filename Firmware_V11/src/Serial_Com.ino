@@ -102,12 +102,29 @@ bool parseData()
           if (strtokIndx[0] == 'X' || strtokIndx[0] == 'x')
           { // if the first character is X
             Xstepper.moveToHomeInRevolutions(-1,20,20,PG6);
+              Xpos=0;
+              CurrentPositions[1] = 0;
           }
           if (strtokIndx[0] == 'Y' || strtokIndx[0] == 'y')
           { // if the first character is Y
             // Home The Y Axis
-            Ystepper.moveToHomeInRevolutions(-1,20,20,PG9);
-            Zstepper.moveToHomeInRevolutions(-1,20,20,PG13);
+            while (digitalRead(ZstepperLimitSw) != LOW  || digitalRead(YstepperLimitSw) != LOW )
+              { // While they arent all complete
+              if (digitalRead(ZstepperLimitSw) != LOW)
+              {
+                Ystepper.setupRelativeMoveInSteps(200);
+              }
+              if (digitalRead(YstepperLimitSw) != LOW ){
+                Zstepper.setupRelativeMoveInSteps(200);
+              }
+              while ((!Zstepper.motionComplete()) || (!Ystepper.motionComplete()))
+              { // While they arent all complete
+                Ystepper.processMovement();
+                Zstepper.processMovement();
+              }
+            }
+              Ypos=0;
+              CurrentPositions[2] = 0;
           }
           if (strtokIndx[0] == 'A' || strtokIndx[0] == 'a')
           { // if the first character is A -> Meaning AoA
@@ -115,11 +132,15 @@ bool parseData()
             { // if the third character is T -> Meaning AoAT
               // Home AoA Top here
               E0stepper.moveToHomeInRevolutions(-1,20,20,PG10);
+              AoA[0]=0;
+              CurrentPositions[3] = 0;
             }
             if (strtokIndx[3] == 'B' || strtokIndx[3] == 'b')
             { // if the third character is B -> Meaning AoAB
               // Home AoA Bottom here
               E1stepper.moveToHomeInRevolutions(-1,20,20,PG11);
+              AoA[1]=0;
+              CurrentPositions[4] = 0;
             }
           }
         } // end while
@@ -396,7 +417,7 @@ Thiis is so python GUI can read it and know where stepper is currently, It is al
  "%" symbol -> That means Any Data passed to the gui after the % symbol and before aother % symbol will be ignored by the text output of the GUI. 
  The data is serperated by X,Y,AT,AB  */
  Serial.print("%"); // Start the Data Transfer
- Serial.print("X");
+ Serial.print("X"); // print out the the current settings 
  Serial.print(Xpos);
  Serial.print("Y");
  Serial.print(Ypos);
@@ -404,6 +425,22 @@ Thiis is so python GUI can read it and know where stepper is currently, It is al
  Serial.print(AoA[0]);
  Serial.print("B");
  Serial.print(AoA[1]);
+ Serial.print("AX");
+ Serial.print(Acell_Data[0]);
+ Serial.print("AY");
+ Serial.print(Acell_Data[1]);
+ Serial.print("AT");
+ Serial.print(Speed_Data[2]);
+ Serial.print("AB");
+ Serial.print(Acell_Data[3]);
+ Serial.print("SX");
+ Serial.print(Speed_Data[0]);
+ Serial.print("SY");
+ Serial.print(Speed_Data[1]);
+ Serial.print("ST");
+ Serial.print(Speed_Data[2]);
+ Serial.print("SB");
+ Serial.print(Speed_Data[3]);
  Serial.print("%"); // End Data transfer. 
 }
 void serial_flush_buffer()
