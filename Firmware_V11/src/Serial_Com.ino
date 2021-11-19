@@ -108,13 +108,13 @@ bool parseData()
           if (strtokIndx[0] == 'Y' || strtokIndx[0] == 'y')
           { // if the first character is Y
             // Home The Y Axis
-            while (digitalRead(ZstepperLimitSw) != LOW  || digitalRead(YstepperLimitSw) != LOW )
+            while (digitalRead(Motor1LimitSw) != LOW  || digitalRead(Motor2LimitSw) != LOW )
               { // While they arent all complete
-              if (digitalRead(ZstepperLimitSw) != LOW)
+              if (digitalRead(Motor1LimitSw) != LOW)
               {
                 Ystepper.setupRelativeMoveInSteps(200);
               }
-              if (digitalRead(YstepperLimitSw) != LOW ){
+              if (digitalRead(Motor2LimitSw) != LOW ){
                 Zstepper.setupRelativeMoveInSteps(200);
               }
               while ((!Zstepper.motionComplete()) || (!Ystepper.motionComplete()))
