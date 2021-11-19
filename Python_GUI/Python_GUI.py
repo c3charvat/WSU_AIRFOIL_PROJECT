@@ -8,6 +8,8 @@ from tkinter import Button, Label, ttk as ttk
 from tkinter import scrolledtext as tkscroll
 from tkinter import messagebox as msgbox
 from tkinter import *
+from tkinter import ttk
+from ttkwidgets import *
 import serial
 import serial.tools.list_ports as list_ports
 import time
@@ -225,26 +227,26 @@ def showTxTextMenu(event):
         txTextMenu.entryconfigure(i, state=sta)
     try:
         root.clipboard_get()
-        txTextMenu.entryconfigure(2, state=tk.NORMAL)
+        txTextMenu.menu.entryconfigure(2, state=tk.NORMAL)
     except:
-        txTextMenu.entryconfigure(2, state=tk.DISABLED)
+        txTextMenu.menu.entryconfigure(2, state=tk.DISABLED)
     try:
-        txTextMenu.tk_popup(event.x_root, event.y_root)
+        txTextMenu.menu.tk_popup(event.x_root, event.y_root)
     finally:
         txTextMenu.grab_release()
 
 
 def showRxTextMenu(event):
     if len(rxText.tag_ranges(tk.SEL)):
-        rxTextMenu.entryconfigure(0, state=tk.NORMAL)
+        rxTextMenu.menu.entryconfigure(0, state=tk.NORMAL)
     else:
-        rxTextMenu.entryconfigure(0, state=tk.DISABLED)
+        rxTextMenu.menu.entryconfigure(0, state=tk.DISABLED)
     if currentPort.isOpen():
-        rxTextMenu.entryconfigure(2, state=tk.NORMAL)
+        rxTextMenu.menu.entryconfigure(2, state=tk.NORMAL)
     else:
-        rxTextMenu.entryconfigure(2, state=tk.DISABLED)
+        rxTextMenu.menu.entryconfigure(2, state=tk.DISABLED)
     try:
-        rxTextMenu.tk_popup(event.x_root, event.y_root)
+        rxTextMenu.menu.tk_popup(event.x_root, event.y_root)
     finally:
         rxTextMenu.grab_release()
 
@@ -463,9 +465,9 @@ def setting():  # settings Menu
     tk.Grid.columnconfigure(settingDlg, 2, weight=1)
     tk.Label(settingDlg, text='Data bits:').grid(
         row=0, column=1, padx=0, pady=12, sticky=tk.NE)
-    tk.Label(settingDlg, text='Parity:').grid(
+    ttk.Label(settingDlg, text='Parity:').grid(
         row=1, column=1, padx=0, pady=0, sticky=tk.NS+tk.E)
-    tk.Label(settingDlg, text='Stop bits:').grid(
+    ttk.Label(settingDlg, text='Stop bits:').grid(
         row=2, column=1, padx=0, pady=12, sticky=tk.NE)
     dataBitsCbo = ttk.Combobox(settingDlg, width=10, state='readonly')
     dataBitsCbo.grid(row=0, column=2, padx=12, pady=12, sticky=tk.NE)
@@ -479,11 +481,11 @@ def setting():  # settings Menu
     stopBitsCbo.grid(row=2, column=2, padx=12, pady=12, sticky=tk.NE)
     stopBitsCbo['values'] = STOPBITS
     stopBitsCbo.set(currentPort.stopbits)
-    tk.Button(settingDlg, text='Default', width=10, command=defaultSetting).\
+    ttk.Button(settingDlg, text='Default', width=10, command=defaultSetting).\
         grid(row=1, column=0, padx=12, pady=0, sticky=tk.NS+tk.W)
-    tk.Button(settingDlg, text='OK', width=10, command=lambda: setPort(None)).\
+    ttk.Button(settingDlg, text='OK', width=10, command=lambda: setPort(None)).\
         grid(row=3, column=1, padx=0, pady=12, sticky=tk.S)
-    cancelBtn = tk.Button(settingDlg, text='Cancel',
+    cancelBtn = ttk.Button(settingDlg, text='Cancel',
                           width=10, command=lambda: hideSetting(None))
     cancelBtn.grid(row=3, column=2, padx=12, pady=12, sticky=tk.S)
     settingDlg.bind('<Return>', setPort)
@@ -519,14 +521,14 @@ def filePathSettings():  # settings Menu
     tk.Grid.columnconfigure(filePathDlg, 2, weight=1)
     tk.Label(filePathDlg, text='File Path: Ex:C:\\Users\\Collin\\Documents\\WSU_AIRFOIL_GITHUB\\WSU_AIRFOIL_PROJECT').grid(row=0, column=1, padx=0, pady=12, sticky=tk.NE)
     # Insert the Faile path menu here
-    pText = tk.Entry(filePathDlg)
+    pText = ttk.Entry(filePathDlg)
     pText.grid(row=2, column=1, columnspan=3,
                 padx=4, pady=8, sticky=tk.N+tk.EW)
     pText.bind('<Up>', upKeyCmd)
     pText.bind('<Down>', downKeyCmd)
-    tk.Button(filePathDlg, text='Default', width=10, command=defaultFilePath).grid(row=1, column=0, padx=12, pady=0, sticky=tk.NS+tk.W)
-    tk.Button(filePathDlg, text='OK', width=10, command=lambda:setFilePath(None)).grid(row=3, column=1, padx=0, pady=12, sticky=tk.S)
-    cancelBtn = tk.Button(filePathDlg, text='Cancel',width=10, command=lambda:hideFilePath(None))
+    ttk.Button(filePathDlg, text='Default', width=10, command=defaultFilePath).grid(row=1, column=0, padx=12, pady=0, sticky=tk.NS+tk.W)
+    ttk.Button(filePathDlg, text='OK', width=10, command=lambda:setFilePath(None)).grid(row=3, column=1, padx=0, pady=12, sticky=tk.S)
+    cancelBtn = ttk.Button(filePathDlg, text='Cancel',width=10, command=lambda:hideFilePath(None))
     cancelBtn.grid(row=3, column=2, padx=12, pady=12, sticky=tk.S)
     filePathDlg.bind('<Return>',setFilePath )
     filePathDlg.bind('<Escape>',hideFilePath)
@@ -544,6 +546,16 @@ def filePathSettings():  # settings Menu
     filePathDlg.grab_set()
     cancelBtn.focus_set()
 
+def change_theme():
+    # NOTE: The theme's real name is sun-valley-<mode>
+    if root.tk.call("ttk::style", "theme", "use") == "sun-valley-dark":
+        # Set light theme
+        root.tk.call("set_theme", "light")
+        root.configure(bg='white')
+    else:
+        # Set dark theme
+        root.tk.call("set_theme", "dark")
+        root.configure(bg='#222222')
 
 def defaultSetting():
     dataBitsCbo.set(serial.EIGHTBITS)
@@ -875,11 +887,14 @@ if __name__ == '__main__':
 
     ### Root Function #######################################################################
     root = tk.Tk()
+    root.configure(bg='#222222')
+    style = ttk.Style(root)
+    root.tk.call('source','C://Users//ecslogon//Documents//PlatformIO\Projects//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
+    root.tk.call("set_theme", "dark") 
     filePath = tk.StringVar()
     root.title(APP_TITLE) # PaneWindow
     root.geometry('1000x960')
     root.resizable(False,False)
-    root.configure(bg='#dddddd')
     try:
         ico = tk.PhotoImage(file=fname+'.png')
     except:
@@ -941,7 +956,7 @@ if __name__ == '__main__':
     tk.Grid.columnconfigure(root, 8, weight=1)
  
  # Send Text Menu
-    txText = tk.Entry(root)
+    txText = ttk.Entry(root)
     txText.grid(row=0+rowSplit, column=0, columnspan=6,
                 padx=4, pady=8, sticky=tk.N+tk.EW)
     txText.bind('<Up>', upKeyCmd)
@@ -977,104 +992,97 @@ if __name__ == '__main__':
             ("Scenario 3",3),
             ("Scenario 4",4),
             ("Scenario 5",5)]
-    incrementFrame = LabelFrame(root, text='''Movment Ammount''',padx=10,pady=3, bg= '#dddddd')
+    incrementFrame = ttk.LabelFrame(root, text='''Ammount''')
     incrementFrame.grid(row=0,column=0,rowspan=2)
-    directionFrame = LabelFrame(root, text='Direction',padx=10,pady=3, bg= '#dddddd')
+    directionFrame = ttk.LabelFrame(root, text='Direction')
     directionFrame.grid(row=3,column=0,rowspan=1)
-    axisFrame = LabelFrame(root, text='Axis Select', padx=3,pady=5, bg= '#dddddd')
+    axisFrame = ttk.LabelFrame(root, text='Axis Select')
     axisFrame.grid(row=0,column=1,rowspan=2)
-    scenarioFrame = LabelFrame(root, text='Scenario Select', padx=3,pady=5, bg= '#dddddd')
+    scenarioFrame = ttk.LabelFrame(root, text='Scenario Select')
     scenarioFrame.grid(row=0,column=3, rowspan=2)
     for Increment, val in Increment:
-        incrementRadiobtn=tk.Radiobutton(incrementFrame, 
+        incrementRadiobtn=ttk.Radiobutton(incrementFrame, 
                     text=Increment,
-                    indicatoron = 0,
-                    padx = 2, 
                     width=10,
                     variable=incremnetBtnSelect, 
                     value=val)
         incrementRadiobtn.grid(row=1+val,column=0, padx=4, pady=2,sticky=tk.NW )
     for Direction, val in Direction:
-        directionRadioBtn=tk.Radiobutton(directionFrame, 
+        directionRadioBtn=ttk.Radiobutton(directionFrame, 
                     text=Direction,
-                    indicatoron = 0,
-                    padx = 2, 
                     width=10,
                     variable=directionBtnSelect, 
                     value=val)
         directionRadioBtn.grid(row=1+val,column=0, padx=4, pady=2,sticky=tk.NW )
     for Axis, val in Axis:
-        radioBtn2=tk.Radiobutton(axisFrame, 
+        radioBtn2=ttk.Radiobutton(axisFrame, 
                     text=Axis,
-                    indicatoron = 0,
-                    padx = 2, 
                     width=15,
                     variable=axisBtnSelect, 
                     value=val)
         radioBtn2.grid(row=+val,column=0, padx=5, pady=2,sticky=tk.NW )
     for Scenario, val in Scenario:
-          ScenarioBtn2=tk.Radiobutton(scenarioFrame, 
+          ScenarioBtn2=ttk.Radiobutton(scenarioFrame, 
                         text=Scenario,
-                        indicatoron = 0,
-                        padx = 2, 
                         width=15,
                         variable=scenariobBtnSelect, 
                         value=val)
           ScenarioBtn2.grid(row=1+val,column=0, padx=5, pady=2,sticky=tk.NW )
     # End Radio button code 
-    moveBtn = tk.Button(root, width=20,height=4, text='Move', command=lambda:moveButton(None))
-    moveBtn.grid(row=0, column=2, padx=4, pady=4)
-    homeBtn = tk.Button(root, width=20,height=4, text='Home Selected axis', command= lambda:homeAxis(None))
-    homeBtn.grid(row=1, column=2, padx=4, pady=4)
-    homeAllBtn = tk.Button(root, width=20,height=4, text='Home All Axis', command= lambda:homeAll(None),font=12)
-    homeAllBtn.grid(row=0, column=6, padx=4, pady=4)
-    stopBtn = tk.Button(root, width=20,height=4, text='E STOP',
-                        command=lambda: Stop(None),bg='#ff0000',fg='#000000',font=12)
-    stopBtn.grid(row=1, column=6, padx=4, pady=4)
-    scenarioBtn = tk.Button(root, width=20,height=4, text='Move to Senario',
+    moveBtn = ttk.Button(root, width=20, text='Move', command=lambda:moveButton(None))
+    moveBtn.grid(row=0, column=2, padx=4, pady=4,ipady=15, ipadx=15)
+    homeBtn = ttk.Button(root, width=20, text='Home Selected axis', command= lambda:homeAxis(None))
+    homeBtn.grid(row=1, column=2, padx=4, pady=4,ipady=15, ipadx=15)
+    homeAllBtn = ttk.Button(root, width=20, text='Home All Axis', command= lambda:homeAll(None))
+    homeAllBtn.grid(row=0, column=6, padx=4, pady=4,ipady=15, ipadx=15)
+    stopBtn = ttk.Button(root, width=20, text='E STOP',
+                        command=lambda: Stop(None))
+    stopBtn.grid(row=1, column=6, padx=4, pady=4,ipady=20, ipadx=20)
+    scenarioBtn = ttk.Button(root, width=20, text='Move to Senario',
                         state=tk.DISABLED, command= lambda:scenarioMove(None))
-    scenarioBtn.grid(row=1, column=4, padx=4, pady=4)
-    scenarioInitBtn = tk.Button(root, width=20,height=4, text='Scenario Init.', command=lambda:scenariobInit(None) )
-    scenarioInitBtn.grid(row=0, column=4, padx=4, pady=4)
-    XacellSliderFrame = LabelFrame(root, text='''X Axis: Acceleration MM/s^2''',padx=3,pady=1, bg= '#dddddd')
-    XacellSliderFrame.grid(row=3,column=4,columnspan=5)
-    XacellerationSlider = Scale(XacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
-    XacellerationSlider.grid(row=0, column=1, columnspan=4)
-    XspeedSliderFrame= LabelFrame(root, text='''X Axis: Speed MM/S''',padx=3,pady=1, bg= '#dddddd')
-    XspeedSliderFrame.grid(row=3,column=1,columnspan=3)
-    XspeedSlider = Scale(XspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
-    XspeedSlider.grid(row=0, column=1, columnspan=4)
-    YacellSliderFrame = LabelFrame(root, text='''Y Axis: Acceleration MM/s^2''',padx=3,pady=1, bg= '#dddddd')
-    YacellSliderFrame.grid(row=4,column=4,columnspan=5)
-    YacellerationSlider = Scale(YacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
-    YacellerationSlider.grid(row=0, column=1, columnspan=4)
-    YspeedSliderFrame= LabelFrame(root, text='''Y Axis Speed MM/S''',padx=3,pady=1, bg= '#dddddd')
-    YspeedSliderFrame.grid(row=4,column=1,columnspan=3)
-    YspeedSlider = Scale(YspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
-    YspeedSlider.grid(row=0, column=1, columnspan=4)
-    TacellSliderFrame = LabelFrame(root, text='''Angle of Attack Top: Acceleration Degree/s^2''',padx=3,pady=1, bg= '#dddddd')
-    TacellSliderFrame.grid(row=5,column=4,columnspan=5)
-    TacellerationSlider = Scale(TacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
-    TacellerationSlider.grid(row=0, column=1, columnspan=4)
-    TspeedSliderFrame= LabelFrame(root, text='''Angle of Attack Top: Speed Degree/S''',padx=3,pady=1, bg= '#dddddd')
-    TspeedSliderFrame.grid(row=5,column=1,columnspan=3)
-    TspeedSlider = Scale(TspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
-    TspeedSlider.grid(row=0, column=1, columnspan=4)
-    BacellSliderFrame = LabelFrame(root, text='''Angle of Attack Bottom: Acceleration Degree/s^2''',padx=3,pady=1, bg= '#dddddd')
-    BacellSliderFrame.grid(row=6,column=4,columnspan=5)
-    BacellerationSlider = Scale(BacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
-    BacellerationSlider.grid(row=0, column=1, columnspan=4)
-    BspeedSliderFrame= LabelFrame(root, text='''Angle of Attack Bottom: Speed Degree/S''',padx=3,pady=1, bg= '#dddddd')
-    BspeedSliderFrame.grid(row=6,column=1,columnspan=3)
-    BspeedSlider = Scale(BspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
-    BspeedSlider.grid(row=0, column=1, columnspan=4)
+    scenarioBtn.grid(row=1, column=4, padx=4, pady=4,ipady=15, ipadx=15)
+    scenarioInitBtn = ttk.Button(root, width=20, text='Scenario Init.', command=lambda:scenariobInit(None) )
+    scenarioInitBtn.grid(row=0, column=4, padx=4, pady=4,ipady=15, ipadx=15)
+    
+    XacellSliderFrame = ttk.LabelFrame(root, text='''X Axis: Acceleration MM/s^2''')
+    XacellSliderFrame.grid(row=3,column=4,columnspan=5,ipadx=5,ipady=0)
+    XacellerationSlider = TickScale(XacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    XacellerationSlider.grid(row=0, column=1, columnspan=4,ipadx=5,ipady=1)
+    XspeedSliderFrame= ttk.LabelFrame(root, text='''X Axis: Speed MM/S''')
+    XspeedSliderFrame.grid(row=3,column=1,columnspan=3,ipadx=5,ipady=0)
+    XspeedSlider = TickScale(XspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    XspeedSlider.grid(row=0, column=1, columnspan=4,ipadx=5,ipady=0)
+    YacellSliderFrame = ttk.LabelFrame(root, text='''Y Axis: Acceleration MM/s^2''')
+    YacellSliderFrame.grid(row=4,column=4,columnspan=5,ipadx=5,ipady=0)
+    YacellerationSlider = TickScale(YacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    YacellerationSlider.grid(row=0, column=1, columnspan=4,ipadx=5,ipady=0)
+    YspeedSliderFrame= ttk.LabelFrame(root, text='''Y Axis Speed MM/S''')
+    YspeedSliderFrame.grid(row=4,column=1,columnspan=3,ipadx=5,ipady=0)
+    YspeedSlider = TickScale(YspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    YspeedSlider.grid(row=0, column=1, columnspan=4,ipadx=5,ipady=0)
+    TacellSliderFrame = ttk.LabelFrame(root, text='''Angle of Attack Top: Acceleration Degree/s^2''')
+    TacellSliderFrame.grid(row=5,column=4,columnspan=5,ipadx=5,ipady=0)
+    TacellerationSlider = TickScale(TacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    TacellerationSlider.grid(row=0, column=1, columnspan=4,ipadx=5,ipady=0)
+    TspeedSliderFrame= ttk.LabelFrame(root, text='''Angle of Attack Top: Speed Degree/S''')
+    TspeedSliderFrame.grid(row=5,column=1,columnspan=3,ipadx=5,ipady=0)
+    TspeedSlider = TickScale(TspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    TspeedSlider.grid(row=0, column=1, columnspan=4,ipadx=5,ipady=0)
+    BacellSliderFrame = ttk.LabelFrame(root, text='''Angle of Attack Bottom: Acceleration Degree/s^2''')
+    BacellSliderFrame.grid(row=6,column=4,columnspan=5,ipadx=5,ipady=0)
+    BacellerationSlider = TickScale(BacellSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    BacellerationSlider.grid(row=0, column=1, columnspan=4,ipadx=5,ipady=0)
+    BspeedSliderFrame= ttk.LabelFrame(root, text='''Angle of Attack Bottom: Speed Degree/S''')
+    BspeedSliderFrame.grid(row=6,column=1,columnspan=3,ipadx=5,ipady=0)
+    BspeedSlider = TickScale(BspeedSliderFrame, from_=0, to=200,length=400,tickinterval=20,orient=HORIZONTAL)
+    BspeedSlider.grid(row=0, column=1, columnspan=4,ipadx=5,ipady=0)
     #ScenarioBtn = tk.Button(root, width=20,height=8, text='Move to Senario',
     #					state=tk.DISABLED, command= moveButton)
     #ScenarioBtn.grid(row=4, column=4, padx=4, pady=4, rowspan=2)
  
  
  ## End Movment UI Code 
-    sendBtn = tk.Button(root, width=25, text='Send',
+    sendBtn = ttk.Button(root, width=25, text='Send',
                         state=tk.DISABLED, command=lambda: sendCmd(None))
     sendBtn.grid(row=0+rowSplit, column=6, padx=4, pady=4, sticky=tk.NE)
 
@@ -1083,23 +1091,23 @@ if __name__ == '__main__':
     rxText.grid(row=1+rowSplit,column=0, columnspan=8, padx=4, sticky=tk.NSEW)
     rxText.bind('<Button-3>', showRxTextMenu)
 
-    autoscrollCbt = tk.Checkbutton(
+    autoscrollCbt = ttk.Checkbutton(
         root, text='Autoscroll', variable=autoscrollVar, onvalue=True, offvalue=False)
-    autoscrollCbt.grid(row=2+rowSplit, column=0, padx=4, pady=4, sticky=tk.SW)
+    autoscrollCbt.grid(row=2+rowSplit, column=0, padx=12, pady=4,ipadx=19, sticky=tk.SW)
     di = data.get('autoscroll')
     if di != None:
         autoscrollVar.set(di)
 
-    showTimestampCbt = tk.Checkbutton(
+    showTimestampCbt = ttk.Checkbutton(
         root, text='Show timestamp', variable=showTimestampVar, onvalue=True, offvalue=False)
-    showTimestampCbt.grid(row=2+rowSplit, column=1, padx=4, pady=4, sticky=tk.SW)
+    showTimestampCbt.grid(row=2+rowSplit, column=1, padx=12, pady=4, ipadx=19,  sticky=tk.SW)
     di = data.get('showtimestamp')
     if di != None:
         showTimestampVar.set(di)
 
-    showSentTextCbt = tk.Checkbutton(
+    showSentTextCbt = ttk.Checkbutton(
         root, text='Show sent text', variable=showSentTextVar, onvalue=True, offvalue=False)
-    showSentTextCbt.grid(row=2+rowSplit, column=2, padx=4, pady=4, sticky=tk.SW)
+    showSentTextCbt.grid(row=2+rowSplit, column=2, padx=12, pady=4, sticky=tk.SW)
     di = data.get('showsenttext')
     if di != None:
         showSentTextVar.set(di)
@@ -1115,7 +1123,7 @@ if __name__ == '__main__':
         portCbo['state'] = tk.DISABLED
         portCbo.set('No port')
 
-    lineEndingCbo = ttk.Combobox(root, width=14, state='readonly')
+    lineEndingCbo = ttk.Combobox(root, width=10, state='readonly')
     lineEndingCbo.grid(row=2+rowSplit, column=4, padx=4, pady=4, sticky=tk.SE)
     lineEndingCbo['values'] = (
         'No line ending', 'Newline', 'Carriage return', 'Both CR & NL')
@@ -1126,7 +1134,7 @@ if __name__ == '__main__':
         lineEndingCbo.current(0)
 
     baudrateCbo = ttk.Combobox(root, width=12, state='readonly')
-    baudrateCbo.grid(row=2+rowSplit, column=5, padx=4, pady=4, sticky=tk.SE)
+    baudrateCbo.grid(row=2+rowSplit, column=5, padx=4, pady=4,ipadx=12,sticky=tk.SE)
     baudrateCbo['values'] = list(str(b) + ' baud' for b in BAUD_RATES)
     baudrateCbo.bind('<<ComboboxSelected>>', changeBaudrate)
     di = data.get('baudrateindex')
@@ -1137,32 +1145,40 @@ if __name__ == '__main__':
         baudrateCbo.current(4)  # 9600 baud
         currentPort.baudrate = BAUD_RATES[4]
 
-    clearBtn = tk.Button(
+    clearBtn = ttk.Button(
         root, width=12, text='Clear output', command=clearOutputCmd)
     clearBtn.grid(row=2+rowSplit, column=6, padx=4, pady=4, sticky=tk.SE)
 
-    txTextMenu = tk.Menu(txText, tearoff=0)
-    txTextMenu.add_command(label='Cut', accelerator='Ctrl+X',
+    txTextMenu = ttk.Menubutton(txText)
+    txTextMenu.menu = tk.Menu(txTextMenu, tearoff=0)
+    txTextMenu['menu'] = txTextMenu.menu
+    txTextMenu.menu.add_command(label='Cut', accelerator='Ctrl+X',
                            command=lambda: txText.event_generate('<<Cut>>'))
-    txTextMenu.add_command(label='Copy', accelerator='Ctrl+C',
+    txTextMenu.menu.add_command(label='Copy', accelerator='Ctrl+C',
                            command=lambda: txText.event_generate('<<Copy>>'))
-    txTextMenu.add_command(label='Paste', accelerator='Ctrl+V',
+    txTextMenu.menu.add_command(label='Paste', accelerator='Ctrl+V',
                            command=lambda: txText.event_generate('<<Paste>>'))
 
-    rxTextMenu = tk.Menu(rxText, tearoff=0)
-    rxTextMenu.add_command(label='Copy', accelerator='Ctrl+C',
+    #rxTextMenu = tk.Menu(rxText, tearoff=0)
+    rxTextMenu = ttk.Menubutton(rxText)
+    rxTextMenu.menu = tk.Menu(rxTextMenu, tearoff=0)
+    #rxTextMenu['menu'] = rxTextMenu.menu
+    rxTextMenu.menu.add_command(label='Copy', accelerator='Ctrl+C',
                            command=lambda: rxText.event_generate('<<Copy>>'))
-    rxTextMenu.add_separator()
-    rxTextMenu.add_command(label='Close active port', command=closePort)
-    rxTextMenu.add_separator()
-    rxTextMenu.add_checkbutton(label='Display in hexadecimal code',
+    rxTextMenu.menu.add_separator()
+    rxTextMenu.menu.add_command(label='Close active port', command=closePort)
+    rxTextMenu.menu.add_separator()
+    rxTextMenu.menu.add_checkbutton(label='Display in hexadecimal code',
                                onvalue=True, offvalue=False, variable=dispHexVar)
-    rxTextMenu.add_separator()
-    rxTextMenu.add_command(label='Port setting', command=setting)
-    rxTextMenu.add_separator()
-    rxTextMenu.add_command(label='Scenario File Path', command=filePathSettings)
-    rxTextMenu.add_separator()
-    rxTextMenu.add_command(label='About', command=showAbout)
+    rxTextMenu.menu.add_separator()
+    rxTextMenu.menu.add_command(label='Port setting', command=setting)
+    rxTextMenu.menu.add_separator()
+    rxTextMenu.menu.add_command(label='Scenario File Path', command=filePathSettings)
+    rxTextMenu.menu.add_separator()
+    rxTextMenu.menu.add_checkbutton(label='Enable Light Mode',
+                               onvalue=True, offvalue=False, command=change_theme)
+    rxTextMenu.menu.add_separator()
+    rxTextMenu.menu.add_command(label='About', command=showAbout)
 
     listPortsPolling()
 
