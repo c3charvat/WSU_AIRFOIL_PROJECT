@@ -250,8 +250,8 @@ def showRxTextMenu(event):
     finally:
         rxTextMenu.grab_release()
 
-def Setpos():
-    global Xpos,Ypos,AoAT,AoAB,Ystr,Xstr,Tstr,Bstr
+def SetData():
+    global Xpos,Ypos,AoAT,AoAB,Ystr,Xstr,Tstr,Bstr,AXstr,AYstr,ATstr,ABstr,SXstr,SYstr,STstr,SBstr,AY,AT,AB,SX,SY,ST,SB 
     #print("In Set Pos")
     #print(Xstr)
     #print(Ystr)
@@ -266,10 +266,27 @@ def Setpos():
         #print(AoAT)
         AoAB=float(Bstr)
         #print(AoAB)
+        AX=int(AXstr) 
+        AY=int(AYstr)
+        AT=int(ATstr)
+        AB=int(ABstr)
+        SX=int(SXstr)
+        SY=int(SYstr)
+        ST=int(STstr)
+        SB=int(SBstr)
         Xstr=''
         Ystr=''
         Tstr=''
         Bstr=''
+        AXstr=''
+        AYstr=''
+        ATstr=''
+        ABstr=''
+        SXstr=''
+        SYstr=''
+        STstr=''
+        SBstr=''
+
     except:
         msgbox.showwarning("Error 1", "Warning:\n An Internal Value exception occored Borad and Computer are out of sync!\n Please Home All!")
     
@@ -299,6 +316,22 @@ def writeConsole(txt, upd=0):
                 recv.set(3)
             elif x =='B':
                 recv.set(4)
+            elif x =='Q':
+                recv.set(5)
+            elif x =='W':
+                recv.set(6)
+            elif x =='E':
+                recv.set(7)
+            elif x =='R':
+                recv.set(8)
+            elif x =='A':
+                recv.set(9)
+            elif x =='S':
+                recv.set(10)
+            elif x =='D':
+                recv.set(11)
+            elif x =='F':
+                recv.set(12)
             else: # it has to be one of the numbers follwing it 
                 #print(recv.get())
                 if recv.get()==1:
@@ -309,15 +342,31 @@ def writeConsole(txt, upd=0):
                     #print(Ystr)
                 elif recv.get()==3:
                     Tstr=Tstr+x
-                else:
+                elif recv.get()==4:
                     Bstr=Bstr+x
+                elif recv.get()==5:
+                    AXstr=AXstr+x
+                elif recv.get()==6:
+                    AYstr=AYstr+x
+                elif recv.get()==7:
+                    ATstr=ATstr+x
+                elif recv.get()==8:
+                    ABstr=ABstr+x
+                elif recv.get()==9:
+                    SXstr=SXstr+x
+                elif recv.get()==10:
+                    SYstr=SYstr+x
+                elif recv.get()==11:
+                    STstr=STstr+x
+                elif recv.get()==12:
+                    SBstr=SBstr+x
         else:
             #print(internalData.get())
             newtxt=newtxt+x
     if internalData.get() == False and oneshot.get() == True: # if we are out of the range of the % data and we have came accrosss a % previously update internal varible
         #print("Headed to Set Pos")
-        Setpos()
-        oneshot.set(False)
+        SetData()
+        oneshot.set(False) # dont fall into this crap unless you have to --> once per function call
     tm = ''
     ad = ''
     if upd != 2 and showTimestampVar.get():
@@ -428,7 +477,7 @@ def closePort():
 
 
 def showAbout():
-    msgbox.showinfo(APP_TITLE, 'Designed by Collin Charvat\n Monitor credit: ZulNs\n@Gorontalo,\n Fall 21`~Spring 22`')
+    msgbox.showinfo(APP_TITLE, 'Designed by Collin Charvat\n Monitor credit: ZulNs @Gorontalo,\n Fall 21`~Spring 22`')
 
 
 def exitRoot():
@@ -916,6 +965,14 @@ if __name__ == '__main__':
     Ystr=''
     Tstr=''
     Bstr=''
+    AXstr=''
+    AYstr=''
+    ATstr=''
+    ABstr=''
+    SXstr=''
+    SYstr=''
+    STstr=''
+    SBstr=''
     Xpos=0.00
     Ypos=0.00
     AoAT=0.00
@@ -927,7 +984,7 @@ if __name__ == '__main__':
     SX=0
     SY=0
     ST=0
-    S0B=0
+    SB=0
     # Grid Initilization 
     # lock the space between the input bar and the text box *Input bar
     tk.Grid.rowconfigure(root, 0, weight=1)
