@@ -68,6 +68,9 @@ SpeedyStepper Ystepper;
 SpeedyStepper Zstepper;
 SpeedyStepper E0stepper;
 SpeedyStepper E1stepper;
+SpeedyStepper E2stepper;
+SpeedyStepper E3stepper;
+SpeedyStepper E4stepper;
 // Stepper settings
 
 uint8_t*  Acceleration; // For The Acceleration setting in the LCD UI
