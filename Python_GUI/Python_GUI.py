@@ -1,6 +1,6 @@
 # https://wiki.python.org/moin/TkInter
 # https://towardsdatascience.com/top-10-python-gui-frameworks-for-developers-adca32fbe6fc
-# 
+# https://github.com/rdbende/Sun-Valley-ttk-theme/blob/master/Dark%20screenshot.png
 
 
 import tkinter as tk
@@ -920,6 +920,14 @@ if __name__ == '__main__':
     Ypos=0.00
     AoAT=0.00
     AoAB=0.00
+    AX=0
+    AY=0
+    AT=0
+    AB=0
+    SX=0
+    SY=0
+    ST=0
+    S0B=0
     # Grid Initilization 
     # lock the space between the input bar and the text box *Input bar
     tk.Grid.rowconfigure(root, 0, weight=1)
