@@ -1,6 +1,5 @@
 /* Air Foil Project code 
-Version 11
-Date:11/5/2021
+Version 12
 Written by: Collin Charvat
 liscence: N/A
 This program was written to drive the Dual Airfoil experiment at Wright State Uni. 

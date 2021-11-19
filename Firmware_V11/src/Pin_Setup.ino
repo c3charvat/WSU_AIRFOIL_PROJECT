@@ -90,6 +90,15 @@ pinMode(MOTOR6_ENABLE, OUTPUT);
 pinMode(MOTOR7_STEP_PIN, OUTPUT);
 pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
 pinMode(MOTOR7_ENABLE, OUTPUT);
+// Limit Switches
+pinMode(Motor0LimitSw, OUTPUT);
+pinMode(Motor1LimitSw, OUTPUT);
+pinMode(Motor2LimitSw, OUTPUT));
+pinMode(Motor3LimitSw, OUTPUT));
+pinMode(Motor4LimitSw, OUTPUT));
+pinMode(Motor5LimitSw, OUTPUT));
+pinMode(Motor6LimitSw, OUTPUT));
+pinMode(Motor7LimitSw, OUTPUT));
 // Extras 
 // pinMode(4, OUTPUT); // Fan Pin Initilization 
 pinMode(BEEPER, OUTPUT); // Beeper on LCD
