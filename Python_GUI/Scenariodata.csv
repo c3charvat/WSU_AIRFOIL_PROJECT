@@ -1,7 +1,7 @@
-placeholder,x,y,AoA T,AoA B
-Scenario0,200,50,-10,10
-Scenario1,100,60,10,-10
-Scenario2,0,200,20,15
-Scenario3,300,400,10,3
-Scenario4,500,500,5,7
-Scenario5,10,100,3,10
+placeholder,x,y,AoA T,AoA B,X-Speed,Y-Speed,AoAT-Speed,AoAB-Speed,X-Acell,Y-Acell,AoAT-Acell,AoAB-Acell
+Scenario0,200,50,-10,10,,,,,,,,
+Scenario1,100,60,10,-10,,,,,,,,
+Scenario2,0,200,20,15,,,,,,,,
+Scenario3,300,400,10,3,,,,,,,,
+Scenario4,500,500,5,7,,,,,,,,
+Scenario5,10,100,3,10,,,,,,,,

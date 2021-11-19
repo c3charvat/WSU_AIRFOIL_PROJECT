@@ -1,6 +1,5 @@
 /* Air Foil Project code 
-Version 11
-Date:11/5/2021
+Version 12
 Written by: Collin Charvat
 liscence: N/A
 This program was written to drive the Dual Airfoil experiment at Wright State Uni. 
@@ -40,13 +39,15 @@ TMC2209Stepper driverE1(PF2, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Dr
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Physcial System Char~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /* In This section are the maximum travel distances for each of the axis */ 
-int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard // mirrior Axis have to have the same value
-float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; //mirco stepping for the drivers // E ,Z, X, Y, E2 // modified for new mothermoard
+int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers 
+float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; //mirco stepping for the drivers 
 const int Xpos_MAX = 500; // Max X length in MM
 const int Ypos_MAX = 500;// MAy Y length in MM
-const int X_Lead_p=2;// X lead screw pitch in mm 
+const int X_Lead_p=2;// X lead screw pitch in mm/revolution
 const int Y_Lead_p=2;// Y lead screw pitch in mm
 const int AOA_MAX = 500; // Angle of attack max in 360 degrees
+float X_mm_to_micro= (1/X_Lead_p)*(360/Degree_per_step[0])*(Micro_stepping[0]);
+float Y_mm_to_micro= (1/Y_Lead_p)*(360/Degree_per_step[1])*(Micro_stepping[1]);
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pin Define~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Define the LCD Pins ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/ PE13, /* data=*/ PE15, /* CS=*/ PE14, /* reset=*/ PE10); // 
@@ -66,6 +67,9 @@ SpeedyStepper Ystepper;
 SpeedyStepper Zstepper;
 SpeedyStepper E0stepper;
 SpeedyStepper E1stepper;
+SpeedyStepper E2stepper;
+SpeedyStepper E3stepper;
+SpeedyStepper E4stepper;
 // Stepper settings
 
 uint8_t*  Acceleration; // For The Acceleration setting in the LCD UI
@@ -77,8 +81,8 @@ char receivedChars[numChars]={};// Initialize a charcter array
 char tempChars[numChars]={};//temporary char array used when parsing since "strtok" causes data loss
 
 // variables to hold the parsed data
-int Speed_Data[5]={0,0,0,0,0}; //Hold the Speed Data being passed in via serial
-int Acell_Data[5]={0,0,0,0,0};//Hold the acelleration data being passed in via serial 
+int Speed_Data[5]={0,0,0,0,0}; //Hold the Speed Data
+int Acell_Data[5]={0,0,0,0,0};//Hold the acelleration data 
 bool newData = false; // Cotrol Entry into the Serial Reader 
 // ~~~~~~~~~~~~~~~~~~~ LCD Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~ Angle of Attack Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -177,6 +181,7 @@ void setup(void) {
   Serial.println("");
   SET_ACELL(400, 400, 400, 400); // Set motor acceleration
   SET_SPEED(1000,1200, 1400, 1600); // Set motor Speed
+  gui_output_function(); // initilize the GUI 
 /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 
   u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE9, /* menu_prev_pin= */ PE12, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
@@ -261,8 +266,8 @@ void loop(void) {
       Go_Pressed = 0;
       MAIN_MENU();
       }
-    Xstepper.setupRelativeMoveInSteps(movevar[0] / (Degree_per_step[0] / Micro_stepping[0]));
-    Ystepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[1] / Micro_stepping[1]));
+    Xstepper.setupRelativeMoveInSteps(movevar[0]*X_mm_to_micro); // Future: Make these iun terms of MM
+    Ystepper.setupRelativeMoveInSteps(movevar[1]*Y_mm_to_micro);
     Zstepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[1] / Micro_stepping[1]));
     E0stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2])); 
     E1stepper.setupRelativeMoveInSteps(movevar[3] / (Degree_per_step[3] / Micro_stepping[3])); 
