@@ -96,7 +96,7 @@ movevar[3]=0;
 
 void HomeAll(void)
 {
-  while (digitalRead(Motor2LimitSw) != LOW  || digitalRead(Motor1LimitSw) != LOW )
+  while (digitalRead(Motor2LimitSw) != LOW  || digitalRead(Motor1LimitSw) != LOW)
     { // While they arent all complete
     if (digitalRead(Motor2LimitSw) != LOW)
     {
@@ -105,7 +105,7 @@ void HomeAll(void)
     if (digitalRead(Motor1LimitSw) != LOW ){
       Zstepper.setupRelativeMoveInSteps(200);
     }
-    while ((!Zstepper.motionComplete()) || (!Ystepper.motionComplete()))
+    while (digitalRead(Motor2LimitSw) != LOW || digitalRead(Motor1LimitSw) != LOW || (!Zstepper.motionComplete()) || (!Ystepper.motionComplete()))
     { // While they arent all complete
       Ystepper.processMovement();
       Zstepper.processMovement();
@@ -117,7 +117,7 @@ void HomeAll(void)
     {
       Xstepper.setupRelativeMoveInSteps(200);
     }
-    while(!Xstepper.motionComplete())
+    while(digitalRead(Motor0LimitSw) != LOW || !Xstepper.motionComplete())
     { // While they arent all complete
       Xstepper.processMovement();
     }
@@ -128,7 +128,7 @@ void HomeAll(void)
     {
       E0stepper.setupRelativeMoveInSteps(200);
     }
-    while(!E0stepper.motionComplete())
+    while(digitalRead(Motor3LimitSw) != LOW || !E0stepper.motionComplete())
     { // While they arent all complete
       E0stepper.processMovement();
     }
@@ -139,7 +139,7 @@ void HomeAll(void)
     {
       E1stepper.setupRelativeMoveInSteps(200);
     }
-    while(!E1stepper.motionComplete())
+    while(digitalRead(Motor4LimitSw) != LOW || !E1stepper.motionComplete())
     { // While they arent all complete
       E1stepper.processMovement();
     }
