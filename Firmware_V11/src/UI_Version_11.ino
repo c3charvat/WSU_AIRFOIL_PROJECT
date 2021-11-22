@@ -36,7 +36,9 @@ TMC2209Stepper driverY(PD11, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Dri
 TMC2209Stepper driverZ(PC6, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver address) Software serial X axis
 TMC2209Stepper driverE0(PC7, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver Address) Software serial X axis
 TMC2209Stepper driverE1(PF2, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
-
+TMC2209Stepper driverE2(PE4, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
+TMC2209Stepper driverE3(PE1, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X ax
+//TMC2209Stepper driverE4(PD3, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X ax
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Physcial System Char~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /* In This section are the maximum travel distances for each of the axis */ 
 int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers 
@@ -48,6 +50,14 @@ const int Y_Lead_p=2;// Y lead screw pitch in mm
 const int AOA_MAX = 500; // Angle of attack max in 360 degrees
 float X_mm_to_micro= (1/X_Lead_p)*(360/Degree_per_step[0])*(Micro_stepping[0]);
 float Y_mm_to_micro= (1/Y_Lead_p)*(360/Degree_per_step[1])*(Micro_stepping[1]);
+const int Motor0LimitSw =PG6;
+const int Motor1LimitSw =PG12;
+const int Motor2LimitSw =PG9;
+const int Motor3LimitSw =PG13;
+const int Motor4LimitSw =PG10;
+const int Motor5LimitSw =PG14;
+const int Motor6LimitSw =PG11;
+const int Motor7LimitSw =PG15;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pin Define~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Define the LCD Pins ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/ PE13, /* data=*/ PE15, /* CS=*/ PE14, /* reset=*/ PE10); // 

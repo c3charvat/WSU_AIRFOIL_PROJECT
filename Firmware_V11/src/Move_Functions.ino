@@ -148,5 +148,9 @@ void HomeAll(void)
   Ypos=0;
   AoA[0]=0;
   AoA[1]=0;
-  CurrentPositions[] = {0, 0, 0, 0, 0};
+  CurrentPositions[0] = 0;
+  CurrentPositions[1] = 0;
+  CurrentPositions[2] = 0;
+  CurrentPositions[3] = 0;
+  CurrentPositions[4] = 0;
 }
