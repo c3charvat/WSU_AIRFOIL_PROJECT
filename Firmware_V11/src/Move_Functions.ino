@@ -4,6 +4,14 @@
 //  "LCD External Trigger\n"3
 //  "Serial Cont.\n" 4            // 2 and 4 are the exact same just moce togther as soon as you ge the command
 //  "Serial Cont. Ext.T.\n"; 5        // 3 and 5 are the same
+const int Motor0LimitSw =PG6;
+const int Motor1LimitSw =PG12;
+const int Motor2LimitSw =PG9;
+const int Motor3LimitSw =PG13;
+const int Motor4LimitSw =PG10;
+const int Motor5LimitSw =PG14;
+const int Motor6LimitSw =PG11;
+const int Motor7LimitSw =PG15;
 
 void MOVE_FUNCTION(void)
 { // Selection =0

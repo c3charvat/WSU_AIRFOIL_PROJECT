@@ -442,6 +442,31 @@ Thiis is so python GUI can read it and know where stepper is currently, It is al
  Serial.print("F");
  Serial.print(Speed_Data[3]);
  Serial.print("%"); // End Data transfer. 
+
+ Serial.print("X"); // print out the the current settings 
+ Serial.print(Xpos);
+ Serial.print("Y");
+ Serial.print(Ypos);
+ Serial.print("T");
+ Serial.print(AoA[0]);
+ Serial.print("B");
+ Serial.print(AoA[1]);
+ Serial.print("Q");
+ Serial.print(Acell_Data[0]);
+ Serial.print("W");
+ Serial.print(Acell_Data[1]);
+ Serial.print("E");
+ Serial.print(Speed_Data[2]);
+ Serial.print("R");
+ Serial.print(Acell_Data[3]);
+ Serial.print("A");
+ Serial.print(Speed_Data[0]);
+ Serial.print("S");
+ Serial.print(Speed_Data[1]);
+ Serial.print("D");
+ Serial.print(Speed_Data[2]);
+ Serial.print("F");
+ Serial.print(Speed_Data[3]);
 }
 void serial_flush_buffer()
 {

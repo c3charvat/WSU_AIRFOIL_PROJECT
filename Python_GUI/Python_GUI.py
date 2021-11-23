@@ -18,6 +18,7 @@ import json
 import csv
 import os
 
+
 def get_str_of_chr(chr_in_byte):  # converts revived data into the approprate charcter
     cd = ord(chr_in_byte)  # ord converts a chacter into its hex value
     # if the chacters is less than or equal to 0x20 raw encoding (space) and (less than  = the "~" 0x7e OR less than inverted bang 0xA1)
@@ -292,7 +293,7 @@ def SetData():
     
     
 def writeConsole(txt, upd=0):
-    global isEndByNL, lastUpdatedBy,Ystr,Xstr,Tstr,Bstr,internalData,recv,newtxt,oneshot
+    global isEndByNL,lastUpdatedBy,Ystr,Xstr,Tstr,Bstr,internalData,recv,newtxt,oneshot,AXstr,AYstr,ATstr,ABstr,SXstr,SYstr,STstr,SBstr
     newtxt=''
     for x in txt:
         if x == '%':
@@ -966,13 +967,13 @@ if __name__ == '__main__':
     Tstr=''
     Bstr=''
     AXstr=''
-    AYstr=''
-    ATstr=''
-    ABstr=''
-    SXstr=''
-    SYstr=''
-    STstr=''
-    SBstr=''
+    AYstr='0'
+    ATstr='0'
+    ABstr='0'
+    SXstr='0'
+    SYstr='0'
+    STstr='0'
+    SBstr='0'
     Xpos=0.00
     Ypos=0.00
     AoAT=0.00
