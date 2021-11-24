@@ -2,6 +2,11 @@
 #include <SpeedyStepper.h>
 /* 
 This file sets up the Pin Modes
+It its important to note that Stepper driver 7 shares pins with the swd interface... 
+So if you are not programming with dfu mode nothing will actuall program and wverthing ill result in errors
+The SwD interface will not work untill a full power off and the SwD pins have been freed from any use in code. 
+ https://www.st.com/resource/en/application_note/cd00167594-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf
+ Page 54 for more information
 */
 int BUTTON = PE7; // encoder click on Creality Melzi screen
 int BEEPER = PE8; // factory beeper on Creality Melzi screen
@@ -36,18 +41,18 @@ const int MOTOR6_STEP_PIN = PE2;  // z axis "y motion
 const int MOTOR6_DIRECTION_PIN  = PE3;  // z axis // extra setpper for new mtoherboard
 const int MOTOR6_ENABLE= PD4;  // z axis;
 // Motor 7
-const int MOTOR7_STEP_PIN = PE6;  // z axis "y motion
-const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis // extra setpper for new mtoherboard
-const int MOTOR7_ENABLE= PE0;  // z axis;
+//const int MOTOR7_STEP_PIN = PE6;  // z axis "y motion
+//const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis // extra setpper for new mtoherboard 
+//const int MOTOR7_ENABLE= PE0;  // z axis; // Disabled since it shares PA14 with the SWD interface which is used for programming
 
-const int Motor0LimitSw =PG6;
-const int Motor1LimitSw =PG12;
-const int Motor2LimitSw =PG9;
-const int Motor3LimitSw =PG13;
-const int Motor4LimitSw =PG10;
-const int Motor5LimitSw =PG14;
-const int Motor6LimitSw =PG11;
-const int Motor7LimitSw =PG15;
+// const int Motor0LimitSw =PG6;
+// const int Motor1LimitSw =PG12;
+// const int Motor2LimitSw =PG9;
+// const int Motor3LimitSw =PG13;
+// const int Motor4LimitSw =PG10;
+// const int Motor5LimitSw =PG14;
+// const int Motor6LimitSw =PG11;
+// const int Motor7LimitSw =PG15;
 // Reset Pin -> off of the RGB HEADDER J37 
 //const int Reset=PB0;
 
@@ -87,10 +92,11 @@ pinMode(MOTOR6_STEP_PIN, OUTPUT);
 pinMode(MOTOR6_DIRECTION_PIN, OUTPUT);
 pinMode(MOTOR6_ENABLE, OUTPUT);
 // E4 Extra
-pinMode(MOTOR7_STEP_PIN, OUTPUT);
-pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
-pinMode(MOTOR7_ENABLE, OUTPUT);
+//pinMode(MOTOR7_STEP_PIN, OUTPUT);
+//pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
+//pinMode(MOTOR7_ENABLE, OUTPUT);
 // Limit Switches
+// Defined in the main file 
 pinMode(Motor0LimitSw, OUTPUT);
 pinMode(Motor1LimitSw, OUTPUT);
 pinMode(Motor2LimitSw, OUTPUT);
@@ -124,5 +130,6 @@ E0stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
 E1stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
 E2stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
 E3stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-E4stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+//E4stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+return;
 }

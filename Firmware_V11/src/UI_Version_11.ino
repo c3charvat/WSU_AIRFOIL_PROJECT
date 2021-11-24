@@ -36,7 +36,8 @@ TMC2209Stepper driverY(PD11, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Dri
 TMC2209Stepper driverZ(PC6, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver address) Software serial X axis
 TMC2209Stepper driverE0(PC7, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver Address) Software serial X axis
 TMC2209Stepper driverE1(PF2, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
-
+TMC2209Stepper driverE2(PE4, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
+TMC2209Stepper driverE3(PE1, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X ax
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Physcial System Char~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /* In This section are the maximum travel distances for each of the axis */ 
 int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers 
@@ -149,6 +150,10 @@ void SET_ACELL(float x, float y, float E0, float E1) {
   E0stepper.setAccelerationInRevolutionsPerSecondPerSecond(E0); // Change to mm/s when the system is being implmented
   E1stepper.setAccelerationInRevolutionsPerSecondPerSecond(E1); // Change to mm/s when the system is being implmented
   //  E2stepper.setAccelerationInStepsPerSecondPerSecond(*put axis its mirrioring here*);
+  Acell_Data[0]=x;
+  Acell_Data[1]=y;
+  Acell_Data[2]=E0;
+  Acell_Data[3]=E1;
 }
 void SET_SPEED(int x, int y, int E0, int E1) {
   Xstepper.setSpeedInRevolutionsPerSecond(x);
@@ -157,6 +162,10 @@ void SET_SPEED(int x, int y, int E0, int E1) {
   E0stepper.setSpeedInRevolutionsPerSecond(E0); // Change to mm/s^2 when the system is being implmented ?
   E1stepper.setSpeedInRevolutionsPerSecond(E1);
   //  E2stepper.setSpeedInStepsPerSecond(*Axis its mirrioring here*);
+  Speed_Data[0]=x;
+  Speed_Data[1]=y;
+  Speed_Data[2]=E0;
+  Speed_Data[3]=E1;
 }
 void TRIGGER_WAIT(int pin) {
   int Button_state = 0;
@@ -179,8 +188,8 @@ void setup(void) {
   PIN_SETUP(); // Initilize all the Pins 
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
-  SET_ACELL(400, 400, 400, 400); // Set motor acceleration
-  SET_SPEED(1000,1200, 1400, 1600); // Set motor Speed
+  SET_ACELL(100, 100, 100, 100); // Set motor acceleration
+  SET_SPEED(100,200, 400, 600); // Set motor Speed
   gui_output_function(); // initilize the GUI 
 /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 

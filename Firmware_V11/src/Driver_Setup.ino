@@ -13,12 +13,12 @@ driverX.pwm_ofs_auto ();
 driverX.pwm_autograd(1);
 driverX.pwm_autoscale(1);
 
-driverY.beginSerial(230400);
+driverY.beginSerial(115200);
 Serial.println("Driver Y Enabled\n");
 driverY.begin();
 driverY.rms_current(1100); // mA
 driverY.microsteps(64);
-driverX.en_spreadCycle(0);
+driverY.en_spreadCycle(0);
 driverY.pwm_ofs_auto ();
 driverY.pwm_autoscale(1);
 driverY.pwm_autograd(1);
@@ -52,10 +52,26 @@ driverE2.microsteps(64);
 driverE2.pwm_ofs_auto ();
 
 driverE3.beginSerial(115200);
+<<<<<<< HEAD
 Serial.println("Driver E3 Enabled\n");
 driverE1.begin();
 driverE1.rms_current(850); // mA
 driverE1.microsteps(64);
 driverE1.pwm_ofs_auto ();
+=======
+Serial.println("Driver X Enabled\n");
+driverE3.begin();
+driverE3.rms_current(850); // mA
+driverE3.microsteps(64);
+driverE3.pwm_ofs_auto ();
+
+//driverE4.beginSerial(115200);
+//Serial.println("Driver X Enabled\n");
+//driverE1.begin();
+//driverE1.rms_current(850); // mA
+//driverE1.microsteps(64);
+//driverE1.pwm_ofs_auto ();
+return;
+>>>>>>> c1be5b4451f6c86ebe2b05d747ad90444601ee9b
 }
 
