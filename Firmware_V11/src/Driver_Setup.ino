@@ -52,13 +52,11 @@ driverE2.microsteps(64);
 driverE2.pwm_ofs_auto ();
 
 driverE3.beginSerial(115200);
-<<<<<<< HEAD
 Serial.println("Driver E3 Enabled\n");
 driverE1.begin();
 driverE1.rms_current(850); // mA
 driverE1.microsteps(64);
 driverE1.pwm_ofs_auto ();
-=======
 Serial.println("Driver X Enabled\n");
 driverE3.begin();
 driverE3.rms_current(850); // mA
@@ -72,6 +70,5 @@ driverE3.pwm_ofs_auto ();
 //driverE1.microsteps(64);
 //driverE1.pwm_ofs_auto ();
 return;
->>>>>>> c1be5b4451f6c86ebe2b05d747ad90444601ee9b
 }
 
