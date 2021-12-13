@@ -51,11 +51,11 @@ driverE2.rms_current(850); // mA
 driverE2.microsteps(64);
 driverE2.pwm_ofs_auto ();
 
-driverE3.beginSerial(115200);
-Serial.println("Driver X Enabled\n");
-driverE1.begin();
-driverE1.rms_current(850); // mA
-driverE1.microsteps(64);
-driverE1.pwm_ofs_auto ();
+// driverE3.beginSerial(115200);
+// Serial.println("Driver X Enabled\n");
+// driverE1.begin();
+// driverE1.rms_current(850); // mA
+// driverE1.microsteps(64);
+// driverE1.pwm_ofs_auto ();
 }
 
