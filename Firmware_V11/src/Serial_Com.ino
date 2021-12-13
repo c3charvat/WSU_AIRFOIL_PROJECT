@@ -108,23 +108,23 @@ bool parseData()
           if (strtokIndx[0] == 'Y' || strtokIndx[0] == 'y')
           { // if the first character is Y
             // Home The Y Axis
-            while (digitalRead(Motor1LimitSw) != LOW  || digitalRead(Motor2LimitSw) != LOW )
-              { // While they arent all complete
-              if (digitalRead(Motor1LimitSw) != LOW)
-              {
-                Ystepper.setupRelativeMoveInSteps(200);
-              }
-              if (digitalRead(Motor2LimitSw) != LOW ){
-                Zstepper.setupRelativeMoveInSteps(200);
-              }
-              while ((!Zstepper.motionComplete()) || (!Ystepper.motionComplete()))
-              { // While they arent all complete
-                Ystepper.processMovement();
-                Zstepper.processMovement();
-              }
-            }
-              Ypos=0;
-              CurrentPositions[2] = 0;
+            // while (digitalRead(Motor1LimitSw) != LOW  || digitalRead(Motor2LimitSw) != LOW )
+            //   { // While they arent all complete
+            //   if (digitalRead(Motor1LimitSw) != LOW)
+            //   {
+            //     Ystepper.setupRelativeMoveInSteps(200);
+            //   }
+            //   if (digitalRead(Motor2LimitSw) != LOW ){
+            //     Zstepper.setupRelativeMoveInSteps(200);
+            //   }
+            //   while ((!Zstepper.motionComplete()) || (!Ystepper.motionComplete()))
+            //   { // While they arent all complete
+            //     Ystepper.processMovement();
+            //     Zstepper.processMovement();
+            //   }
+            // }
+            //   Ypos=0;
+            //   CurrentPositions[2] = 0;
           }
           if (strtokIndx[0] == 'A' || strtokIndx[0] == 'a')
           { // if the first character is A -> Meaning AoA
