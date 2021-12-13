@@ -36,9 +36,9 @@ const int MOTOR6_STEP_PIN = PE2;  // z axis "y motion
 const int MOTOR6_DIRECTION_PIN  = PE3;  // z axis // extra setpper for new mtoherboard
 const int MOTOR6_ENABLE= PD4;  // z axis;
 // Motor 7
-const int MOTOR7_STEP_PIN = PE6;  // z axis "y motion
-const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis // extra setpper for new mtoherboard
-const int MOTOR7_ENABLE= PE0;  // z axis;
+//const int MOTOR7_STEP_PIN = PE6;  // z axis "y motion
+//const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis // extra setpper for new mtoherboard
+//const int MOTOR7_ENABLE= PE0;  // z axis;
 
 const int Motor0LimitSw =PG6;
 const int Motor1LimitSw =PG12;
@@ -87,9 +87,9 @@ pinMode(MOTOR6_STEP_PIN, OUTPUT);
 pinMode(MOTOR6_DIRECTION_PIN, OUTPUT);
 pinMode(MOTOR6_ENABLE, OUTPUT);
 // E4 Extra
-pinMode(MOTOR7_STEP_PIN, OUTPUT);
-pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
-pinMode(MOTOR7_ENABLE, OUTPUT);
+//pinMode(MOTOR7_STEP_PIN, OUTPUT);
+//pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
+//pinMode(MOTOR7_ENABLE, OUTPUT);
 // Limit Switches
 pinMode(Motor0LimitSw, OUTPUT);
 pinMode(Motor1LimitSw, OUTPUT);
@@ -124,5 +124,5 @@ E0stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
 E1stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
 E2stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
 E3stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-E4stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+//E4stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
 }
