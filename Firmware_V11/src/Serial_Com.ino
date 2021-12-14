@@ -411,29 +411,29 @@ Thiis is so python GUI can read it and know where stepper is currently, It is al
  "%" symbol -> That means Any Data passed to the gui after the % symbol and before aother % symbol will be ignored by the text output of the GUI. 
  The data is serperated by X,Y,AT,AB  */
  Serial.print("%"); // Start the Data Transfer
- Serial.print("1"); // print out the the current settings 
+ Serial.print("Q"); // print out the the current settings 
  Serial.print(Xpos);
- Serial.print("2");
+ Serial.print("W");
  Serial.print(Ypos);
- Serial.print("3");
+ Serial.print("E");
  Serial.print(AoA[0]);
- Serial.print("4");
+ Serial.print("R");
  Serial.print(AoA[1]);
- Serial.print("5"); // ax
+ Serial.print("T"); // ax
  Serial.print(Acell_Data[0]);
- Serial.print("6"); //ay
+ Serial.print("Y"); //ay
  Serial.print(Acell_Data[1]);
- Serial.print("7"); // at
+ Serial.print("U"); // at
  Serial.print(Speed_Data[2]);
- Serial.print("8"); // ab
+ Serial.print("I"); // ab
  Serial.print(Acell_Data[3]);
- Serial.print("9"); // sx
+ Serial.print("O"); // sx
  Serial.print(Speed_Data[0]);
- Serial.print("10"); //sy
+ Serial.print("P"); //sy
  Serial.print(Speed_Data[1]);
- Serial.print("11"); //st
+ Serial.print("A"); //st
  Serial.print(Speed_Data[2]);
- Serial.print("12"); //sb
+ Serial.print("S"); //sb
  Serial.print(Speed_Data[3]);
  Serial.print("%"); // End Data transfer. 
 
