@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <SpeedyStepper.h>
+
 /* 
 This file sets up the Pin Modes
 It its important to note that Stepper driver 7 shares pins with the swd interface... 
@@ -29,20 +30,20 @@ const int MOTOR3_STEP_PIN = PG4;  // E0 axis "Y motion"
 const int MOTOR3_DIRECTION_PIN = PC1;  // E0 axis
 const int MOTOR3_ENABLE = PA0;  // E0 axis;
 // Motor 4
-const int MOTOR4_STEP_PIN = PF9;  // z axis "y motion
-const int MOTOR4_DIRECTION_PIN  = PF10;  // z axis // extra setpper for new mtoherboard
-const int MOTOR4_ENABLE= PG2;  // z axis;
-// Motor 5
-//const int MOTOR5_STEP_PIN = PC13;  // z axis "y motion
-//const int MOTOR5_DIRECTION_PIN  = PF0;  // z axis // extra setpper for new mtoherboard
-//const int MOTOR5_ENABLE= PF1;  // z axis;
+const int MOTOR4_STEP_PIN = PF9;  // e1 axis "y motion
+const int MOTOR4_DIRECTION_PIN  = PF10;  // e1 axis // 
+const int MOTOR4_ENABLE= PG2;  // e1 axis;
+//Motor 5
+const int MOTOR5_STEP_PIN = PC13;  // z axis "y motion
+const int MOTOR5_DIRECTION_PIN  = PF0;  // z axis 
+const int MOTOR5_ENABLE= PF1;  // z axis;
 // Motor 6
 //const int MOTOR6_STEP_PIN = PE2;  // z axis "y motion
-//const int MOTOR6_DIRECTION_PIN  = PE3;  // z axis // extra setpper for new mtoherboard
+//const int MOTOR6_DIRECTION_PIN  = PE3;  // z axis 
 //const int MOTOR6_ENABLE= PD4;  // z axis;
 // Motor 7
 //const int MOTOR7_STEP_PIN = PE6;  // z axis "y motion
-//const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis // extra setpper for new mtoherboard // disabled for SWD programming 
+//const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis  // disabled for SWD programming 
 //const int MOTOR7_ENABLE= PE0;  // z axis;
 
 // const int Motor0LimitSw =PG6;
@@ -84,9 +85,9 @@ pinMode(MOTOR4_STEP_PIN, OUTPUT);
 pinMode(MOTOR4_DIRECTION_PIN, OUTPUT);
 pinMode(MOTOR4_ENABLE, OUTPUT);
 // E2 Extra
-// pinMode(MOTOR5_STEP_PIN, OUTPUT);
-// pinMode(MOTOR5_DIRECTION_PIN, OUTPUT);
-// pinMode(MOTOR5_ENABLE, OUTPUT);
+pinMode(MOTOR5_STEP_PIN, OUTPUT);
+pinMode(MOTOR5_DIRECTION_PIN, OUTPUT);
+pinMode(MOTOR5_ENABLE, OUTPUT);
 // // E3 Extra
 // pinMode(MOTOR6_STEP_PIN, OUTPUT);
 // pinMode(MOTOR6_DIRECTION_PIN, OUTPUT);
@@ -127,7 +128,7 @@ Ystepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
 Zstepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
 E0stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
 E1stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
-// E2stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
+E2stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
 // E3stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
 //E4stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
 }
