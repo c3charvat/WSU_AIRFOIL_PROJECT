@@ -43,6 +43,7 @@ Full LCD implementation using SPI.\
 Full System UI, with user input enabled through an encoder.\
 Prosessor and IDE:\
 ARM Stm32f446ZE Branch with Custom PlatformIO implantation.
+Black magic probe debugging enabled.\
 
 # Written by:
 Collin C. Charvat\

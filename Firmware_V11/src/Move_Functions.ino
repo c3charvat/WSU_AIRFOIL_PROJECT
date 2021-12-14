@@ -102,63 +102,59 @@ movevar[3]=0;
   }
 } // End Function
 
-void HomeAll(void)
-{
-  while (digitalRead(Motor2LimitSw) != LOW  || digitalRead(Motor1LimitSw) != LOW)
-    { // While they arent all complete
-    if (digitalRead(Motor2LimitSw) != LOW)
-    {
-      Ystepper.setupRelativeMoveInSteps(200);
-    }
-    if (digitalRead(Motor1LimitSw) != LOW ){
-      Zstepper.setupRelativeMoveInSteps(200);
-    }
-    while (digitalRead(Motor2LimitSw) != LOW || digitalRead(Motor1LimitSw) != LOW || (!Zstepper.motionComplete()) || (!Ystepper.motionComplete()))
-    { // While they arent all complete
-      Ystepper.processMovement();
-      Zstepper.processMovement();
-    }
-  }
-  while (digitalRead(Motor0LimitSw) != LOW )
-    { // While they arent all complete
-    if (digitalRead(Motor0LimitSw) != LOW)
-    {
-      Xstepper.setupRelativeMoveInSteps(200);
-    }
-    while(digitalRead(Motor0LimitSw) != LOW || !Xstepper.motionComplete())
-    { // While they arent all complete
-      Xstepper.processMovement();
-    }
-  }
-  while (digitalRead(Motor3LimitSw) != LOW )
-    { // While they arent all complete
-    if (digitalRead(Motor3LimitSw) != LOW)
-    {
-      E0stepper.setupRelativeMoveInSteps(200);
-    }
-    while(digitalRead(Motor3LimitSw) != LOW || !E0stepper.motionComplete())
-    { // While they arent all complete
-      E0stepper.processMovement();
-    }
-  }
-  while (digitalRead(Motor4LimitSw) != LOW )
-    { // While they arent all complete
-    if (digitalRead(Motor4LimitSw) != LOW)
-    {
-      E1stepper.setupRelativeMoveInSteps(200);
-    }
-    while(digitalRead(Motor4LimitSw) != LOW || !E1stepper.motionComplete())
-    { // While they arent all complete
-      E1stepper.processMovement();
-    }
-  }
-  Xpos=0;
-  Ypos=0;
-  AoA[0]=0;
-  AoA[1]=0;
-  CurrentPositions[0] = 0;
-  CurrentPositions[1] = 0;
-  CurrentPositions[2] = 0;
-  CurrentPositions[3] = 0;
-  CurrentPositions[4] = 0;
-}
+// void HomeAll(void)
+// {
+//   while (digitalRead(Motor2LimitSw) != LOW  || digitalRead(Motor1LimitSw) != LOW )
+//     { // While they arent all complete
+//     if (digitalRead(Motor2LimitSw) != LOW)
+//     {
+//       Ystepper.setupRelativeMoveInSteps(200);
+//     }
+//     if (digitalRead(Motor1LimitSw) != LOW ){
+//       Zstepper.setupRelativeMoveInSteps(200);
+//     }
+//     while ((!Zstepper.motionComplete()) || (!Ystepper.motionComplete()))
+//     { // While they arent all complete
+//       Ystepper.processMovement();
+//       Zstepper.processMovement();
+//     }
+//   }
+//   while (digitalRead(Motor0LimitSw) != LOW )
+//     { // While they arent all complete
+//     if (digitalRead(Motor0LimitSw) != LOW)
+//     {
+//       Xstepper.setupRelativeMoveInSteps(200);
+//     }
+//     while(!Xstepper.motionComplete())
+//     { // While they arent all complete
+//       Xstepper.processMovement();
+//     }
+//   }
+//   while (digitalRead(Motor3LimitSw) != LOW )
+//     { // While they arent all complete
+//     if (digitalRead(Motor3LimitSw) != LOW)
+//     {
+//       E0stepper.setupRelativeMoveInSteps(200);
+//     }
+//     while(!E0stepper.motionComplete())
+//     { // While they arent all complete
+//       E0stepper.processMovement();
+//     }
+//   }
+//   while (digitalRead(Motor4LimitSw) != LOW )
+//     { // While they arent all complete
+//     if (digitalRead(Motor4LimitSw) != LOW)
+//     {
+//       E1stepper.setupRelativeMoveInSteps(200);
+//     }
+//     while(!E1stepper.motionComplete())
+//     { // While they arent all complete
+//       E1stepper.processMovement();
+//     }
+//   }
+//   Xpos=0;
+//   Ypos=0;
+//   AoA[0]=0;
+//   AoA[1]=0;
+//   CurrentPositions[] = {0, 0, 0, 0, 0};
+// }

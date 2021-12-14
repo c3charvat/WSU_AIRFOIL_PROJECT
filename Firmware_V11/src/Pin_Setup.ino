@@ -33,17 +33,17 @@ const int MOTOR4_STEP_PIN = PF9;  // z axis "y motion
 const int MOTOR4_DIRECTION_PIN  = PF10;  // z axis // extra setpper for new mtoherboard
 const int MOTOR4_ENABLE= PG2;  // z axis;
 // Motor 5
-const int MOTOR5_STEP_PIN = PC13;  // z axis "y motion
-const int MOTOR5_DIRECTION_PIN  = PF0;  // z axis // extra setpper for new mtoherboard
-const int MOTOR5_ENABLE= PF1;  // z axis;
+//const int MOTOR5_STEP_PIN = PC13;  // z axis "y motion
+//const int MOTOR5_DIRECTION_PIN  = PF0;  // z axis // extra setpper for new mtoherboard
+//const int MOTOR5_ENABLE= PF1;  // z axis;
 // Motor 6
-const int MOTOR6_STEP_PIN = PE2;  // z axis "y motion
-const int MOTOR6_DIRECTION_PIN  = PE3;  // z axis // extra setpper for new mtoherboard
-const int MOTOR6_ENABLE= PD4;  // z axis;
+//const int MOTOR6_STEP_PIN = PE2;  // z axis "y motion
+//const int MOTOR6_DIRECTION_PIN  = PE3;  // z axis // extra setpper for new mtoherboard
+//const int MOTOR6_ENABLE= PD4;  // z axis;
 // Motor 7
 //const int MOTOR7_STEP_PIN = PE6;  // z axis "y motion
-//const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis // extra setpper for new mtoherboard 
-//const int MOTOR7_ENABLE= PE0;  // z axis; // Disabled since it shares PA14 with the SWD interface which is used for programming
+//const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis // extra setpper for new mtoherboard // disabled for SWD programming 
+//const int MOTOR7_ENABLE= PE0;  // z axis;
 
 // const int Motor0LimitSw =PG6;
 // const int Motor1LimitSw =PG12;
@@ -84,27 +84,26 @@ pinMode(MOTOR4_STEP_PIN, OUTPUT);
 pinMode(MOTOR4_DIRECTION_PIN, OUTPUT);
 pinMode(MOTOR4_ENABLE, OUTPUT);
 // E2 Extra
-pinMode(MOTOR5_STEP_PIN, OUTPUT);
-pinMode(MOTOR5_DIRECTION_PIN, OUTPUT);
-pinMode(MOTOR5_ENABLE, OUTPUT);
-// E3 Extra
-pinMode(MOTOR6_STEP_PIN, OUTPUT);
-pinMode(MOTOR6_DIRECTION_PIN, OUTPUT);
-pinMode(MOTOR6_ENABLE, OUTPUT);
+// pinMode(MOTOR5_STEP_PIN, OUTPUT);
+// pinMode(MOTOR5_DIRECTION_PIN, OUTPUT);
+// pinMode(MOTOR5_ENABLE, OUTPUT);
+// // E3 Extra
+// pinMode(MOTOR6_STEP_PIN, OUTPUT);
+// pinMode(MOTOR6_DIRECTION_PIN, OUTPUT);
+// pinMode(MOTOR6_ENABLE, OUTPUT);
 // E4 Extra
 //pinMode(MOTOR7_STEP_PIN, OUTPUT);
 //pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
 //pinMode(MOTOR7_ENABLE, OUTPUT);
 // Limit Switches
-// Defined in the main file 
-pinMode(Motor0LimitSw, OUTPUT);
-pinMode(Motor1LimitSw, OUTPUT);
-pinMode(Motor2LimitSw, OUTPUT);
-pinMode(Motor3LimitSw, OUTPUT);
-pinMode(Motor4LimitSw, OUTPUT);
-pinMode(Motor5LimitSw, OUTPUT);
-pinMode(Motor6LimitSw, OUTPUT);
-pinMode(Motor7LimitSw, OUTPUT);
+// pinMode(Motor0LimitSw, OUTPUT);
+// pinMode(Motor1LimitSw, OUTPUT);
+// pinMode(Motor2LimitSw, OUTPUT);
+// pinMode(Motor3LimitSw, OUTPUT);
+// pinMode(Motor4LimitSw, OUTPUT);
+// pinMode(Motor5LimitSw, OUTPUT);
+// pinMode(Motor6LimitSw, OUTPUT);
+//pinMode(Motor7LimitSw, OUTPUT);
 // Extras 
 // pinMode(4, OUTPUT); // Fan Pin Initilization 
 pinMode(BEEPER, OUTPUT); // Beeper on LCD
@@ -128,8 +127,7 @@ Ystepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
 Zstepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
 E0stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
 E1stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
-E2stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
-E3stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
+// E2stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
+// E3stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
 //E4stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
-return;
 }
