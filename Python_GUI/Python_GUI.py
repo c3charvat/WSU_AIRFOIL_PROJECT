@@ -251,7 +251,7 @@ def showRxTextMenu(event):
         rxTextMenu.grab_release()
 
 def Setpos():
-    global Xpos,Ypos,AoAT,AoAB,Ystr,Xstr,Tstr,Bstr
+    global Xpos,Ypos,AoAT,AoAB,AX,AY,AT,AB,SX,SY,ST,SB,Ystr,Xstr,Tstr,Bstr,AXstr,AYstr,ATstr,ABstr,SXstr,SYstr,STstr,SBstr
     #print("In Set Pos")
     #print(Xstr)
     #print(Ystr)
@@ -266,19 +266,35 @@ def Setpos():
         #print(AoAT)
         AoAB=float(Bstr)
         #print(AoAB)
+        AX=float(AXstr)
+        AY=float(AYstr)
+        AT=float(ATstr)
+        AB=float(ABstr)
+        SX=float(SXstr)
+        SY=float(SYstr)
+        ST=float(STstr)
+        SB=float(SBstr)
         Xstr=''
         Ystr=''
         Tstr=''
         Bstr=''
+        AXstr=''
+        AYstr=''
+        ATstr=''
+        ABstr=''
+        SXstr=''
+        SYstr=''
+        STstr=''
+        SBstr=''
     except:
         msgbox.showwarning("Error 1", "Warning:\n An Internal Value exception occored Borad and Computer are out of sync!\n Please Home All!")
     
     
 def writeConsole(txt, upd=0):
-    global isEndByNL, lastUpdatedBy,Ystr,Xstr,Tstr,Bstr,internalData,recv,newtxt,oneshot
+    global isEndByNL, lastUpdatedBy,Ystr,Xstr,Tstr,Bstr,AXstr,AYstr,ATstr,ABstr,SXstr,SYstr,STstr,SBstr,internalData,recv,newtxt,oneshot
     newtxt=''
-    for x in txt:
-        if x == '%':
+    for x in txt: # This is for the internal data handeling. Stuff we dont want to show up on the console but that we still need to use serial connection for.
+        if x == '%': # the data we dont want to display is encased in % symbols since they basically have no meaning in python 
             #print("Data")
             if internalData.get() == True:
                 internalData.set(False)
@@ -290,15 +306,31 @@ def writeConsole(txt, upd=0):
         elif internalData.get() == True:
             #print(x)
             #print("else")
-            if x == 'X':
+            if x == '1': # x pos data
                 #print("set X")
                 recv.set(1)
-            elif x == 'Y':
+            elif x =='2': # ypos data
                 recv.set(2)
-            elif x =='T':
+            elif x =='3': # aoat pos data
                 recv.set(3)
-            elif x =='B':
+            elif x =='4': # aoa b pos data
                 recv.set(4)
+            elif x =='5': # Ax
+                recv.set(5)
+            elif x =='6': # Ay
+                recv.set(6)
+            elif x =='7': # At
+                recv.set(7)
+            elif x =='8': # Ab
+                recv.set(8)
+            elif x =='9': # Sx
+                recv.set(9)
+            elif x =='10': # Sy
+                recv.set(10)
+            elif x =='11': # St
+                recv.set(11)
+            elif x =='12': # Sb
+                recv.set(12)
             else: # it has to be one of the numbers follwing it 
                 #print(recv.get())
                 if recv.get()==1:
@@ -309,8 +341,24 @@ def writeConsole(txt, upd=0):
                     #print(Ystr)
                 elif recv.get()==3:
                     Tstr=Tstr+x
-                else:
+                elif recv.get()==4:
                     Bstr=Bstr+x
+                elif recv.get()==5:
+                    AXstr=AXstr+x
+                elif recv.get()==6:
+                    AYstr=AYstr+x
+                elif recv.get()==7:
+                    ATstr=ATstr+x
+                elif recv.get()==8:
+                    ABstr=ABstr+x
+                elif recv.get()==9:
+                    SXstr=SXstr+x
+                elif recv.get()==10:
+                    SYstr=SYstr+x
+                elif recv.get()==11:
+                    STstr=STstr+x
+                else:
+                    SBstr=SBstr+x
         else:
             #print(internalData.get())
             newtxt=newtxt+x
@@ -463,7 +511,7 @@ def setting():  # settings Menu
     tk.Grid.columnconfigure(settingDlg, 0, weight=1)
     tk.Grid.columnconfigure(settingDlg, 1, weight=1)
     tk.Grid.columnconfigure(settingDlg, 2, weight=1)
-    tk.Label(settingDlg, text='Data bits:').grid(
+    ttk.Label(settingDlg, text='Data bits:').grid(
         row=0, column=1, padx=0, pady=12, sticky=tk.NE)
     ttk.Label(settingDlg, text='Parity:').grid(
         row=1, column=1, padx=0, pady=0, sticky=tk.NS+tk.E)
@@ -765,9 +813,26 @@ def moveButton(event):
         tempString=Axis[axisIndex+1]+selectedAmmountmiddle+Axis[axisIndex+2]+selectedAmmountLast+'>'
         #print(tempString)
     GcodeSend(None)
-  
-  
-  
+
+def setSpeedButton(event):
+    global AX,AY,AT,AB,SX,SY,ST,SB,tempString
+    tempString=''
+    SX=XspeedSlider.get() 
+    SY=YspeedSlider.get()
+    ST=TspeedSlider.get() 
+    SB=BspeedSlider.get()
+    tempString='<M S X'+str(SX)+' Y'+str(SY)+' AoAT'+str(ST)+' AoAB'+str(SB)+'>'
+    GcodeSend(None)
+
+def setAcellButton(event):
+    global AX,AY,AT,AB,SX,SY,ST,SB,tempString
+    AX=XacellerationSlider.get()
+    AY=YacellerationSlider.get() 
+    AT=TacellerationSlider.get() 
+    AB=BacellerationSlider.get()
+    tempString='<M A X'+str(AX)+' Y'+str(AY)+' AoAT'+str(AT)+' AoAB'+str(AB)+'>'
+    GcodeSend(None)
+    
 def scenariobInit(event):
     global file, scenarioCommands
     scenarioCommands=[]
@@ -889,7 +954,7 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.configure(bg='#222222')
     style = ttk.Style(root)
-    root.tk.call('source','C://Users//ecslogon//Documents//PlatformIO\Projects//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
+    root.tk.call('source','C://Users//Collin//Documents//WSU_AIRFOIL_GITHUB//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
     root.tk.call("set_theme", "dark") 
     filePath = tk.StringVar()
     root.title(APP_TITLE) # PaneWindow
@@ -916,6 +981,14 @@ if __name__ == '__main__':
     Ystr=''
     Tstr=''
     Bstr=''
+    AXstr=''
+    AYstr=''
+    ATstr=''
+    ABstr=''
+    SXstr=''
+    SYstr=''
+    STstr=''
+    SBstr=''
     Xpos=0.00
     Ypos=0.00
     AoAT=0.00
@@ -927,7 +1000,7 @@ if __name__ == '__main__':
     SX=0
     SY=0
     ST=0
-    S0B=0
+    SB=0
     # Grid Initilization 
     # lock the space between the input bar and the text box *Input bar
     tk.Grid.rowconfigure(root, 0, weight=1)
@@ -1039,6 +1112,10 @@ if __name__ == '__main__':
     # End Radio button code 
     moveBtn = ttk.Button(root, width=20, text='Move', command=lambda:moveButton(None))
     moveBtn.grid(row=0, column=2, padx=4, pady=4,ipady=15, ipadx=15)
+    setAcellBtn = ttk.Button(root, width=20, text='Set Accell.', command=lambda:setAcellButton(None))
+    setAcellBtn.grid(row=4, column=0, padx=4, pady=4,ipady=15, ipadx=15)
+    setSpeedBtn = ttk.Button(root, width=20, text='Set Speed', command=lambda:setSpeedButton(None))
+    setSpeedBtn.grid(row=5, column=0, padx=4, pady=4,ipady=15, ipadx=15)
     homeBtn = ttk.Button(root, width=20, text='Home Selected axis', command= lambda:homeAxis(None))
     homeBtn.grid(row=1, column=2, padx=4, pady=4,ipady=15, ipadx=15)
     homeAllBtn = ttk.Button(root, width=20, text='Home All Axis', command= lambda:homeAll(None))

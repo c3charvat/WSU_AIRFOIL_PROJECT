@@ -170,10 +170,12 @@ void TRIGGER_WAIT(int pin) {
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SETUP lOOP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void setup(void) {
-  const float X_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[0])*Micro_stepping[0];
-  const float Y_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[1])*Micro_stepping[1];
+  //float X_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[0])*Micro_stepping[0];
+  float X_to_micro=6400;
+  float Y_to_micro=6400;
   Serial.begin(9600); // Begin serial ouput communication for debug and input of value array.
-  Serial.println(X_to_micro);
+  while (! Serial); // debug waiting for the computer to connect 
+  Serial.println(Y_to_micro);
   //delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only 
   DRIVER_SETUP();
   PIN_SETUP(); // Initilize all the Pins 
