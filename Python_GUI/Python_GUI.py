@@ -253,42 +253,39 @@ def showRxTextMenu(event):
 
 def Setpos():
     global Xpos,Ypos,AoAT,AoAB,AX,AY,AT,AB,SX,SY,ST,SB,Ystr,Xstr,Tstr,Bstr,AXstr,AYstr,ATstr,ABstr,SXstr,SYstr,STstr,SBstr
-    #print("In Set Pos")
-    #print(Xstr)
-    #print(Ystr)
-    #print(Tstr)
-    #print(Bstr)
-    try:
-        Xpos=float(Xstr)
-        #print(Xpos)
-        Ypos=float(Ystr)
-        #print(Ypos)
-        AoAT=float(Tstr)
-        #print(AoAT)
-        AoAB=float(Bstr)
-        #print(AoAB)
-        AX=float(AXstr)
-        AY=float(AYstr)
-        AT=float(ATstr)
-        AB=float(ABstr)
-        SX=float(SXstr)
-        SY=float(SYstr)
-        ST=float(STstr)
-        SB=float(SBstr)
-        Xstr=''
-        Ystr=''
-        Tstr=''
-        Bstr=''
-        AXstr=''
-        AYstr=''
-        ATstr=''
-        ABstr=''
-        SXstr=''
-        SYstr=''
-        STstr=''
-        SBstr=''
-    except:
-        msgbox.showwarning("Error 1", "Warning:\n An Internal Value exception occored Borad and Computer are out of sync!\n Please Home All!")
+    print("In Set Pos")
+    print(AXstr)
+    print(AYstr)
+    print(ATstr)
+    print(ABstr)
+    Xpos=float(Xstr)
+    #print(Xpos)
+    Ypos=float(Ystr)
+    #print(Ypos)
+    AoAT=float(Tstr)
+    #print(AoAT)
+    AoAB=float(Bstr)
+    #print(AoAB)
+    AX=float(AXstr)
+    AY=float(AYstr)
+    AT=float(ATstr)
+    AB=float(ABstr)
+    SX=float(SXstr)
+    SY=float(SYstr)
+    ST=float(STstr)
+    SB=float(SBstr)
+    Xstr='0'
+    Ystr='0'
+    Tstr='0'
+    Bstr='0'
+    AXstr='0'
+    AYstr='0'
+    ATstr='0'
+    ABstr='0'
+    SXstr='0'
+    SYstr='0'
+    STstr='0'
+    SBstr='0'
     
     
 def writeConsole(txt, upd=0):
@@ -365,7 +362,7 @@ def writeConsole(txt, upd=0):
             newtxt=newtxt+x
     if internalData.get() == False and oneshot.get() == True: # if we are out of the range of the % data and we have came accrosss a % previously update internal varible
         #print("Headed to Set Pos")
-        SetData()
+        Setpos()
         oneshot.set(False) # dont fall into this crap unless you have to --> once per function call
     tm = ''
     ad = ''
@@ -978,18 +975,18 @@ if __name__ == '__main__':
     oneshot=tk.BooleanVar(root,False)
     directionVar=tk.IntVar(root,1)
     recv=IntVar()
-    Xstr=''
-    Ystr=''
-    Tstr=''
-    Bstr=''
-    AXstr=''
-    AYstr=''
-    ATstr=''
-    ABstr=''
-    SXstr=''
-    SYstr=''
-    STstr=''
-    SBstr=''
+    Xstr='0'
+    Ystr='0'
+    Tstr='0'
+    Bstr='0'
+    AXstr='0'
+    AYstr='0'
+    ATstr='0'
+    ABstr='0'
+    SXstr='0'
+    SYstr='0'
+    STstr='0'
+    SBstr='0'
     Xpos=0.00
     Ypos=0.00
     AoAT=0.00
