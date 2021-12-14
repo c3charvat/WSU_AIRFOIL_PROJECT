@@ -99,8 +99,8 @@ uint8_t X_value[3]; // X pos : Hundreds,tens/ones,Decimal
 float Ypos;  // X position float value
 uint8_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Absolute Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-float CurrentPositions[5] = {0, 0, 0, 0, 0}; // AoA_Top, AoA_Bottom,X,Y,E2  -> " E Z X Y E2 " // modified for new motherboard
-float movevar[5]={0,0,0,0,0}; // E ,Z, X, Y , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
+float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB,EXTRA" // modified for new motherboard
+float movevar[5]={0,0,0,0,0}; // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool Abs_pos_error= false;
 
@@ -144,9 +144,9 @@ int Go_Pressed = 0; // By default the go button does nothing
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Acelleration/ Speed Set/ Trigger Functions  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void SET_ACELL(float x, float y, float E0, float E1) {
-  Xstepper.setAccelerationInRevolutionsPerSecondPerSecond(x);
-  Ystepper.setAccelerationInRevolutionsPerSecondPerSecond(y);
-  Zstepper.setAccelerationInRevolutionsPerSecondPerSecond(y); // By Default the Z axis will allways be attached to the Y (Verticle Axis)
+  Xstepper.setAccelerationInRevolutionsPerSecondPerSecond(x*2);
+  Ystepper.setAccelerationInRevolutionsPerSecondPerSecond(y*2);
+  Zstepper.setAccelerationInRevolutionsPerSecondPerSecond(y*2); // By Default the Z axis will allways be attached to the Y (Verticle Axis)
   E0stepper.setAccelerationInRevolutionsPerSecondPerSecond(E0); // Change to mm/s when the system is being implmented
   E1stepper.setAccelerationInRevolutionsPerSecondPerSecond(E1); // Change to mm/s when the system is being implmented
   //  E2stepper.setAccelerationInStepsPerSecondPerSecond(*put axis its mirrioring here*);
@@ -156,9 +156,9 @@ void SET_ACELL(float x, float y, float E0, float E1) {
   Acell_Data[3]=E1;
 }
 void SET_SPEED(int x, int y, int E0, int E1) {
-  Xstepper.setSpeedInRevolutionsPerSecond(x);
-  Ystepper.setSpeedInRevolutionsPerSecond(y);
-  Zstepper.setSpeedInRevolutionsPerSecond(y); // Change to mm/s^2 when the system is being implmented
+  Xstepper.setSpeedInRevolutionsPerSecond(x*2); // multpied by the leadscrew pitch because we are in rev/s and the value entered is in mm/s
+  Ystepper.setSpeedInRevolutionsPerSecond(y*2);
+  Zstepper.setSpeedInRevolutionsPerSecond(y*2); // Change to mm/s^2 when the system is being implmented
   E0stepper.setSpeedInRevolutionsPerSecond(E0); // Change to mm/s^2 when the system is being implmented ?
   E1stepper.setSpeedInRevolutionsPerSecond(E1);
   //  E2stepper.setSpeedInStepsPerSecond(*Axis its mirrioring here*);
@@ -190,8 +190,8 @@ void setup(void) {
   PIN_SETUP(); // Initilize all the Pins 
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
-  SET_ACELL(100, 100, 100, 100); // Set motor acceleration
-  SET_SPEED(100,200, 400, 600); // Set motor Speed
+  SET_ACELL(30, 30, 10, 10); // Set motor acceleration
+  SET_SPEED(100,100, 20, 20); // Set motor Speed
   gui_output_function(); // initilize the GUI 
 /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 
