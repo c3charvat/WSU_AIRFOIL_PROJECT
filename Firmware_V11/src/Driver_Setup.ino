@@ -6,7 +6,7 @@ void DRIVER_SETUP()
 driverX.beginSerial(115200); // X driver Coms begin
 Serial.println("Driver X Enabled\n");
 driverX.begin();
-driverX.rms_current(850); // mA
+driverX.rms_current(1100); // mA
 driverX.microsteps(64);
 driverX.en_spreadCycle(0); // Page 44 use stealth chop
 driverX.pwm_ofs_auto ();
