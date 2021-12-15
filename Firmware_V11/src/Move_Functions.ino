@@ -4,6 +4,14 @@
 //  "LCD External Trigger\n"3
 //  "Serial Cont.\n" 4            // 2 and 4 are the exact same just moce togther as soon as you ge the command
 //  "Serial Cont. Ext.T.\n"; 5        // 3 and 5 are the same
+const int Motor0LimitSw =PG6;
+const int Motor1LimitSw =PG12;
+const int Motor2LimitSw =PG9;
+const int Motor3LimitSw =PG13;
+const int Motor4LimitSw =PG10;
+const int Motor5LimitSw =PG14;
+const int Motor6LimitSw =PG11;
+const int Motor7LimitSw =PG15;
 
 void MOVE_FUNCTION(void)
 { // Selection =0
@@ -27,8 +35,10 @@ movevar[3]=0;
   { // if in static mode
     Serial.println("Motion_selection == 1 or 4");
     // Normal Mode LCD
-    Xstepper.setupRelativeMoveInSteps(movevar[0]*X_mm_to_micro);
-    Ystepper.setupRelativeMoveInSteps(movevar[1]*Y_mm_to_micro);
+    Xstepper.setupRelativeMoveInSteps (movevar[0]*6400);
+    Serial.println("Steps to move");
+    Serial.println(movevar[0]*6400);
+    Ystepper.setupRelativeMoveInSteps(movevar[1]*6400);
     Zstepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[2] / Micro_stepping[2]));
     E0stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2])); // Future: Make these in terms of degrees
     E1stepper.setupRelativeMoveInSteps(movevar[3] / (Degree_per_step[3] / Micro_stepping[3]));
@@ -68,7 +78,7 @@ movevar[3]=0;
   if (Motion_selection == 3 || Motion_selection == 5)
   {
     // LCD External Trigger mode and Serial External Trigger
-    Xstepper.setupRelativeMoveInSteps(movevar[0]*X_mm_to_micro); // Future: Make these iun terms of MM
+    Xstepper.setupRelativeMoveInSteps(movevar[0]*6400); // Future: Make these iun terms of MM
     Serial.println("Steps to move");
     Serial.println(movevar[0]*X_mm_to_micro);
     Ystepper.setupRelativeMoveInSteps(movevar[1]*Y_mm_to_micro);
