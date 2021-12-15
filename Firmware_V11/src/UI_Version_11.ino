@@ -116,6 +116,7 @@ const char *Setting_list = // Define the Settings Sub menu options
   "Acceleration\n"
   "Speed\n"
   "Movment Mode\n"
+  "Home All Axis\n"
   "BACK";
 
 const char *Com_select = // Communcations method select menu
@@ -177,13 +178,14 @@ void TRIGGER_WAIT(int pin) {
   }
 }
 
+
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SETUP lOOP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void setup(void) {
   //float X_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[0])*Micro_stepping[0];
   float X_to_micro=6400;
   float Y_to_micro=6400;
   Serial.begin(9600); // Begin serial ouput communication for debug and input of value array.
-  while (! Serial); // debug waiting for the computer to connect 
+  //while (! Serial); // debug waiting for the computer to connect 
   Serial.println(Y_to_micro);
   //delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only 
   DRIVER_SETUP();
@@ -204,6 +206,7 @@ void setup(void) {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VOID LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void loop(void) {
+  Draw_bitmap();
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ User Interface Code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   MAIN_MENU(); // issues the main menu command
   //
@@ -354,6 +357,9 @@ void loop(void) {
       }
     }
     if ( Sub_selection == 4 ) {
+      // Home All Axis 
+    }
+    if ( Sub_selection == 5 ) {
       // Head back to Main meanu
       MAIN_MENU();
     }
