@@ -5,14 +5,14 @@
 //  "LCD External Trigger\n"3
 //  "Serial Cont.\n" 4            // 2 and 4 are the exact same just moce togther as soon as you ge the command
 //  "Serial Cont. Ext.T.\n"; 5        // 3 and 5 are the same
-const int Motor0LimitSw =PG6;
-const int Motor1LimitSw =PG12;
-const int Motor2LimitSw =PG9;
-const int Motor3LimitSw =PG13;
-const int Motor4LimitSw =PG10;
-const int Motor5LimitSw =PG14;
-const int Motor6LimitSw =PG11;
-const int Motor7LimitSw =PG15;
+// const int Motor0LimitSw =PG6;
+// const int Motor1LimitSw =PG12;
+// const int Motor2LimitSw =PG9;
+// const int Motor3LimitSw =PG13;
+// const int Motor4LimitSw =PG10;
+// const int Motor5LimitSw =PG14;
+// const int Motor6LimitSw =PG11;
+// const int Motor7LimitSw =PG15;
 
 void MOVE_FUNCTION(void)
 { // Selection =0
@@ -176,9 +176,12 @@ while(xhome==false || yhome==false || aoathome==false || aoabhome == false)
   GPIOG->BSRR = motorgpiog; // set motor 1,3 (pg0)(pg4)
   }
 //
-//   Xpos=0;
-//   Ypos=0;
-//   AoA[0]=0;
-//   AoA[1]=0;
-//   CurrentPositions[] = {0, 0, 0, 0, 0};
+Xpos=0;
+Ypos=0;
+AoA[0]=0;
+AoA[1]=0;
+CurrentPositions[0] = 0;
+CurrentPositions[1] = 0;
+CurrentPositions[2] = 0;
+CurrentPositions[3] = 0;
 }

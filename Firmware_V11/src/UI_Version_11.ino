@@ -106,6 +106,16 @@ volatile bool xhome=false;
 volatile bool yhome=false;
 volatile bool aoathome=false;
 volatile bool aoabhome=false;
+const int Motor0LimitSw =PG6; // X axis limit switch
+// const int Motor1LimitSw =PG12;
+const int Motor2LimitSw =PG9; // Y axis limit switch
+// const int Motor3LimitSw =PG13;
+const int Motor4LimitSw =PG10; // AoAT limit switch
+// const int Motor5LimitSw =PG14;
+const int Motor6LimitSw =PG11; // AoA B Limit swtich 
+// const int Motor7LimitSw =PG15;
+// Reset Pin -> off of the RGB HEADDER J37 
+//const int Reset=PB0;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool Abs_pos_error= false;
 
@@ -192,6 +202,10 @@ void setup(void) {
   Serial.begin(9600); // Begin serial ouput communication for debug and input of value array.
   //while (! Serial); // debug waiting for the computer to connect 
   Serial.println(Y_to_micro);
+  // set up the interrpts
+  attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), yHomeIsr, CHANGE);
+
   //delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only 
   DRIVER_SETUP();
   PIN_SETUP(); // Initilize all the Pins 

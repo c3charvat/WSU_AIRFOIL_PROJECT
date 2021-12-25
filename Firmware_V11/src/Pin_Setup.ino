@@ -14,48 +14,38 @@ int BEEPER = PE8; // factory beeper on Creality Melzi screen
 int ENCODER_RT = PE9; // left turn on the encoder 
 int ENCODER_LT = PE12; // Right trun on the encoder
 // Motor 0
-const int MOTOR0_STEP_PIN = PF13 ;  // X axis 
+const int MOTOR0_STEP_PIN = PF13 ;  // X axis X motion
 const int MOTOR0_DIRECTION_PIN = PF12;  // X axis
 const int MOTOR0_ENABLE = PF14;  // X axis
 // Motor 1
-const int MOTOR1_STEP_PIN = PG0;  // Y axis "AoA Bottom"
+const int MOTOR1_STEP_PIN = PG0;  // Y axis Y motion
 const int MOTOR1_DIRECTION_PIN = PG1;  // Y axis
 const int MOTOR1_ENABLE = PF15;  // Y axis
 // Motor 2
-const int MOTOR2_STEP_PIN = PF11;  // Z axis  "X motion"
+const int MOTOR2_STEP_PIN = PF11;  // Z axis y motion
 const int MOTOR2_DIRECTION_PIN = PG3;  // Z axis
 const int MOTOR2_ENABLE = PG5;  // Z axis
 // Motor 3
-const int MOTOR3_STEP_PIN = PG4;  // E0 axis "Y motion"
+const int MOTOR3_STEP_PIN = PG4;  // E0 axis AoAt
 const int MOTOR3_DIRECTION_PIN = PC1;  // E0 axis
 const int MOTOR3_ENABLE = PA0;  // E0 axis;
 // Motor 4
-const int MOTOR4_STEP_PIN = PF9;  // e1 axis "y motion
+const int MOTOR4_STEP_PIN = PF9;  // e1 axis AoAB
 const int MOTOR4_DIRECTION_PIN  = PF10;  // e1 axis // 
 const int MOTOR4_ENABLE= PG2;  // e1 axis;
 //Motor 5
-const int MOTOR5_STEP_PIN = PC13;  // z axis "y motion
+const int MOTOR5_STEP_PIN = PC13;  // z axis
 const int MOTOR5_DIRECTION_PIN  = PF0;  // z axis 
 const int MOTOR5_ENABLE= PF1;  // z axis;
 // Motor 6
-//const int MOTOR6_STEP_PIN = PE2;  // z axis "y motion
+//const int MOTOR6_STEP_PIN = PE2;  // z axis 
 //const int MOTOR6_DIRECTION_PIN  = PE3;  // z axis 
 //const int MOTOR6_ENABLE= PD4;  // z axis;
 // Motor 7
-//const int MOTOR7_STEP_PIN = PE6;  // z axis "y motion
+//const int MOTOR7_STEP_PIN = PE6;  // z axis 
 //const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis  // disabled for SWD programming 
 //const int MOTOR7_ENABLE= PE0;  // z axis;
 
-// const int Motor0LimitSw =PG6;
-// const int Motor1LimitSw =PG12;
-// const int Motor2LimitSw =PG9;
-// const int Motor3LimitSw =PG13;
-// const int Motor4LimitSw =PG10;
-// const int Motor5LimitSw =PG14;
-// const int Motor6LimitSw =PG11;
-// const int Motor7LimitSw =PG15;
-// Reset Pin -> off of the RGB HEADDER J37 
-//const int Reset=PB0;
 
 
 
@@ -97,14 +87,14 @@ pinMode(MOTOR5_ENABLE, OUTPUT);
 //pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
 //pinMode(MOTOR7_ENABLE, OUTPUT);
 // Limit Switches
-// pinMode(Motor0LimitSw, OUTPUT);
-// pinMode(Motor1LimitSw, OUTPUT);
-// pinMode(Motor2LimitSw, OUTPUT);
-// pinMode(Motor3LimitSw, OUTPUT);
-// pinMode(Motor4LimitSw, OUTPUT);
-// pinMode(Motor5LimitSw, OUTPUT);
-// pinMode(Motor6LimitSw, OUTPUT);
-//pinMode(Motor7LimitSw, OUTPUT);
+pinMode(Motor0LimitSw, INPUT);
+// pinMode(Motor1LimitSw, INPUT);
+pinMode(Motor2LimitSw, INPUT);
+// pinMode(Motor3LimitSw, INPUT);
+pinMode(Motor4LimitSw, INPUT);
+// pinMode(Motor5LimitSw, INPUT);
+pinMode(Motor6LimitSw, INPUT);
+//pinMode(Motor7LimitSw, INPUT);
 // Extras 
 // pinMode(4, OUTPUT); // Fan Pin Initilization 
 pinMode(BEEPER, OUTPUT); // Beeper on LCD
