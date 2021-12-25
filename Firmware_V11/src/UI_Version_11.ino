@@ -101,6 +101,11 @@ uint8_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Absolute Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB,EXTRA" // modified for new motherboard
 float movevar[5]={0,0,0,0,0}; // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
+// ~~~~~~~~~~~~~~~~~~~~~~~~~ Homing function varibles ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+volatile bool xhome=false;
+volatile bool yhome=false;
+volatile bool aoathome=false;
+volatile bool aoabhome=false;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool Abs_pos_error= false;
 
@@ -367,6 +372,30 @@ void loop(void) {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END User Interface Code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 } // ~~~~ End Main LOOP
+// ~~~~~~~~~ Homing Interrupt code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// The point of this section of code is to interrupt the movement of the axis and stop them as they move towards home 
+/* Just some refrence code here 
+volatile bool xhome1=false;
+volatile bool xhome2=false;
+volatile bool yhome1=false;
+volatile bool yhome2=false;
+volatile bool aoathome=false;
+volatile bool aoabhome=false;
+In general all interrputs need to be kept as short as possible
+*/
+
+void xHomeIsr(){
+  xhome=!xhome; // set set them as hommed when the homing function is called 
+}
+void yHomeIsr(){
+  yhome=!yhome;
+}
+void aoatHomeIsr(){
+  aoathome=!aoathome;
+}
+void aoabHomeIsr(){
+  aoabhome=!aoabhome;
+}
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
 /* 
