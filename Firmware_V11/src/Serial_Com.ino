@@ -94,6 +94,7 @@ bool parseData()
       if (strtokIndx == NULL)
       {
         // If there is nothing after H then Home all axis here
+        HomeAll();
       }
       else
       {

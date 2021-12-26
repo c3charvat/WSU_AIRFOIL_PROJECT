@@ -416,6 +416,7 @@ def writeConsole(txt, upd=0):
 
 def rxPolling():  # Pull Data in
     preset = time.perf_counter_ns()
+    print(currentPort)
     try:
         while currentPort.in_waiting > 0 and time.perf_counter_ns()-preset < 2000000:  # loop duration about 2ms
             #print(recv.get())
@@ -430,11 +431,11 @@ def rxPolling():  # Pull Data in
             #print(txt)
             #print(" word lenght" + str(len(txt)))
             writeConsole(txt)
+            root.after(10, rxPolling)  # polling in 10ms interval
     except serial.SerialException as se:
-        closePort()
         msgbox.showerror(
             APP_TITLE, "Couldn't access the {} port".format(portDesc))
-    root.after(10, rxPolling)  # polling in 10ms interval
+        closePort()
 
 
 def listPortsPolling():  # list the current Com Ports avalible
@@ -466,13 +467,11 @@ def enableSending():
 
 
 def closePort():
-    if currentPort.is_open:
-        currentPort.close()
-        writeConsole(portDesc + ' closed.\n', 2)
-        currentPort.port = None
-        disableSending()
-        portCbo.set('Select port')
-        root.title(APP_TITLE)
+    currentPort.close()
+    writeConsole(portDesc + ' closed.\n', 2)
+    disableSending()
+    portCbo.set('Select port')
+    root.title(APP_TITLE)
 
 
 def showAbout():
@@ -654,7 +653,17 @@ def GcodeSend(event):
             bs += b'\r'
         elif lineEndingCbo.current() == 3:
             bs += b'\r\n'
-        currentPort.write(bs)
+        try:
+            currentPort.write(bs)
+        except:
+            msgbox.showerror(
+            APP_TITLE, "Couldn't access the {} port\n Attempting to reconnect".format(portDesc))
+            try:
+                currentPort.close()
+                currentPort.open()
+            except:
+                msgbox.showerror(
+            APP_TITLE, "Couldn't access the {} port\n Attempt to reconnect failed-> CRITICAL FAILURE\n->RESTART<-".format(portDesc))
         if showSentTextVar.get():
             if dispHexVar.get():
                 txt = ''.join([get_hexstr_of_chr(bytes([i])) for i in bs])

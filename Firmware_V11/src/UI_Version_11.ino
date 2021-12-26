@@ -101,6 +101,21 @@ uint8_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Absolute Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB,EXTRA" // modified for new motherboard
 float movevar[5]={0,0,0,0,0}; // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
+// ~~~~~~~~~~~~~~~~~~~~~~~~~ Homing function varibles ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+volatile bool xhome=false;
+volatile bool yhome=false;
+volatile bool aoathome=false;
+volatile bool aoabhome=false;
+const int Motor0LimitSw =PG6; // X axis limit switch
+// const int Motor1LimitSw =PG12;
+const int Motor2LimitSw =PG9; // Y axis limit switch
+// const int Motor3LimitSw =PG13;
+const int Motor4LimitSw =PG10; // AoAT limit switch
+// const int Motor5LimitSw =PG14;
+const int Motor6LimitSw =PG11; // AoA B Limit swtich 
+// const int Motor7LimitSw =PG15;
+// Reset Pin -> off of the RGB HEADDER J37 
+//const int Reset=PB0;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool Abs_pos_error= false;
 
@@ -187,6 +202,10 @@ void setup(void) {
   Serial.begin(9600); // Begin serial ouput communication for debug and input of value array.
   //while (! Serial); // debug waiting for the computer to connect 
   Serial.println(Y_to_micro);
+  // set up the interrpts
+  attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), yHomeIsr, CHANGE);
+
   //delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only 
   DRIVER_SETUP();
   PIN_SETUP(); // Initilize all the Pins 
@@ -367,6 +386,30 @@ void loop(void) {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END User Interface Code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 } // ~~~~ End Main LOOP
+// ~~~~~~~~~ Homing Interrupt code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// The point of this section of code is to interrupt the movement of the axis and stop them as they move towards home 
+/* Just some refrence code here 
+volatile bool xhome1=false;
+volatile bool xhome2=false;
+volatile bool yhome1=false;
+volatile bool yhome2=false;
+volatile bool aoathome=false;
+volatile bool aoabhome=false;
+In general all interrputs need to be kept as short as possible
+*/
+
+void xHomeIsr(){
+  xhome=!xhome; // set set them as hommed when the homing function is called 
+}
+void yHomeIsr(){
+  yhome=!yhome;
+}
+void aoatHomeIsr(){
+  aoathome=!aoathome;
+}
+void aoabHomeIsr(){
+  aoabhome=!aoabhome;
+}
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
 /* 
