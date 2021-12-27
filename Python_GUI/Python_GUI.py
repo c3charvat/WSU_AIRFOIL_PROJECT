@@ -416,26 +416,20 @@ def writeConsole(txt, upd=0):
 
 def rxPolling():  # Pull Data in
     preset = time.perf_counter_ns()
-    print(currentPort)
-    try:
-        while currentPort.in_waiting > 0 and time.perf_counter_ns()-preset < 2000000:  # loop duration about 2ms
-            #print(recv.get())
-            ch = currentPort.read()  # read the current data on the port
-            tm = time.strftime('%H:%M:%S.{}'.format(
-                repr(time.time()).split('.')[1][:3]))
-            txt = ''
-            if dispHexVar.get():  # If display in Hex is true turn the chacter to it hex value
-                txt += get_hexstr_of_chr(ch)
-            else:  # else of the chacter is desired in a string convert the
-                txt += get_str_of_chr(ch)
-            #print(txt)
-            #print(" word lenght" + str(len(txt)))
-            writeConsole(txt)
-            root.after(10, rxPolling)  # polling in 10ms interval
-    except serial.SerialException as se:
-        msgbox.showerror(
-            APP_TITLE, "Couldn't access the {} port".format(portDesc))
-        closePort()
+    while currentPort.in_waiting > 0 and time.perf_counter_ns()-preset < 2000000:  # loop duration about 2ms
+        #print(recv.get())
+        ch = currentPort.read()  # read the current data on the port
+        tm = time.strftime('%H:%M:%S.{}'.format(
+            repr(time.time()).split('.')[1][:3]))
+        txt = ''
+        if dispHexVar.get():  # If display in Hex is true turn the chacter to it hex value
+            txt += get_hexstr_of_chr(ch)
+        else:  # else of the chacter is desired in a string convert the
+            txt += get_str_of_chr(ch)
+        #print(txt)
+        #print(" word lenght" + str(len(txt)))
+        writeConsole(txt)
+    root.after(10, rxPolling)  # polling in 10ms interval
 
 
 def listPortsPolling():  # list the current Com Ports avalible
