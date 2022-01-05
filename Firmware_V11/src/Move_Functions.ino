@@ -105,6 +105,7 @@ movevar[3]=0;
   }
 } // End Function
 
+// home function
 void HomeAll(void)
 {
   // Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
