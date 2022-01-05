@@ -89,9 +89,9 @@ movevar[3]=0;
     //    E2stepper.setupRelativeMoveInSteps((movevar[*axis*] / Degree_per_step[4]) * Micro_stepping[4]);
     //      Serial.print("Waiting in Motion MODE 3: LCD Continous with Trigger"); // Debug Stuff
     //     Serial.print("Ready For Trigger");
-    digitalWrite(27, HIGH);    // Sound Buzzer That The Control Borad is waiting on user
-    TRIGGER_WAIT(TRIGGER_PIN); //call trigger wait function and pass in the trigger pin waity here till the trigger is hit
-    digitalWrite(27, LOW);     // turn the anoying thing off
+    // digitalWrite(27, HIGH);    // Sound Buzzer That The Control Borad is waiting on user
+    // TRIGGER_WAIT(TRIGGER_PIN); //call trigger wait function and pass in the trigger pin waity here till the trigger is hit
+    // digitalWrite(27, LOW);     // turn the anoying thing off
     while ((!E0stepper.motionComplete()) || (!E1stepper.motionComplete()) || (!Zstepper.motionComplete()) || (!Xstepper.motionComplete()) || (!Ystepper.motionComplete()))
     { // While they arent all complete
       Xstepper.processMovement();
@@ -138,42 +138,47 @@ PE -> GPIO port E
 */
 // This function must be rediculsuy fast thus the use of direct port maipulation 
 // Set the direction of all the steppers:
-GPIOA->ODR |= 0b0100000000000000; // set motor 7 (pa14) dir without affecting other pins 
-GPIOC->ODR |= 0b0000000000000010; // set motor 3 (pc1)
-GPIOE->ODR |= 0b0011000000001000; // set motor 6 (pe6)
-GPIOF->ODR |= 0b0001010000000001; // set motor 0,4,5 (pf12)(pf10)(pf0)
-GPIOG->ODR |= 0b0001010000001010; // set motor 1,3 (PG1)(PG3)
-// Set inital states for motors
-int motorgpioc=0b0010000000000000;// binary number for set motor 5 pc13 step pin HIGH leaving the rest alon
-int motorgpioe=0b0000000001000100;// binary number for set motor 5 pc13 step pin HIGH leaving the rest alon
-int motorgpiof=0b0010101000000000;// binary number for set motor 0,2,4 (pf13)(pf11)(pf9)
-int motorgpiog=0b0010000000010001;// binary number for set motor 1,3 (pg0)(pg4)
-// This code needs to run really fast thus it is written in binary and uses interrupts and binary math.
+// GPIOA->ODR |= 0b0100000000000000; // set motor 7 (pa14) dir without affecting other pins 
+// GPIOC->ODR |= 0b0000000000000010; // set motor 3 (pc1)
+// GPIOE->ODR |= 0b0011000000001000; // set motor 6 (pe6)
+// GPIOF->ODR |= 0b0001010000000001; // set motor 0,4,5 (pf12)(pf10)(pf0)
+// GPIOG->ODR |= 0b0001010000001010; // set motor 1,3 (PG1)(PG3)
+// // Set inital states for motors
+// int motorgpioc=0b0010000000000000;// binary number for set motor 5 pc13 step pin HIGH leaving the rest alon
+// int motorgpioe=0b0000000001000100;// binary number for set motor 5 pc13 step pin HIGH leaving the rest alon
+// int motorgpiof=0b0010101000000000;// binary number for set motor 0,2,4 (pf13)(pf11)(pf9)
+// int motorgpiog=0b0010000000010001;// binary number for set motor 1,3 (pg0)(pg4)
+// // This code needs to run really fast thus it is written in binary and uses interrupts and binary math.
 while(xhome==false || yhome==false || aoathome==false || aoabhome == false)
   { // While they arent hit the end stop we move the motors
-  if(xhome==true){
+  if(xhome==false){
     // The X axis is home
-    motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
+    //motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
+    LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_12);
   }
-  if(yhome==true){
-    motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
-    motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
+  if(yhome==false){
+    //motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
+    //motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
+    LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_0);
+    LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
   }
-  if(aoathome==true){
-    motorgpiog=motorgpiog-0b0000000000010000;
+  if(aoathome==false){
+    //motorgpiog=motorgpiog-0b0000000000010000;
+    LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
   }
-  if(aoabhome==true){
-    motorgpiof=motorgpiof-0b0000001000000000;
+  if(aoabhome==false){
+    //motorgpiof=motorgpiof-0b0000001000000000;
+    LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
   }
-  GPIOC->BSRR = motorgpioc<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alone
-  GPIOE->BSRR = motorgpioe<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alon
-  GPIOF->BSRR = motorgpiof<< 16; // set motor 0,2,4 (pf13)(pf11)(pf9)
-  GPIOG->BSRR = motorgpiog<< 16; // set motor 1,3 (pg0)(pg4)
-  delayMicroseconds(500);
-  GPIOC->BSRR = motorgpioc; // set motor 5 pc13 step pin Low leaving the rest alone
-  GPIOE->BSRR = motorgpioe; // set motor 6 and 7 (pe2)(pe6)
-  GPIOF->BSRR = motorgpiof; // set motor 0,2,4 (pf13)(pf11)(pf9)
-  GPIOG->BSRR = motorgpiog; // set motor 1,3 (pg0)(pg4)
+  // GPIOC->BSRR = motorgpioc<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alone
+  // GPIOE->BSRR = motorgpioe<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alon
+  // GPIOF->BSRR = motorgpiof<< 16; // set motor 0,2,4 (pf13)(pf11)(pf9)
+  // GPIOG->BSRR = motorgpiog<< 16; // set motor 1,3 (pg0)(pg4)
+  // delayMicroseconds(500);
+  // GPIOC->BSRR = motorgpioc; // set motor 5 pc13 step pin Low leaving the rest alone
+  // GPIOE->BSRR = motorgpioe; // set motor 6 and 7 (pe2)(pe6)
+  // GPIOF->BSRR = motorgpiof; // set motor 0,2,4 (pf13)(pf11)(pf9)
+  // GPIOG->BSRR = motorgpiog; // set motor 1,3 (pg0)(pg4)
   }
 //
 Xpos=0;
