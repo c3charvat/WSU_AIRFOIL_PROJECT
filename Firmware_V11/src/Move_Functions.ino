@@ -123,10 +123,10 @@ while ((!E0stepper.motionComplete()) || (!E1stepper.motionComplete()) || (!Zstep
     E0stepper.processMovement();
     E1stepper.processMovement();
   }
-volatile bool xhome=false;
-volatile bool yhome=false;
-volatile bool aoathome=false;
-volatile bool aoabhome=false;
+xhome=false; // we are now garenteed to be at least 5 off the axis 
+yhome=false;
+aoathome=false;
+aoabhome=false;
 // Refrencing the block diagram of the stm32f446 on page 16 of the pfd to understand the ports refrenced below
 // a quick guide can be found here: https://gist.github.com/iwalpola/6c36c9573fd322a268ce890a118571ca#brr---bit-reset-register
 /*
@@ -150,6 +150,12 @@ PE -> GPIO port E
 // int motorgpiof=0b0010101000000000;// binary number for set motor 0,2,4 (pf13)(pf11)(pf9)
 // int motorgpiog=0b0010000000010001;// binary number for set motor 1,3 (pg0)(pg4)
 // // This code needs to run really fast thus it is written in binary and uses interrupts and binary math.
+
+LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_12);
+LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
+LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
+LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
+LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
 while(xhome==false || yhome==false || aoathome==false || aoabhome == false)
   { // While they arent hit the end stop we move the motors
   if(xhome==false){
@@ -171,6 +177,15 @@ while(xhome==false || yhome==false || aoathome==false || aoabhome == false)
     //motorgpiof=motorgpiof-0b0000001000000000;
     LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
   }
+  delayMicroseconds(50); //delay between high and low (Aka how long the pin is high)
+  // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
+  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_12);
+  LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
+  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
+  LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
+  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
+  delay(1000); // delay between high states, how long between step signals  
+
   // GPIOC->BSRR = motorgpioc<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alone
   // GPIOE->BSRR = motorgpioe<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alon
   // GPIOF->BSRR = motorgpiof<< 16; // set motor 0,2,4 (pf13)(pf11)(pf9)
