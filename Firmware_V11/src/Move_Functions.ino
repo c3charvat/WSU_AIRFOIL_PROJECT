@@ -185,7 +185,7 @@ while(xhome==false || yhome==false || aoathome==false || aoabhome == false)
   LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
   delay(1000); // delay between high states, how long between step signals  
-
+  Serial.print("Hl")// kept short to minimize time
   // GPIOC->BSRR = motorgpioc<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alone
   // GPIOE->BSRR = motorgpioe<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alon
   // GPIOF->BSRR = motorgpiof<< 16; // set motor 0,2,4 (pf13)(pf11)(pf9)
