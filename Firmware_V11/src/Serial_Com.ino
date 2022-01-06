@@ -383,6 +383,7 @@ bool parseData()
     Serial.println("Shouldn't Have made it here\n");
     return false;
   }
+  return true;
 } // End Parsing Function
 
 void showParsedData() 
