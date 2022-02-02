@@ -13,7 +13,7 @@ This presented three major issues:\
 Year to year no one could actually program, or control this system.\
 This system proved to be non-repeatable. (A fundemtal characteristic of an experiment)\
 Friction / system stiffness of the linear berrings further reduced the repeatability.\
-Using arbitrary scale made the system qualitative.
+Using an arbitrary scale made the system qualitative.
 
 # Key project objectives:
 *Document all decisions, reasoning, choices, code and files for year to year use.\

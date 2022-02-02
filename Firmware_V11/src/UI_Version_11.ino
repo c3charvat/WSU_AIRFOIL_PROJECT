@@ -19,6 +19,7 @@ These are sets of pre- Made functions and code that simplifies the code.
 #include <SpeedyStepper.h>
 #include <TMCStepper.h>
 #include <TMCStepper_UTILITY.h>
+#include <stm32yyxx_ll_gpio.h>
 #ifdef U8X8_HAVE_HW_SPI 
 #include <SPI.h>
 #endif
