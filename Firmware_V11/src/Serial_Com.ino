@@ -102,7 +102,7 @@ bool parseData()
         {
           if (strtokIndx[0] == 'X' || strtokIndx[0] == 'x')
           { // if the first character is X
-            Xstepper.moveToHomeInRevolutions(-1,20,20,PG6);
+            X_stepper.moveToHomeInRevolutions(1,40,500,!PG6);
               Xpos=0;
               CurrentPositions[1] = 0;
           }
@@ -132,14 +132,14 @@ bool parseData()
             if (strtokIndx[3] == 'T' || strtokIndx[3] == 't')
             { // if the third character is T -> Meaning AoAT
               // Home AoA Top here
-              E0stepper.moveToHomeInRevolutions(-1,20,20,PG10);
+              AOAT_stepper.moveToHomeInRevolutions(-1,20,20,PG10);
               AoA[0]=0;
               CurrentPositions[3] = 0;
             }
             if (strtokIndx[3] == 'B' || strtokIndx[3] == 'b')
             { // if the third character is B -> Meaning AoAB
               // Home AoA Bottom here
-              E1stepper.moveToHomeInRevolutions(-1,20,20,PG11);
+              AOAB_stepper.moveToHomeInRevolutions(-1,20,20,PG11);
               AoA[1]=0;
               CurrentPositions[4] = 0;
             }
@@ -342,10 +342,11 @@ bool parseData()
         Micro_stepping[3] = Temp_Settings[2];
         Micro_stepping[4] = Temp_Settings[3];
         driverX.microsteps(Micro_stepping[0]);
-        driverY.microsteps(Micro_stepping[1]);
-        driverZ.microsteps(Micro_stepping[2]);
-        driverE0.microsteps(Micro_stepping[3]);
-        driverE1.microsteps(Micro_stepping[4]);
+        driverY0.microsteps(Micro_stepping[1]);
+        driverY12.microsteps(Micro_stepping[1]);
+        driverY3.microsteps(Micro_stepping[2]);
+        driverAOAT.microsteps(Micro_stepping[3]);
+        driverAOAB.microsteps(Micro_stepping[4]);
         return true; // Tell the system that the function worked
       }
     }
@@ -359,10 +360,11 @@ bool parseData()
       else
       {
         driverX.en_spreadCycle(Temp_Settings[0]);
-        driverY.en_spreadCycle(Temp_Settings[1]);
-        driverZ.en_spreadCycle(Temp_Settings[2]);
-        driverE0.en_spreadCycle(Temp_Settings[3]);
-        driverE1.en_spreadCycle(Temp_Settings[4]);
+        driverY0.en_spreadCycle(Temp_Settings[1]);
+        driverY12.en_spreadCycle(Temp_Settings[2]);
+        driverY3.en_spreadCycle(Temp_Settings[2]);
+        driverAOAT.en_spreadCycle(Temp_Settings[3]);
+        driverAOAB.en_spreadCycle(Temp_Settings[4]);
         return true; // Tell the system that the function worked
       }
     }
