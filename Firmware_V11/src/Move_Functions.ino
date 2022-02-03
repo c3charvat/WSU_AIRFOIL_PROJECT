@@ -114,12 +114,12 @@ void HomeAll(void)
 {
   // Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
   // This ensures that all the axis are not allready on their limit swtiches
-  X_stepper.setupRelativeMoveInSteps(movevar[0] * 6400); // Future: Make these iun terms of MM
-  Y0_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
-  Y12_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
-  Y3_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
-  AOAT_stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2]));
-  AOAB_stepper.setupRelativeMoveInSteps(movevar[3] / (Degree_per_step[3] / Micro_stepping[3]));
+  X_stepper.setupRelativeMoveInSteps(10 * 6400); // Future: Make these iun terms of MM
+  Y0_stepper.setupRelativeMoveInSteps(10 * 6400);
+  Y12_stepper.setupRelativeMoveInSteps(10 * 6400);
+  Y3_stepper.setupRelativeMoveInSteps(10 * 6400);
+  AOAT_stepper.setupRelativeMoveInSteps(10 / (Degree_per_step[2] / Micro_stepping[2]));
+  AOAB_stepper.setupRelativeMoveInSteps(10/ (Degree_per_step[3] / Micro_stepping[3]));
   while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y12_stepper.motionComplete()) || (!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
   {
     X_stepper.processMovement();
@@ -129,6 +129,7 @@ void HomeAll(void)
     AOAT_stepper.processMovement();
     AOAB_stepper.processMovement();
   }
+  Serial.print("got through the firt part of home all");
   xhome = false; // we are now garenteed to be at least 5 off the axis
   yhome = false;
   aoathome = false;
@@ -157,7 +158,7 @@ void HomeAll(void)
   // int motorgpiog=0b0010000000010001;// binary number for set motor 1,3 (pg0)(pg4)
   // // This code needs to run really fast thus it is written in binary and uses interrupts and binary math.
 
-  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_12);
+  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
   LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
   LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
@@ -168,7 +169,7 @@ void HomeAll(void)
     {
       // The X axis is home
       // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
-      LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_12);
+      LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
     }
     if (yhome == false)
     {
@@ -187,15 +188,15 @@ void HomeAll(void)
       // motorgpiof=motorgpiof-0b0000001000000000;
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
     }
-    delayMicroseconds(50); // delay between high and low (Aka how long the pin is high)
+    delayMicroseconds(2); // delay between high and low (Aka how long the pin is high)
     // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
-    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_12);
+    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
     LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
     LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
-    delay(1000);        // delay between high states, how long between step signals
-    Serial.print("Hl"); // kept short to minimize time
+    delayMicroseconds(90);        // delay between high states, how long between step signals
+    //Serial.print("Hl"); // kept short to minimize time
     // GPIOC->BSRR = motorgpioc<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alone
     // GPIOE->BSRR = motorgpioe<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alon
     // GPIOF->BSRR = motorgpiof<< 16; // set motor 0,2,4 (pf13)(pf11)(pf9)
