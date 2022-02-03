@@ -56,7 +56,7 @@ U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/PE13, /* data=*/PE15, /* CS
 // Define the LCD Type and Pins Reset is currently pin 29 which us unused or unconnected on the board.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Trigger Pin Define  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 const int TRIGGER_PIN = 24; // Temp0 pin on Melzi board
-bool Go_Pressed = false; // Default state of the trigger ISR variable 
++volatile bool Go_Pressed = false; // Default state of the trigger ISR variable 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ Estop Pin define ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 const int Estop_pin = 24;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MOTION CONTROL  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -148,7 +148,7 @@ const char *Motion_select = // motion select menu
 const char *Error_String = // Error strings
     "Acknowledge\n"
     "Main Menu\n"
-    "Hard Restart\n";
+    "Software Restart\n";
 
 uint8_t current_selection = 0; // Keep track of current selection in menu
 uint8_t Sub_selection = 0;
