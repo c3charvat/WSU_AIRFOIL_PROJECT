@@ -276,18 +276,18 @@ def Setpos():
     SY=float(SYstr)
     ST=float(STstr)
     SB=float(SBstr)
-    Xstr='0'
-    Ystr='0'
-    Tstr='0'
-    Bstr='0'
-    AXstr='0'
-    AYstr='0'
-    ATstr='0'
-    ABstr='0'
-    SXstr='0'
-    SYstr='0'
-    STstr='0'
-    SBstr='0'
+    Xstr=''
+    Ystr=''
+    Tstr=''
+    Bstr=''
+    AXstr=''
+    AYstr=''
+    ATstr=''
+    ABstr=''
+    SXstr=''
+    SYstr=''
+    STstr=''
+    SBstr=''
     
     
 def writeConsole(txt, upd=0):
@@ -962,7 +962,10 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.configure(bg='#222222')
     style = ttk.Style(root)
-    root.tk.call('source','C://Users//Collin//Documents//WSU_AIRFOIL_GITHUB//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
+    try:
+        root.tk.call('source','C://Users//Collin//Documents//WSU_AIRFOIL_GITHUB//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
+    except:
+        root.tk.call('source','C://Users//ecslogon//Documents//PlatformIO//Projects//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
     root.tk.call("set_theme", "dark") 
     filePath = tk.StringVar()
     root.title(APP_TITLE) # PaneWindow
@@ -985,18 +988,18 @@ if __name__ == '__main__':
     oneshot=tk.BooleanVar(root,False)
     directionVar=tk.IntVar(root,1)
     recv=IntVar()
-    Xstr='0'
-    Ystr='0'
-    Tstr='0'
-    Bstr='0'
-    AXstr='0'
-    AYstr='0'
-    ATstr='0'
-    ABstr='0'
-    SXstr='0'
-    SYstr='0'
-    STstr='0'
-    SBstr='0'
+    Xstr=''
+    Ystr=''
+    Tstr=''
+    Bstr=''
+    AXstr=''
+    AYstr=''
+    ATstr=''
+    ABstr=''
+    SXstr=''
+    SYstr=''
+    STstr=''
+    SBstr=''
     Xpos=0.00
     Ypos=0.00
     AoAT=0.00
