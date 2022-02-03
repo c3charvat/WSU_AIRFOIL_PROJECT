@@ -225,12 +225,12 @@ void setup(void) {
   // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion. 
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
   u8g2.setFont(u8g2_font_6x12_tr);
+  Draw_bitmap(); // DRAW THE BOOT SCREEN 
 }
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VOID LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void loop(void) {
-  Draw_bitmap();
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ User Interface Code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   MAIN_MENU(); // issues the main menu command
   //
