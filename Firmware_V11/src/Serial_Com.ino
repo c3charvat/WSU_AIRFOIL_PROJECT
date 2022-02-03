@@ -91,7 +91,7 @@ bool parseData()
       Serial.println("IT has an h\n");
       strtokIndx = strtok(NULL, " ");
       Serial.println(strtokIndx[0]);
-      if (strtokIndx == NULL)
+      if (strtokIndx[0] == 'A')
       {
         // If there is nothing after H then Home all axis here
         Serial.println("heading to home all");
@@ -103,6 +103,7 @@ bool parseData()
         {
           if (strtokIndx[0] == 'X' || strtokIndx[0] == 'x')
           { // if the first character is X
+          LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
             while (xhome == false)
             { // While they arent hit the end stop we move the motors
               if (xhome == false)
@@ -111,14 +112,19 @@ bool parseData()
               }
               delayMicroseconds(2); 
               LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
-              delayMicroseconds(90); 
+              delayMicroseconds(200); 
             }
             Xpos = 0;
             CurrentPositions[1] = 0;
+            volatile bool xhome=false;
+            return true;
           }
           if (strtokIndx[0] == 'Y' || strtokIndx[0] == 'y')
           { // if the first character is Y
             // Home The Y
+            LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
+            LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
+            LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
             while (yhome == false)
             {
               if (yhome == false)
@@ -127,50 +133,61 @@ bool parseData()
                 // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
                 LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_0);
                 LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
+                LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
               }
               delayMicroseconds(2); 
-              LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_0);
-              LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
-              delayMicroseconds(90); 
+              LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
+              LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
+              LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
+              delayMicroseconds(110); 
             }
+            Serial.print("Finshed y Homing");
             Ypos = 0;
             CurrentPositions[2] = 0;
+            volatile bool yhome=false;
+            return true;
           }
           if (strtokIndx[0] == 'A' || strtokIndx[0] == 'a')
           { // if the first character is A -> Meaning AoA
             if (strtokIndx[3] == 'T' || strtokIndx[3] == 't')
             { // if the third character is T -> Meaning AoAT
               // Home AoA Top here
+              LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
               while (aoathome == false)
               {
                 if (aoathome == false)
                 {
                   // motorgpiog=motorgpiog-0b0000000000010000;
-                  LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
+                  LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
                 }
                 delayMicroseconds(2); 
-                LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
-                delayMicroseconds(90); 
+                LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
+                delayMicroseconds(200); 
               }
               AoA[0] = 0;
-              CurrentPositions[3] = 0;
+              CurrentPositions[3] = 0; 
+              volatile bool aoathome=false;
+              return true;
             }
             if (strtokIndx[3] == 'B' || strtokIndx[3] == 'b')
             { // if the third character is B -> Meaning AoAB
               // Home AoA Bottom here
+              LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
               while (aoabhome == false)
               {
                 if (aoabhome == false)
                 {
                   // motorgpiog=motorgpiog-0b0000000000010000;
-                  LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
+                  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
                 }
                 delayMicroseconds(2); // delay between high and low (Aka how long the pin is high)
-                LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
-                delayMicroseconds(90); 
+                LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
+                delayMicroseconds(200); 
               }
               AoA[1] = 0;
               CurrentPositions[4] = 0;
+              volatile bool aoabhome=false;
+              return true;
             }
           }
         } // end while

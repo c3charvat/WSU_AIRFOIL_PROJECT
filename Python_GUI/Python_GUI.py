@@ -682,7 +682,7 @@ def Stop(event):
     
 def homeAll(event):
     global tempString
-    tempString='<G H>' # pass in the Home String
+    tempString='<G H A>' # pass in the Home String
     GcodeSend(None)
     
 def homeAxis(event):
