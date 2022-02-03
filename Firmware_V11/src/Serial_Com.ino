@@ -4,28 +4,28 @@
 void recvWithStartEndMarkers()
 {
   static bool printedMsg = 0; // Debug
-  if (printedMsg == 0) // Debug
+  if (printedMsg == 0)        // Debug
   {
-    Serial.println("Got to revrecvWithStartEndMarkers()\n");// Debug output only print once
-    printedMsg = 1; // Debug
+    Serial.println("Got to revrecvWithStartEndMarkers()\n"); // Debug output only print once
+    printedMsg = 1;                                          // Debug
   }
-  //Serial.println("Got to revrecvWithStartEndMarkers()\n");
-  static bool recvInProgress = false; 
+  // Serial.println("Got to revrecvWithStartEndMarkers()\n");
+  static bool recvInProgress = false;
   static byte ndx = 0;
   char startMarker = '<';
   char endMarker = '>';
   char rc;
   while (Serial.available() > 0 && newData == false)
   {
-   // Serial.println("Got to while (Serial.available() > 0 && newData == false) in recvWithStartEndMarkers()"); // Debug output
-    rc = Serial.read(); // Look at the next character 
-    if (recvInProgress == true) // if we are recording 
+    // Serial.println("Got to while (Serial.available() > 0 && newData == false) in recvWithStartEndMarkers()"); // Debug output
+    rc = Serial.read();         // Look at the next character
+    if (recvInProgress == true) // if we are recording
     {
       if (rc != endMarker) // And we are not at the end marker
       {
-        receivedChars[ndx] = rc; //Throw the current char into the array 
-        ndx++; // increment index forward.
-        if (ndx >= numChars) // If we exceed the max continue to read and just throw the data into the last postition
+        receivedChars[ndx] = rc; // Throw the current char into the array
+        ndx++;                   // increment index forward.
+        if (ndx >= numChars)     // If we exceed the max continue to read and just throw the data into the last postition
         {
           ndx = numChars - 1;
         }
@@ -33,14 +33,14 @@ void recvWithStartEndMarkers()
       else
       {
         receivedChars[ndx] = '\0'; // terminate the string
-        recvInProgress = false; // stop recording 
-        ndx = 0; // set index back to zero (fromaility not truly required)
-        newData = true; // Let the program know that there is data wating for the parser.
+        recvInProgress = false;    // stop recording
+        ndx = 0;                   // set index back to zero (fromaility not truly required)
+        newData = true;            // Let the program know that there is data wating for the parser.
       }
     }
     else if (rc == startMarker) // If Rc is the start marker we are getting good data
     {
-      recvInProgress = true; // Start recording 
+      recvInProgress = true; // Start recording
     }
   }
 }
@@ -54,31 +54,31 @@ The following is a custom G/M code implmentation
 // Temp Charters (charter array) looks like:
 // G X###.## Y###.## AoAT###.## AoAB###.##
 // OR
-// M A X###.## Y###.## AoAT###.## AoAB###.## 
+// M A X###.## Y###.## AoAT###.## AoAB###.##
 // OR
 // M S X###.## Y###.## AoAT###.## AoAB###.##
 Any combination of capital/lowercase letters or single varibles are accepted and should be handled.
 For Example:
 // M S X#### OR M S Y ###### are acceptable inputs
 // G X100 or G X100 Y 200 are acceptable too
-For futher understanding, write out your own string and walk through the code below 
+For futher understanding, write out your own string and walk through the code below
 */
 bool parseData()
 { // split the data into its parts
   Serial.println("Got to parse data\n");
   char *strtokIndx; // this is used by strtok() as an index
-  //char * LeadChar; // Getting the lead Charter of the command
+  // char * LeadChar; // Getting the lead Charter of the command
   float Temp_Pos[5] = {Xpos, Ypos, AoA[0], AoA[1], NULL};
   int Setting_Num;      // Acelleration = 0 Speed = 1
   int Temp_Settings[5]; // only passed into the global varible if this function completes sucessfully
 
-  //strtok(tempChars, " ");// get the first part - the string // This returns the first token "G"
+  // strtok(tempChars, " ");// get the first part - the string // This returns the first token "G"
   strtokIndx = strtok(tempChars, " "); // get the first part - the string // This returns the first token "G"
   Serial.println(strtokIndx[0]);
   if (strtokIndx[0] == 'R' || strtokIndx[0] == 'r')
   {
     // Simulated Estop AkA Just Kill power to the board
-    //digitalWrite(Reset,LOW); // Lmao This is one way to skin the cat rather than bothering with software
+    // digitalWrite(Reset,LOW); // Lmao This is one way to skin the cat rather than bothering with software
   }
   if (strtokIndx[0] == 'G' || strtokIndx[0] == 'g')
   {                                         // Begin G code parsing
@@ -91,9 +91,11 @@ bool parseData()
       Serial.println("IT has an h\n");
       strtokIndx = strtok(NULL, " ");
       Serial.println(strtokIndx[0]);
-      if (strtokIndx == NULL)
+      if (strtokIndx[0] == 'A')
       {
         // If there is nothing after H then Home all axis here
+        Serial.println("heading to home all");
+        HomeAll();
       }
       else
       {
@@ -101,46 +103,91 @@ bool parseData()
         {
           if (strtokIndx[0] == 'X' || strtokIndx[0] == 'x')
           { // if the first character is X
-            Xstepper.moveToHomeInRevolutions(-1,20,20,PG6);
-              Xpos=0;
-              CurrentPositions[1] = 0;
+          LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
+            while (xhome == false)
+            { // While they arent hit the end stop we move the motors
+              if (xhome == false)
+              {
+                LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
+              }
+              delayMicroseconds(2); 
+              LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
+              delayMicroseconds(200); 
+            }
+            Xpos = 0;
+            CurrentPositions[1] = 0;
+            volatile bool xhome=false;
+            return true;
           }
           if (strtokIndx[0] == 'Y' || strtokIndx[0] == 'y')
           { // if the first character is Y
-            // Home The Y Axis
-            // while (digitalRead(Motor1LimitSw) != LOW  || digitalRead(Motor2LimitSw) != LOW )
-            //   { // While they arent all complete
-            //   if (digitalRead(Motor1LimitSw) != LOW)
-            //   {
-            //     Ystepper.setupRelativeMoveInSteps(200);
-            //   }
-            //   if (digitalRead(Motor2LimitSw) != LOW ){
-            //     Zstepper.setupRelativeMoveInSteps(200);
-            //   }
-            //   while ((!Zstepper.motionComplete()) || (!Ystepper.motionComplete()))
-            //   { // While they arent all complete
-            //     Ystepper.processMovement();
-            //     Zstepper.processMovement();
-            //   }
-            // }
-            //   Ypos=0;
-            //   CurrentPositions[2] = 0;
+            // Home The Y
+            LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
+            LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
+            LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
+            while (yhome == false)
+            {
+              if (yhome == false)
+              {
+                // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
+                // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
+                LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_0);
+                LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
+                LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
+              }
+              delayMicroseconds(2); 
+              LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
+              LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
+              LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
+              delayMicroseconds(110); 
+            }
+            Serial.print("Finshed y Homing");
+            Ypos = 0;
+            CurrentPositions[2] = 0;
+            volatile bool yhome=false;
+            return true;
           }
           if (strtokIndx[0] == 'A' || strtokIndx[0] == 'a')
           { // if the first character is A -> Meaning AoA
             if (strtokIndx[3] == 'T' || strtokIndx[3] == 't')
             { // if the third character is T -> Meaning AoAT
               // Home AoA Top here
-              E0stepper.moveToHomeInRevolutions(-1,20,20,PG10);
-              AoA[0]=0;
-              CurrentPositions[3] = 0;
+              LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
+              while (aoathome == false)
+              {
+                if (aoathome == false)
+                {
+                  // motorgpiog=motorgpiog-0b0000000000010000;
+                  LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
+                }
+                delayMicroseconds(2); 
+                LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
+                delayMicroseconds(200); 
+              }
+              AoA[0] = 0;
+              CurrentPositions[3] = 0; 
+              volatile bool aoathome=false;
+              return true;
             }
             if (strtokIndx[3] == 'B' || strtokIndx[3] == 'b')
             { // if the third character is B -> Meaning AoAB
               // Home AoA Bottom here
-              E1stepper.moveToHomeInRevolutions(-1,20,20,PG11);
-              AoA[1]=0;
+              LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
+              while (aoabhome == false)
+              {
+                if (aoabhome == false)
+                {
+                  // motorgpiog=motorgpiog-0b0000000000010000;
+                  LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+                }
+                delayMicroseconds(2); // delay between high and low (Aka how long the pin is high)
+                LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
+                delayMicroseconds(200); 
+              }
+              AoA[1] = 0;
               CurrentPositions[4] = 0;
+              volatile bool aoabhome=false;
+              return true;
             }
           }
         } // end while
@@ -199,17 +246,17 @@ bool parseData()
         //   Serial.println("Something else happened. I don't know what's going on.\n");
         // }
         // We are incrementing at the end of the loop so it stops before it could fall into the else statment when it reaches the end of the string
-      }                             // End While loop
-    }                    // If it makes it out of the while loop with out getting kicked out
-    Xpos= Temp_Pos[0]; // set the global varibles
+      }                 // End While loop
+    }                   // If it makes it out of the while loop with out getting kicked out
+    Xpos = Temp_Pos[0]; // set the global varibles
     Ypos = Temp_Pos[1];
-    AoA[0]= Temp_Pos[2];
+    AoA[0] = Temp_Pos[2];
     AoA[1] = Temp_Pos[3];
-    //Serial.println(Xpos);
-    //Serial.println(Ypos);
-    //Serial.println(AoA[0]); // Debug code here 
-    //Serial.println(AoA[1]);
-    //Serial.println("Heading to \"MOVE_FUNCTION()\".");
+    // Serial.println(Xpos);
+    // Serial.println(Ypos);
+    // Serial.println(AoA[0]); // Debug code here
+    // Serial.println(AoA[1]);
+    // Serial.println("Heading to \"MOVE_FUNCTION()\".");
     MOVE_FUNCTION();
     return true; // Tell the system that the function worked
   }              // End G code parsing
@@ -298,7 +345,7 @@ bool parseData()
             Serial.println("strtokIndx[0] == B or b");
             char *substr = strtokIndx + 4;   // This Truncates the chacters "AoAB"
             Temp_Settings[3] = atof(substr); // Assign the value to the AoAB position
-          } 
+          }
         }
         strtokIndx = strtok(NULL, " "); // process next string segment // This returns the next token "X##.##" then "Y##.##"...
       }                                 // End While loop
@@ -335,16 +382,17 @@ bool parseData()
       else
       {
         Serial.println("Setting microstepping");
-        Micro_stepping[0] = Temp_Settings[0];  //x
-        Micro_stepping[1] = Temp_Settings[1];  //y
-        Micro_stepping[2] = Micro_stepping[1]; //Z is tied to y
+        Micro_stepping[0] = Temp_Settings[0];  // x
+        Micro_stepping[1] = Temp_Settings[1];  // y
+        Micro_stepping[2] = Micro_stepping[1]; // Z is tied to y
         Micro_stepping[3] = Temp_Settings[2];
         Micro_stepping[4] = Temp_Settings[3];
         driverX.microsteps(Micro_stepping[0]);
-        driverY.microsteps(Micro_stepping[1]);
-        driverZ.microsteps(Micro_stepping[2]);
-        driverE0.microsteps(Micro_stepping[3]);
-        driverE1.microsteps(Micro_stepping[4]);
+        driverY0.microsteps(Micro_stepping[1]);
+        driverY12.microsteps(Micro_stepping[1]);
+        driverY3.microsteps(Micro_stepping[2]);
+        driverAOAT.microsteps(Micro_stepping[3]);
+        driverAOAB.microsteps(Micro_stepping[4]);
         return true; // Tell the system that the function worked
       }
     }
@@ -358,10 +406,11 @@ bool parseData()
       else
       {
         driverX.en_spreadCycle(Temp_Settings[0]);
-        driverY.en_spreadCycle(Temp_Settings[1]);
-        driverZ.en_spreadCycle(Temp_Settings[2]);
-        driverE0.en_spreadCycle(Temp_Settings[3]);
-        driverE1.en_spreadCycle(Temp_Settings[4]);
+        driverY0.en_spreadCycle(Temp_Settings[1]);
+        driverY12.en_spreadCycle(Temp_Settings[2]);
+        driverY3.en_spreadCycle(Temp_Settings[2]);
+        driverAOAT.en_spreadCycle(Temp_Settings[3]);
+        driverAOAB.en_spreadCycle(Temp_Settings[4]);
         return true; // Tell the system that the function worked
       }
     }
@@ -382,10 +431,11 @@ bool parseData()
     Serial.println("Shouldn't Have made it here\n");
     return false;
   }
+  return true;
 } // End Parsing Function
 
-void showParsedData() 
-/* This function is purely debug related and is not used for any functional purpose it can be commented out in code 
+void showParsedData()
+/* This function is purely debug related and is not used for any functional purpose it can be commented out in code
 At any time do not comment out this function or you will break the entire system.*/
 { // show parsed data and move
   Serial.println("Parsed Data Debug output");
@@ -397,45 +447,70 @@ At any time do not comment out this function or you will break the entire system
   Serial.println(AoA[0]);
   Serial.print("AoA Bottom ");
   Serial.println(AoA[1]);
-  //Serial.print("AoA Bottom Speed");
-  //Serial.println(Speed_Data[1]);
-  //Serial.print("AoA Bottom Speed");
-  //Serial.println(Acell_Data[1]);
-  //MOVE_FUNCTION(); // Revmoved When this function was truned to debug 
-  // move function goes here
+  // Serial.print("AoA Bottom Speed");
+  // Serial.println(Speed_Data[1]);
+  // Serial.print("AoA Bottom Speed");
+  // Serial.println(Acell_Data[1]);
+  // MOVE_FUNCTION(); // Revmoved When this function was truned to debug
+  //  move function goes here
 }
 void gui_output_function()
 {
   /* Python GUI Function --> This function just prints the current postion over serial.
-Thiis is so python GUI can read it and know where stepper is currently, It is also usefull for postioning debug It is ignored by the GUI using the 
- "%" symbol -> That means Any Data passed to the gui after the % symbol and before aother % symbol will be ignored by the text output of the GUI. 
+Thiis is so python GUI can read it and know where stepper is currently, It is also usefull for postioning debug It is ignored by the GUI using the
+ "%" symbol -> That means Any Data passed to the gui after the % symbol and before aother % symbol will be ignored by the text output of the GUI.
  The data is serperated by X,Y,AT,AB  */
- Serial.print("%"); // Start the Data Transfer
- Serial.print("1"); // print out the the current settings 
- Serial.print(Xpos);
- Serial.print("2");
- Serial.print(Ypos);
- Serial.print("3");
- Serial.print(AoA[0]);
- Serial.print("4");
- Serial.print(AoA[1]);
- Serial.print("5"); // ax
- Serial.print(Acell_Data[0]);
- Serial.print("6"); //ay
- Serial.print(Acell_Data[1]);
- Serial.print("7"); // at
- Serial.print(Speed_Data[2]);
- Serial.print("8"); // ab
- Serial.print(Acell_Data[3]);
- Serial.print("9"); // sx
- Serial.print(Speed_Data[0]);
- Serial.print("10"); //sy
- Serial.print(Speed_Data[1]);
- Serial.print("11"); //st
- Serial.print(Speed_Data[2]);
- Serial.print("12"); //sb
- Serial.print(Speed_Data[3]);
- Serial.print("%"); // End Data transfer. 
+  Serial.print("%"); // Start the Data Transfer
+  Serial.print("Q"); // print out the the current settings
+  Serial.print(Xpos);
+  Serial.print("W");
+  Serial.print(Ypos);
+  Serial.print("E");
+  Serial.print(AoA[0]);
+  Serial.print("R");
+  Serial.print(AoA[1]);
+  Serial.print("T"); // ax
+  Serial.print(Acell_Data[0]);
+  Serial.print("Y"); // ay
+  Serial.print(Acell_Data[1]);
+  Serial.print("U"); // at
+  Serial.print(Speed_Data[2]);
+  Serial.print("I"); // ab
+  Serial.print(Acell_Data[3]);
+  Serial.print("O"); // sx
+  Serial.print(Speed_Data[0]);
+  Serial.print("P"); // sy
+  Serial.print(Speed_Data[1]);
+  Serial.print("A"); // st
+  Serial.print(Speed_Data[2]);
+  Serial.print("S"); // sb
+  Serial.print(Speed_Data[3]);
+  Serial.print("%"); // End Data transfer.
+
+  Serial.print("X"); // print out the the current settings debug stuff
+  Serial.print(Xpos);
+  Serial.print("Y");
+  Serial.print(Ypos);
+  Serial.print("T");
+  Serial.print(AoA[0]);
+  Serial.print("B");
+  Serial.print(AoA[1]);
+  Serial.print("Q");
+  Serial.print(Acell_Data[0]);
+  Serial.print("W");
+  Serial.print(Acell_Data[1]);
+  Serial.print("E");
+  Serial.print(Speed_Data[2]);
+  Serial.print("R");
+  Serial.print(Acell_Data[3]);
+  Serial.print("A");
+  Serial.print(Speed_Data[0]);
+  Serial.print("S");
+  Serial.print(Speed_Data[1]);
+  Serial.print("D");
+  Serial.print(Speed_Data[2]);
+  Serial.print("F");
+  Serial.print(Speed_Data[3]);
 }
 void serial_flush_buffer()
 {

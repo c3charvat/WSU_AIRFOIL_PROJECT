@@ -19,6 +19,7 @@ These are sets of pre- Made functions and code that simplifies the code.
 #include <SpeedyStepper.h>
 #include <TMCStepper.h>
 #include <TMCStepper_UTILITY.h>
+#include <stm32yyxx_ll_gpio.h>
 #ifdef U8X8_HAVE_HW_SPI 
 #include <SPI.h>
 #endif
@@ -32,11 +33,12 @@ In the Case of this set up since the drivers are in Uart mode the adress of the 
 */
 // TMC Stepper Class
 TMC2209Stepper driverX(PC4, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverY(PD11, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverZ(PC6, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverE0(PC7, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver Address) Software serial X axis
-TMC2209Stepper driverE1(PF2, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
-
+TMC2209Stepper driverY0(PD11, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY12(PC6, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RSENSE, Driver Address) Software serial X axis
+TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
+TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
+//TMC2209Stepper driverE3(PE1, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X ax
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Physcial System Char~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /* In This section are the maximum travel distances for each of the axis */ 
 int Micro_stepping[5] = {64, 64, 64, 64, 64}; //mirco stepping for the drivers 
@@ -62,14 +64,14 @@ Speedy Stepper is driving the steppers movment through the traditional Step,Dir 
 This simplifies things greatly in code at the cost of speed. Which on the 180MHz this board runs on is not an issue.
 The advanced features of the Stepper Driver are handled via Uart. 
 */
-SpeedyStepper Xstepper; 
-SpeedyStepper Ystepper;
-SpeedyStepper Zstepper;
-SpeedyStepper E0stepper;
-SpeedyStepper E1stepper;
-SpeedyStepper E2stepper;
-SpeedyStepper E3stepper;
-SpeedyStepper E4stepper;
+SpeedyStepper X_stepper; // motor 0
+SpeedyStepper Y0_stepper; // motor 1
+SpeedyStepper Y12_stepper; // motor 2_1 2_2
+SpeedyStepper Y3_stepper;  // motor 3 
+SpeedyStepper AOAT_stepper; // motor 4
+SpeedyStepper AOAB_stepper; // motor 5
+//SpeedyStepper E3stepper;
+//SpeedyStepper E4stepper;
 // Stepper settings
 
 uint8_t*  Acceleration; // For The Acceleration setting in the LCD UI
@@ -98,8 +100,23 @@ uint8_t X_value[3]; // X pos : Hundreds,tens/ones,Decimal
 float Ypos;  // X position float value
 uint8_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Absolute Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-float CurrentPositions[5] = {0, 0, 0, 0, 0}; // AoA_Top, AoA_Bottom,X,Y,E2  -> " E Z X Y E2 " // modified for new motherboard
-float movevar[5]={0,0,0,0,0}; // E ,Z, X, Y , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
+float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB,EXTRA" // modified for new motherboard
+float movevar[5]={0,0,0,0,0}; // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
+// ~~~~~~~~~~~~~~~~~~~~~~~~~ Homing function varibles ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+volatile bool xhome=false;
+volatile bool yhome=false;
+volatile bool aoathome=false;
+volatile bool aoabhome=false;
+const int Motor0LimitSw =PG6; // X axis limit switch
+// const int Motor1LimitSw =PG12;
+const int Motor2LimitSw =PG9; // Y axis limit switch
+// const int Motor3LimitSw =PG13;
+const int Motor4LimitSw =PG10; // AoAT limit switch
+// const int Motor5LimitSw =PG14;
+const int Motor6LimitSw =PG11; // AoA B Limit swtich 
+// const int Motor7LimitSw =PG15;
+// Reset Pin -> off of the RGB HEADDER J37 
+//const int Reset=PB0;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool Abs_pos_error= false;
 
@@ -115,6 +132,7 @@ const char *Setting_list = // Define the Settings Sub menu options
   "Acceleration\n"
   "Speed\n"
   "Movment Mode\n"
+  "Home All Axis\n"
   "BACK";
 
 const char *Com_select = // Communcations method select menu
@@ -143,20 +161,30 @@ int Go_Pressed = 0; // By default the go button does nothing
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Acelleration/ Speed Set/ Trigger Functions  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void SET_ACELL(float x, float y, float E0, float E1) {
-  Xstepper.setAccelerationInRevolutionsPerSecondPerSecond(x);
-  Ystepper.setAccelerationInRevolutionsPerSecondPerSecond(y);
-  Zstepper.setAccelerationInRevolutionsPerSecondPerSecond(y); // By Default the Z axis will allways be attached to the Y (Verticle Axis)
-  E0stepper.setAccelerationInRevolutionsPerSecondPerSecond(E0); // Change to mm/s when the system is being implmented
-  E1stepper.setAccelerationInRevolutionsPerSecondPerSecond(E1); // Change to mm/s when the system is being implmented
+  X_stepper.setAccelerationInRevolutionsPerSecondPerSecond(x*2);
+  Y0_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y*2);
+  Y12_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y*2); // By Default the Z axis will allways be attached to the Y (Verticle Axis)
+  Y3_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y*2);
+  AOAT_stepper.setAccelerationInRevolutionsPerSecondPerSecond(E0); // Change to mm/s when the system is being implmented
+  AOAB_stepper.setAccelerationInRevolutionsPerSecondPerSecond(E1); // Change to mm/s when the system is being implmented
   //  E2stepper.setAccelerationInStepsPerSecondPerSecond(*put axis its mirrioring here*);
+  Acell_Data[0]=x;
+  Acell_Data[1]=y;
+  Acell_Data[2]=E0;
+  Acell_Data[3]=E1;
 }
 void SET_SPEED(int x, int y, int E0, int E1) {
-  Xstepper.setSpeedInRevolutionsPerSecond(x);
-  Ystepper.setSpeedInRevolutionsPerSecond(y);
-  Zstepper.setSpeedInRevolutionsPerSecond(y); // Change to mm/s^2 when the system is being implmented
-  E0stepper.setSpeedInRevolutionsPerSecond(E0); // Change to mm/s^2 when the system is being implmented ?
-  E1stepper.setSpeedInRevolutionsPerSecond(E1);
+  X_stepper.setSpeedInRevolutionsPerSecond(x*2); // multpied by the leadscrew pitch because we are in rev/s and the value entered is in mm/s
+  Y0_stepper.setSpeedInRevolutionsPerSecond(y*2);
+  Y12_stepper.setSpeedInRevolutionsPerSecond(y*2);
+  Y3_stepper.setSpeedInRevolutionsPerSecond(y*2); // Change to mm/s^2 when the system is being implmented
+  AOAT_stepper.setSpeedInRevolutionsPerSecond(E0); // Change to mm/s^2 when the system is being implmented ?
+  AOAB_stepper.setSpeedInRevolutionsPerSecond(E1);
   //  E2stepper.setSpeedInStepsPerSecond(*Axis its mirrioring here*);
+  Speed_Data[0]=x;
+  Speed_Data[1]=y;
+  Speed_Data[2]=E0;
+  Speed_Data[3]=E1;
 }
 void TRIGGER_WAIT(int pin) {
   int Button_state = 0;
@@ -168,21 +196,28 @@ void TRIGGER_WAIT(int pin) {
   }
 }
 
+
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SETUP lOOP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void setup(void) {
   //float X_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[0])*Micro_stepping[0];
   float X_to_micro=6400;
   float Y_to_micro=6400;
   Serial.begin(9600); // Begin serial ouput communication for debug and input of value array.
-  while (! Serial); // debug waiting for the computer to connect 
+  //while (! Serial); // debug waiting for the computer to connect 
   Serial.println(Y_to_micro);
+  // set up the interrpts
+  attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), yHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor4LimitSw),aoatHomeIsr , CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor6LimitSw),aoabHomeIsr, CHANGE);
+
   //delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only 
   DRIVER_SETUP();
   PIN_SETUP(); // Initilize all the Pins 
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
-  SET_ACELL(400, 400, 400, 400); // Set motor acceleration
-  SET_SPEED(1000,1200, 1400, 1600); // Set motor Speed
+  SET_ACELL(30, 30, 10, 10); // Set motor acceleration
+  SET_SPEED(100,100, 20, 20); // Set motor Speed
   gui_output_function(); // initilize the GUI 
 /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 
@@ -190,6 +225,7 @@ void setup(void) {
   // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion. 
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
   u8g2.setFont(u8g2_font_6x12_tr);
+  Draw_bitmap(); // DRAW THE BOOT SCREEN 
 }
 
 
@@ -268,17 +304,19 @@ void loop(void) {
       Go_Pressed = 0;
       MAIN_MENU();
       }
-    Xstepper.setupRelativeMoveInSteps(movevar[0]*X_mm_to_micro); // Future: Make these iun terms of MM
-    Ystepper.setupRelativeMoveInSteps(movevar[1]*Y_mm_to_micro);
-    Zstepper.setupRelativeMoveInSteps(movevar[1] / (Degree_per_step[1] / Micro_stepping[1]));
-    E0stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2])); 
-    E1stepper.setupRelativeMoveInSteps(movevar[3] / (Degree_per_step[3] / Micro_stepping[3])); 
-        while ((!E0stepper.motionComplete()) || (!E1stepper.motionComplete()) || (!Zstepper.motionComplete()) || (!Xstepper.motionComplete()) || (!Ystepper.motionComplete())) { 
-      Xstepper.processMovement();
-      Ystepper.processMovement();
-      Zstepper.processMovement();   // moving the Steppers here was a simple soltuion to having to do system interups and blah blah.
-      E0stepper.processMovement();
-      E1stepper.processMovement();
+     X_stepper.setupRelativeMoveInSteps(movevar[0]*6400); // Future: Make these iun terms of MM
+     Y0_stepper.setupRelativeMoveInSteps(movevar[1]*6400);
+     Y12_stepper.setupRelativeMoveInSteps(movevar[1]*6400);
+     Y3_stepper.setupRelativeMoveInSteps(movevar[1]*6400);
+     AOAT_stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2])); 
+     AOAB_stepper.setupRelativeMoveInSteps(movevar[3] / (Degree_per_step[3] / Micro_stepping[3])); 
+     while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y12_stepper.motionComplete()) || (!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete())){ 
+      X_stepper.processMovement();
+      Y0_stepper.processMovement();
+      Y12_stepper.processMovement();   // moving the Steppers here was a simple soltuion to having to do system interups and blah blah.
+      Y3_stepper.processMovement();
+      AOAT_stepper.processMovement();
+      AOAB_stepper.processMovement();
       }
      // digitalWrite(27, LOW);// turn the anoying thing off
       Serial.println("Go Pressed\n ");
@@ -345,6 +383,10 @@ void loop(void) {
       }
     }
     if ( Sub_selection == 4 ) {
+      // Home All Axis
+      HomeAll(); 
+    }
+    if ( Sub_selection == 5 ) {
       // Head back to Main meanu
       MAIN_MENU();
     }
@@ -352,6 +394,30 @@ void loop(void) {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END User Interface Code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 } // ~~~~ End Main LOOP
+// ~~~~~~~~~ Homing Interrupt code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// The point of this section of code is to interrupt the movement of the axis and stop them as they move towards home 
+/* Just some refrence code here 
+volatile bool xhome1=false;
+volatile bool xhome2=false;
+volatile bool yhome1=false;
+volatile bool yhome2=false;
+volatile bool aoathome=false;
+volatile bool aoabhome=false;
+In general all interrputs need to be kept as short as possible
+*/
+
+void xHomeIsr(){
+  xhome=!xhome; // set set them as hommed when the homing function is called 
+}
+void yHomeIsr(){
+  yhome=!yhome;
+}
+void aoatHomeIsr(){
+  aoathome=!aoathome;
+}
+void aoabHomeIsr(){
+  aoabhome=!aoabhome;
+}
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
 /* 

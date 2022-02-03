@@ -4,9 +4,18 @@
 			"path": "Python_GUI"
 		},
 		{
-			"name": "Firmware_V11",
 			"path": "Firmware_V11"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"array": "cpp",
+			"deque": "cpp",
+			"string": "cpp",
+			"unordered_map": "cpp",
+			"vector": "cpp",
+			"string_view": "cpp",
+			"initializer_list": "cpp"
+		}
+	}
 }
