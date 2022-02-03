@@ -16,12 +16,13 @@
 
 void MOVE_FUNCTION(void)
 { // Selection =0
-  movevar[0] = 0;
+  movevar[0] = 0; // clear out any previous data that may or maynot have been canceled 
   movevar[1] = 0;
   movevar[2] = 0;
   movevar[3] = 0;
   Serial.println("I got to \"MOVE_FUNCTION()\".");
-  if (Motion_selection != 2)
+
+  if (Com_selection != 2)
   { // If we arent in LCD Mode This avoids onyl 1 stepper moving
     Serial.println("Motion_selection != 2");
     // Parse Out The Data into the correct move variable
@@ -31,10 +32,10 @@ void MOVE_FUNCTION(void)
     movevar[3] = ABS_POS(AoA[1], 3); // E1 Move AoA Bottom
     gui_output_function();
   }
-  // End parsing out data
-  if (Motion_selection == 1 || Motion_selection == 4)
-  { // if in static mode
-    Serial.println("Motion_selection == 1 or 4");
+
+  if (Motion_selection == 2 && Com_selection == 2)
+  { // If in Normal LCD Mode with motion in non trigger mode and  
+    Serial.println("Motion_selection == 2 Com select == 2");
     // Normal Mode LCD
     Serial.println("Steps to move");
     Serial.println(movevar[0] * 6400);
@@ -56,7 +57,8 @@ void MOVE_FUNCTION(void)
       AOAB_stepper.processMovement();
     }
     Serial.println("Exited While Loop");
-    if (Motion_selection == 1)
+
+    if (Motion_selection == 1) // Think this is old error stuff leaving this in for now
     {
       Abs_pos_error = false;
       MAIN_MENU();
@@ -68,17 +70,17 @@ void MOVE_FUNCTION(void)
     }
     // return;
   }
-  if (Motion_selection == 2)
-  {
-    // LCD Trigger mode
-    // Let the UI command issue move commands and just keep issuing this string untill the desired settings are made
-    // We need to make sure that this doesnt log multiple moves
+  
+  // if (Motion_selection == 2) // old lcd trigger mode 
+  //   // LCD Trigger mode
+  //   // Let the UI command issue move commands and just keep issuing this string untill the desired settings are made
+  //   // We need to make sure that this doesnt log multiple moves
 
-    Go_Pressed = 1; // There is new data to move to this disables the Trigger button to prevent multiple moves uless the entire sequence has been completeted
-    return;
-  }
+  //   Go_Pressed = 1; // There is new data to move to this disables the Trigger button to prevent multiple moves uless the entire sequence has been completeted
+  //   return;
+  // }
 
-  if (Motion_selection == 3 || Motion_selection == 5)
+  if (Motion_selection == 1 && Com_selection == 2)
   {
     // LCD External Trigger mode and Serial External Trigger
     Serial.println("Steps to move");
@@ -93,8 +95,13 @@ void MOVE_FUNCTION(void)
     //      Serial.print("Waiting in Motion MODE 3: LCD Continous with Trigger"); // Debug Stuff
     //     Serial.print("Ready For Trigger");
     // digitalWrite(27, HIGH);    // Sound Buzzer That The Control Borad is waiting on user
-    // TRIGGER_WAIT(TRIGGER_PIN); //call trigger wait function and pass in the trigger pin waity here till the trigger is hit
-    // digitalWrite(27, LOW);     // turn the anoying thing off
+    // delay(10); 
+    // digitalWrite(27, LOW);  // Turn the buzzor onff
+    while(Go_Pressed =! true){
+      // do nothing here and wait for the interrupt 
+      delayMicroseconds(1);
+    }
+    Go_Pressed = false;
     while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y12_stepper.motionComplete()) || (!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
     {
       X_stepper.processMovement();
@@ -144,19 +151,7 @@ void HomeAll(void)
   PD -> GPIO port D
   PE -> GPIO port E
   */
-  // This function must be rediculsuy fast thus the use of direct port maipulation
-  // Set the direction of all the steppers:
-  // GPIOA->ODR |= 0b0100000000000000; // set motor 7 (pa14) dir without affecting other pins
-  // GPIOC->ODR |= 0b0000000000000010; // set motor 3 (pc1)
-  // GPIOE->ODR |= 0b0011000000001000; // set motor 6 (pe6)
-  // GPIOF->ODR |= 0b0001010000000001; // set motor 0,4,5 (pf12)(pf10)(pf0)
-  // GPIOG->ODR |= 0b0001010000001010; // set motor 1,3 (PG1)(PG3)
-  // // Set inital states for motors
-  // int motorgpioc=0b0010000000000000;// binary number for set motor 5 pc13 step pin HIGH leaving the rest alon
-  // int motorgpioe=0b0000000001000100;// binary number for set motor 5 pc13 step pin HIGH leaving the rest alon
-  // int motorgpiof=0b0010101000000000;// binary number for set motor 0,2,4 (pf13)(pf11)(pf9)
-  // int motorgpiog=0b0010000000010001;// binary number for set motor 1,3 (pg0)(pg4)
-  // // This code needs to run really fast thus it is written in binary and uses interrupts and binary math.
+
   LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
   LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
@@ -198,16 +193,7 @@ void HomeAll(void)
     LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
     delayMicroseconds(70);        // delay between high states, how long between step signals
-    //Serial.print("Hl"); // kept short to minimize time
-    // GPIOC->BSRR = motorgpioc<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alone
-    // GPIOE->BSRR = motorgpioe<< 16; // set motor 5 pc13 step pin HIGH leaving the rest alon
-    // GPIOF->BSRR = motorgpiof<< 16; // set motor 0,2,4 (pf13)(pf11)(pf9)
-    // GPIOG->BSRR = motorgpiog<< 16; // set motor 1,3 (pg0)(pg4)
-    // delayMicroseconds(500);
-    // GPIOC->BSRR = motorgpioc; // set motor 5 pc13 step pin Low leaving the rest alone
-    // GPIOE->BSRR = motorgpioe; // set motor 6 and 7 (pe2)(pe6)
-    // GPIOF->BSRR = motorgpiof; // set motor 0,2,4 (pf13)(pf11)(pf9)
-    // GPIOG->BSRR = motorgpiog; // set motor 1,3 (pg0)(pg4)
+    //Serial.print("Hl");// debug to make sure it got here // kept short to minimize time 
   }
   //
   Xpos = 0;
