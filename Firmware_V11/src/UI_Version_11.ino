@@ -208,6 +208,8 @@ void setup(void) {
   // set up the interrpts
   attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), yHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor4LimitSw),aoatHomeIsr , CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor6LimitSw),aoabHomeIsr, CHANGE);
 
   //delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only 
   DRIVER_SETUP();
@@ -381,7 +383,8 @@ void loop(void) {
       }
     }
     if ( Sub_selection == 4 ) {
-      // Home All Axis 
+      // Home All Axis
+      HomeAll(); 
     }
     if ( Sub_selection == 5 ) {
       // Head back to Main meanu
