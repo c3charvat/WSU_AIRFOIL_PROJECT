@@ -55,8 +55,10 @@ float Y_mm_to_micro = (1 / Y_Lead_p) * (360 / Degree_per_step[1]) * (Micro_stepp
 U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/PE13, /* data=*/PE15, /* CS=*/PE14, /* reset=*/PE10); //
 // Define the LCD Type and Pins Reset is currently pin 29 which us unused or unconnected on the board.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Trigger Pin Define  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int TRIGGER_PIN = 24; // Temp0 pin on Melzi board
+const int TRIGGER_PIN = 24; // Temp0 pin on Melzi board
 bool Go_Pressed = false; // Default state of the trigger ISR variable 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~ Estop Pin define ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+const int Estop_pin = 24;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MOTION CONTROL  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Initalize Stepper Class
 /*
@@ -201,7 +203,8 @@ void setup(void)
   attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), yHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), aoatHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger 
+  //attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger
+  //attachInterrupt(digitalPinToInterrupt(Estop_pin), estopIsr, FALLING); //External Trigger  
 
   // delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only
   DRIVER_SETUP();
@@ -365,6 +368,9 @@ void aoabHomeIsr()
 }
 void motionTriggerIsr(){
   Go_Pressed = true;
+}
+void estopIsr(){
+  NVIC_SystemReset(); // use a software reset to kill the board 
 }
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
