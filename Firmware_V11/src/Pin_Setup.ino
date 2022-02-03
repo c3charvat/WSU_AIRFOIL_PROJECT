@@ -62,7 +62,7 @@ pinMode(MOTOR0_ENABLE , OUTPUT);
 pinMode(MOTOR1_STEP_PIN, OUTPUT);
 pinMode(MOTOR1_DIRECTION_PIN , OUTPUT);
 pinMode(MOTOR1_ENABLE , OUTPUT);
-// Z Stepper // Hardware Doubled
+// "Z" Y Stepper 1-2 // Hardware Doubled
 pinMode(MOTOR2_STEP_PIN, OUTPUT);
 pinMode(MOTOR2_DIRECTION_PIN , OUTPUT);
 pinMode(MOTOR2_ENABLE , OUTPUT);
@@ -107,18 +107,18 @@ digitalWrite(MOTOR1_ENABLE , LOW);
 digitalWrite(MOTOR2_ENABLE , LOW);
 digitalWrite(MOTOR3_ENABLE , LOW);
 digitalWrite(MOTOR4_ENABLE , LOW);
-//digitalWrite(MOTOR5_ENABLE , LOW);
+digitalWrite(MOTOR5_ENABLE , LOW);
 //digitalWrite(MOTOR6_ENABLE , LOW); // Extras disabled for now
 //digitalWrite(MOTOR7_ENABLE , LOW);
 
 // digitalWrite(BEEPER, HIGH); // test if board is running code without lcd
 // Connect the Stepper Library To the Correct Pins 
-Xstepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
-Ystepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
-Zstepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
-E0stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
-E1stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
-E2stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
-// E3stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
+X_stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
+Y0_stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
+Y12_stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
+Y3_stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
+AOAT_stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
+AOAB_stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
+//E3stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
 //E4stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
 }
