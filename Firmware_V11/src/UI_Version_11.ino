@@ -143,12 +143,12 @@ const char *Com_select = // Communcations method select menu
     "LCD";
 const char *Motion_select = // motion select menu 
     "Trigger ON\n"
-    "Trigger OFF\n";
+    "Trigger OFF";
 
 const char *Error_String = // Error strings
     "Acknowledge\n"
     "Main Menu\n"
-    "Software Restart\n";
+    "Software Restart";
 
 uint8_t current_selection = 0; // Keep track of current selection in menu
 uint8_t Sub_selection = 0;
