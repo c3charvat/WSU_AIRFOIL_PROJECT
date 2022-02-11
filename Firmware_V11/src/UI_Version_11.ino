@@ -133,17 +133,16 @@ const char *Main_menu = // Define the Main Menu options
 const char *Setting_list = // Define the Settings Sub menu options
     "Acceleration\n"
     "Speed\n"
-    "Serial Com.\n"
-    "Trigger Mode\n"
+    "Serial Com.\n" // "Trigger Mode\n"
     "Home All Axis\n"
     "BACK";
 
 const char *Com_select = // Communcations method select menu
     "SERIAL\n"
     "LCD";
-const char *Motion_select = // motion select menu 
-    "Trigger ON\n"
-    "Trigger OFF";
+// const char *Motion_select = // motion select menu 
+//     "Trigger ON\n"
+//     "Trigger OFF";
 
 const char *Error_String = // Error strings
     "Acknowledge\n"
@@ -153,7 +152,7 @@ const char *Error_String = // Error strings
 uint8_t current_selection = 0; // Keep track of current selection in menu
 uint8_t Sub_selection = 0;
 uint8_t Com_selection = 2;    // communications selection tracker by default use the LCD
-uint8_t Motion_selection = 2; // Default to OFF
+//uint8_t Motion_selection = 2; // Default to OFF
 
 
 
@@ -317,20 +316,20 @@ void loop(void)
       Com_selection = 1; // switch to serial Comunications
       SERIAL_UI();       // call the serial UI
     }
+    // if (Sub_selection == 4)
+    // {
+    //   // Trigger mode
+    //   Motion_selection = u8g2.userInterfaceSelectionList( // Bings up the trigger Menu
+    //       "Trigger Select",
+    //       Motion_selection,
+    //       Motion_select);
+    // }
     if (Sub_selection == 4)
-    {
-      // Trigger mode
-      Motion_selection = u8g2.userInterfaceSelectionList( // Bings up the trigger Menu
-          "Trigger Select",
-          Motion_selection,
-          Motion_select);
-    }
-    if (Sub_selection == 5)
     {
       // Home All Axis
       HomeAll();
     }
-    if (Sub_selection == 6)
+    if (Sub_selection == 5)
     {
       // Head back to Main meanu
       MAIN_MENU();
