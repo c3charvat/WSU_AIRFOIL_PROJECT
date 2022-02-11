@@ -260,9 +260,9 @@ void loop(void)
   }
   if (current_selection == 3)
   {
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[0], 0, 5, 1, " 0-3 Hundreds Degrees");
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], 0, 99, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 9, 1, " 0-9 Decimal Degree");
+    //u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[0], 0, 5, 1, " 0-3 Hundreds Degrees");
+    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], -20, 20, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
+    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0,9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
     AoA[0] = AoA_t_value[0] * 100 + AoA_t_value[1] + AoA_t_value[2] / 10; // This is the desierd angle we want in a floting point int.
     // Move function call here
@@ -275,8 +275,8 @@ void loop(void)
   }
   if (current_selection == 4)
   {
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[0], 0, 3, 1, " 0-3 Hundreds Degrees");
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], 0, 99, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
+    //u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[0], 0, 3, 1, " 0-3 Hundreds Degrees");
+    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], -20, 20, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
     AoA[1] = AoA_b_value[0] * 100 + AoA_b_value[1] + AoA_b_value[2] / 10; // This is the desierd angle we want in a floting point int.
