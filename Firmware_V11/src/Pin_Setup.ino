@@ -100,7 +100,21 @@ pinMode(Motor6LimitSw, INPUT);
 pinMode(BEEPER, OUTPUT); // Beeper on LCD
 pinMode(BUTTON, INPUT); // Encoder button
 pinMode(ENCODER_RT, INPUT); // Encoder Move Direction
-pinMode(ENCODER_LT, INPUT); // Encoder Move Direction 
+pinMode(ENCODER_LT, INPUT); // Encoder Move Direction
+// Fan setup
+const int Fan0 = PA8;
+const int Fan1 = PE5;
+const int Fan2 = PD12; 
+pinMode(Fan0, OUTPUT);
+pinMode(Fan1,OUTPUT);
+pinMode(Fan2,OUTPUT);
+digitalWrite(Fan0,LOW);
+digitalWrite(Fan1,LOW);
+digitalWrite(Fan2,LOW);
+/*
+Fan 6 and 7 are on by default.
+The remaining fan pins can be reused the top pin is hot as defined by the jumpers see pin diagram. 
+*/
 // Stepper Enables 
 digitalWrite(MOTOR0_ENABLE , LOW); // Set the Enable Pin to Low to Enable the Driver 
 digitalWrite(MOTOR1_ENABLE , LOW);
