@@ -260,7 +260,7 @@ void loop(void)
   }
   if (current_selection == 3)
   {
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[0], 0, 5, 1, " 0-3 Hundreds Degrees");
+    //u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[0], 0, 5, 1, " 0-3 Hundreds Degrees");
     u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], 0, 99, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
@@ -275,7 +275,7 @@ void loop(void)
   }
   if (current_selection == 4)
   {
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[0], 0, 3, 1, " 0-3 Hundreds Degrees");
+    //u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[0], 0, 3, 1, " 0-3 Hundreds Degrees");
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], 0, 99, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
@@ -301,13 +301,13 @@ void loop(void)
     if (Sub_selection == 1)
     {
       // Acceleration Settings Code
-      u8g2.userInterfaceInputValue("Acceleration:", "", Acceleration, 0, 20, 2, "*25 Steps/s^2");
+      u8g2.userInterfaceInputValue("Acceleration:", "", Acceleration, 0, 20, 2, "*25 Rev/s^2");
       SET_ACELL(*Acceleration * 25, *Acceleration * 25, *Acceleration * 25, *Acceleration * 25);
     }
     if (Sub_selection == 2)
     {
       // Speed Settings
-      u8g2.userInterfaceInputValue("Speed:", "", Speed, 0, 20, 2, "*25 Steps/s");
+      u8g2.userInterfaceInputValue("Speed:", "", Speed, 0, 20, 2, "*25 Rev/s");
       SET_SPEED(*Speed * 25, *Speed * 25, *Speed * 25, *Speed * 25);
     }
     if (Sub_selection == 3)
