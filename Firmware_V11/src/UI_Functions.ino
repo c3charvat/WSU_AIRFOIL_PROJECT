@@ -51,6 +51,7 @@ void SERIAL_UI(void)
       delay(400);
       u8g2.sendBuffer();
       Com_selection = 2;
+      Sub_selection = 1; // default sub_selction back to 1 so you dont end up in the serial menu every time you click settings.
       //return 1;
       MAIN_MENU();
     }

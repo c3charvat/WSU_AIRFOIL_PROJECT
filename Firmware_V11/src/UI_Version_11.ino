@@ -55,8 +55,10 @@ float Y_mm_to_micro = (1 / Y_Lead_p) * (360 / Degree_per_step[1]) * (Micro_stepp
 U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/PE13, /* data=*/PE15, /* CS=*/PE14, /* reset=*/PE10); //
 // Define the LCD Type and Pins Reset is currently pin 29 which us unused or unconnected on the board.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Trigger Pin Define  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int TRIGGER_PIN = 24; // Temp0 pin on Melzi board
-bool Go_Pressed = false; // Default state of the trigger ISR variable 
+const int TRIGGER_PIN = 24; // Temp0 pin on Melzi board
+volatile bool Go_Pressed = false; // Default state of the trigger ISR variable 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~ Estop Pin define ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+const int Estop_pin = 24;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MOTION CONTROL  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Initalize Stepper Class
 /*
@@ -131,27 +133,26 @@ const char *Main_menu = // Define the Main Menu options
 const char *Setting_list = // Define the Settings Sub menu options
     "Acceleration\n"
     "Speed\n"
-    "Serial Com."
-    "Trigger Mode\n"
+    "Serial Com.\n" // "Trigger Mode\n"
     "Home All Axis\n"
     "BACK";
 
 const char *Com_select = // Communcations method select menu
     "SERIAL\n"
     "LCD";
-const char *Motion_select = // motion select menu 
-    "Trigger ON\n"
-    "Trigger OFF\n";
+// const char *Motion_select = // motion select menu 
+//     "Trigger ON\n"
+//     "Trigger OFF";
 
 const char *Error_String = // Error strings
     "Acknowledge\n"
     "Main Menu\n"
-    "Hard Restart\n";
+    "Software Restart";
 
 uint8_t current_selection = 0; // Keep track of current selection in menu
 uint8_t Sub_selection = 0;
 uint8_t Com_selection = 2;    // communications selection tracker by default use the LCD
-uint8_t Motion_selection = 2; // Default to OFF
+//uint8_t Motion_selection = 2; // Default to OFF
 
 
 
@@ -201,7 +202,8 @@ void setup(void)
   attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), yHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), aoatHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger 
+  //attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger
+  //attachInterrupt(digitalPinToInterrupt(Estop_pin), estopIsr, FALLING); //External Trigger  
 
   // delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only
   DRIVER_SETUP();
@@ -218,6 +220,7 @@ void setup(void)
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
   u8g2.setFont(u8g2_font_6x12_tr);
   Draw_bitmap(); // DRAW THE BOOT SCREEN
+  HomeAll();
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VOID LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -257,7 +260,7 @@ void loop(void)
   }
   if (current_selection == 3)
   {
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[0], 0, 5, 1, " 0-3 Hundreds Degrees");
+    //u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[0], 0, 5, 1, " 0-3 Hundreds Degrees");
     u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], 0, 99, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
@@ -272,7 +275,7 @@ void loop(void)
   }
   if (current_selection == 4)
   {
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[0], 0, 3, 1, " 0-3 Hundreds Degrees");
+    //u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[0], 0, 3, 1, " 0-3 Hundreds Degrees");
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], 0, 99, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
@@ -298,13 +301,13 @@ void loop(void)
     if (Sub_selection == 1)
     {
       // Acceleration Settings Code
-      u8g2.userInterfaceInputValue("Acceleration:", "", Acceleration, 0, 20, 2, "*25 Steps/s^2");
+      u8g2.userInterfaceInputValue("Acceleration:", "", Acceleration, 0, 20, 2, "*25 Rev/s^2");
       SET_ACELL(*Acceleration * 25, *Acceleration * 25, *Acceleration * 25, *Acceleration * 25);
     }
     if (Sub_selection == 2)
     {
       // Speed Settings
-      u8g2.userInterfaceInputValue("Speed:", "", Speed, 0, 20, 2, "*25 Steps/s");
+      u8g2.userInterfaceInputValue("Speed:", "", Speed, 0, 20, 2, "*25 Rev/s");
       SET_SPEED(*Speed * 25, *Speed * 25, *Speed * 25, *Speed * 25);
     }
     if (Sub_selection == 3)
@@ -313,20 +316,20 @@ void loop(void)
       Com_selection = 1; // switch to serial Comunications
       SERIAL_UI();       // call the serial UI
     }
+    // if (Sub_selection == 4)
+    // {
+    //   // Trigger mode
+    //   Motion_selection = u8g2.userInterfaceSelectionList( // Bings up the trigger Menu
+    //       "Trigger Select",
+    //       Motion_selection,
+    //       Motion_select);
+    // }
     if (Sub_selection == 4)
-    {
-      // Trigger mode
-      Motion_selection = u8g2.userInterfaceSelectionList( // Bings up the trigger Menu
-          "Trigger Select",
-          Motion_selection,
-          Motion_select);
-    }
-    if (Sub_selection == 5)
     {
       // Home All Axis
       HomeAll();
     }
-    if (Sub_selection == 6)
+    if (Sub_selection == 5)
     {
       // Head back to Main meanu
       MAIN_MENU();
@@ -365,6 +368,9 @@ void aoabHomeIsr()
 }
 void motionTriggerIsr(){
   Go_Pressed = true;
+}
+void estopIsr(){
+  NVIC_SystemReset(); // use a software reset to kill the board 
 }
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/

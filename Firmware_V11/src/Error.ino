@@ -40,8 +40,8 @@ void Somthing_Error(void) {
     MAIN_MENU();
   }
   if ( Error_selection ==3){
-    // Hard Restart
-    //softwareReset::standard();
+    // software resert -> from mbed os
+    NVIC_SystemReset();
   }
 }
 void Parsing_Error(void){
@@ -53,7 +53,7 @@ void Parsing_Error(void){
   // Return back to main menu
 
   if ( Error_selection == 1) {
-    // Go back nothing happed return to where ever the system 
+    // Go back nothing happed return to where ever the system was
     return;
   }
 }
