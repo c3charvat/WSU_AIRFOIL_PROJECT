@@ -107,17 +107,20 @@ float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB
 float movevar[5] = {0, 0, 0, 0, 0};          // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Homing function varibles ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 volatile bool xhome = false;
-volatile bool yhome = false;
+volatile bool y1home = false;
+volatile bool y2home = false;
+volatile bool y3home = false;
+volatile bool y4home = false;
 volatile bool aoathome = false;
 volatile bool aoabhome = false;
 const int Motor0LimitSw = PG6; // X axis limit switch
-// const int Motor1LimitSw =PG12;
+const int Motor1LimitSw =PG12;
 const int Motor2LimitSw = PG9; // Y axis limit switch
-// const int Motor3LimitSw =PG13;
+const int Motor3LimitSw =PG13; // Second Y enstop
 const int Motor4LimitSw = PG10; // AoAT limit switch
-// const int Motor5LimitSw =PG14;
+const int Motor5LimitSw =PG14; // Thrid Y endstop
 const int Motor6LimitSw = PG11; // AoA B Limit swtich
-// const int Motor7LimitSw =PG15;
+const int Motor7LimitSw =PG15; // 4th Y endstop 
 // Reset Pin -> off of the RGB HEADDER J37
 // const int Reset=PB0;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -199,8 +202,11 @@ void setup(void)
   Serial.println(Y_to_micro);
   // set up the interrpts
   attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), yHomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), aoatHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), y2HomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor3LimitSw), y3HomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y4HomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
   //attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger
   //attachInterrupt(digitalPinToInterrupt(Estop_pin), estopIsr, FALLING); //External Trigger  
@@ -210,8 +216,8 @@ void setup(void)
   PIN_SETUP(); // Initilize all the Pins
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
-  SET_ACELL(30, 30, 10, 10);   // Set motor acceleration
-  SET_SPEED(100, 100, 20, 20); // Set motor Speed
+  SET_ACELL(10, 10, 10, 10);   // Set motor acceleration
+  SET_SPEED(20, 20, 20, 20); // Set motor Speed
   gui_output_function();       // initilize the GUI
                                /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 
@@ -354,9 +360,21 @@ void xHomeIsr()
 {
   xhome = !xhome; // set set them as hommed when the homing function is called
 }
-void yHomeIsr()
+void y1HomeIsr()
 {
-  yhome = !yhome;
+  y1home = !y1home;
+}
+void y2HomeIsr()
+{
+  y2home = !y2home;
+}
+void y3HomeIsr()
+{
+  y3home = !y3home;
+}
+void y4HomeIsr()
+{
+  y4home = !y4home;
 }
 void aoatHomeIsr()
 {
