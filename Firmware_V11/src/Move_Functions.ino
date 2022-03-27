@@ -92,10 +92,10 @@ void HomeAll(void)
 {
   // Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
   // This ensures that all the axis are not allready on their limit swtiches
-  X_stepper.setupRelativeMoveInSteps(5 * 6400); // Future: Make these iun terms of MM
-  Y0_stepper.setupRelativeMoveInSteps(-10 * 6400);
-  Y12_stepper.setupRelativeMoveInSteps(-10 * 6400);
-  Y3_stepper.setupRelativeMoveInSteps(-10 * 6400);
+  X_stepper.setupRelativeMoveInSteps(2 * 6400); // Future: Make these iun terms of MM
+  Y0_stepper.setupRelativeMoveInSteps(10 * 6400);
+  Y12_stepper.setupRelativeMoveInSteps(10 * 6400);
+  Y3_stepper.setupRelativeMoveInSteps(10 * 6400);
   AOAT_stepper.setupRelativeMoveInSteps(10 / (Degree_per_step[2] / Micro_stepping[2]));
   AOAB_stepper.setupRelativeMoveInSteps(10 / (Degree_per_step[3] / Micro_stepping[3]));
   while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y12_stepper.motionComplete()) || (!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
@@ -125,9 +125,9 @@ void HomeAll(void)
   PD -> GPIO port D
   PE -> GPIO port E
   */
-  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_12);
-  LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_1);
-  LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_3);
+  LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_12);
+  LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_1);
+  LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_3);
   LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_1);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_10);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_0); // reset pins to default state
@@ -175,7 +175,7 @@ void HomeAll(void)
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
     LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
-    delayMicroseconds(400); // delay between high states, how long between step signals
+    delayMicroseconds(300); // delay between high states, how long between step signals
     // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
   }
   //

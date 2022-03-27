@@ -216,8 +216,8 @@ void setup(void)
   PIN_SETUP(); // Initilize all the Pins
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
-  SET_ACELL(10, 10, 10, 10);   // Set motor acceleration
-  SET_SPEED(20, 20, 20, 20); // Set motor Speed
+  SET_ACELL(5, 10, 10, 10);   // Set motor acceleration
+  SET_SPEED(5, 20, 20, 20); // Set motor Speed
   gui_output_function();       // initilize the GUI
                                /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 
