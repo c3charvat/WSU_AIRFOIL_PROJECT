@@ -33,18 +33,22 @@ void MOVE_FUNCTION(void)
   Serial.println("Steps to move");
   Serial.println(movevar[0] * 6400);
   X_stepper.setupRelativeMoveInSteps(movevar[0] * 6400); // Future: Make these iun terms of MM
+  X2_stepper.setupRelativeMoveInSteps(movevar[0] * 6400); // Future: Make these iun terms of MM
   Y0_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
-  Y12_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
+  Y1_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
+  Y2_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
   Y3_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
   AOAT_stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2]));
   AOAB_stepper.setupRelativeMoveInSteps(movevar[3] / (Degree_per_step[3] / Micro_stepping[3]));
   // Call A Blocking Function that Stops the Machine from doing anything else while the stepper is moving  This is desired since we aren not updating mid move.
   Serial.println("Entering while loop");
-  while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y12_stepper.motionComplete()) || (!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
+  while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y1_stepper.motionComplete()) || (!Y2_stepper.motionComplete()) ||(!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
   {
     X_stepper.processMovement();
+    X2_stepper.processMovement();
     Y0_stepper.processMovement();
-    Y12_stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do system interups and blah blah.
+    Y1_stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do speical system intrrupts
+    Y2_stepper.processMovement();
     Y3_stepper.processMovement();
     AOAT_stepper.processMovement();
     AOAB_stepper.processMovement();
@@ -93,16 +97,20 @@ void HomeAll(void)
   // Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
   // This ensures that all the axis are not allready on their limit swtiches
   X_stepper.setupRelativeMoveInSteps(2 * 6400); // Future: Make these iun terms of MM
-  Y0_stepper.setupRelativeMoveInSteps(10 * 6400);
-  Y12_stepper.setupRelativeMoveInSteps(10 * 6400);
+  X2_stepper.setupRelativeMoveInSteps(2 * 6400); // Future: Make these iun terms of MM
+  Y0_stepper.setupRelativeMoveInSteps(5 * 6400);
+  Y1_stepper.setupRelativeMoveInSteps(5 * 6400);
+  Y2_stepper.setupRelativeMoveInSteps(5 * 6400);
   Y3_stepper.setupRelativeMoveInSteps(10 * 6400);
   AOAT_stepper.setupRelativeMoveInSteps(10 / (Degree_per_step[2] / Micro_stepping[2]));
   AOAB_stepper.setupRelativeMoveInSteps(10 / (Degree_per_step[3] / Micro_stepping[3]));
-  while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y12_stepper.motionComplete()) || (!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
+  while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y1_stepper.motionComplete()) || (!Y2_stepper.motionComplete()) ||(!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
   {
     X_stepper.processMovement();
+    X2_stepper.processMovement();
     Y0_stepper.processMovement();
-    Y12_stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do system interups and blah blah.
+    Y1_stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do speical system intrrupts
+    Y2_stepper.processMovement();
     Y3_stepper.processMovement();
     AOAT_stepper.processMovement();
     AOAB_stepper.processMovement();

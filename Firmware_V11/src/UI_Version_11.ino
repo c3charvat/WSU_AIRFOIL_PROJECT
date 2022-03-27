@@ -69,12 +69,12 @@ The advanced features of the Stepper Driver are handled via Uart.
 */
 SpeedyStepper X_stepper;    // motor 0
 SpeedyStepper Y0_stepper;   // motor 1
-SpeedyStepper Y12_stepper;  // motor 2_1 2_2
+SpeedyStepper Y1_stepper;  // motor 2_1 2_2
 SpeedyStepper Y3_stepper;   // motor 3
 SpeedyStepper AOAT_stepper; // motor 4
 SpeedyStepper AOAB_stepper; // motor 5
-// SpeedyStepper E3stepper;
-// SpeedyStepper E4stepper;
+SpeedyStepper Y2_stepper;
+SpeedyStepper X2_stepper;
 //  Stepper settings
 
 uint8_t *Acceleration; // For The Acceleration setting in the LCD UI
@@ -165,8 +165,10 @@ uint8_t Com_selection = 2;    // communications selection tracker by default use
 void SET_ACELL(float x, float y, float E0, float E1)
 {
   X_stepper.setAccelerationInRevolutionsPerSecondPerSecond(x * 2);
+  X2_stepper.setAccelerationInRevolutionsPerSecondPerSecond(x * 2);
   Y0_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y * 2);
-  Y12_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y * 2); // By Default the Z axis will allways be attached to the Y (Verticle Axis)
+  Y1_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y * 2); // By Default the Z axis will allways be attached to the Y (Verticle Axis)
+  Y2_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y * 2);
   Y3_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y * 2);
   AOAT_stepper.setAccelerationInRevolutionsPerSecondPerSecond(E0); // Change to mm/s when the system is being implmented
   AOAB_stepper.setAccelerationInRevolutionsPerSecondPerSecond(E1); // Change to mm/s when the system is being implmented
@@ -179,8 +181,10 @@ void SET_ACELL(float x, float y, float E0, float E1)
 void SET_SPEED(int x, int y, int E0, int E1)
 {
   X_stepper.setSpeedInRevolutionsPerSecond(x * 2); // multpied by the leadscrew pitch because we are in rev/s and the value entered is in mm/s
+  X2_stepper.setSpeedInRevolutionsPerSecond(x * 2);
   Y0_stepper.setSpeedInRevolutionsPerSecond(y * 2);
-  Y12_stepper.setSpeedInRevolutionsPerSecond(y * 2);
+  Y1_stepper.setSpeedInRevolutionsPerSecond(y * 2);
+  Y2_stepper.setSpeedInRevolutionsPerSecond(y * 2);
   Y3_stepper.setSpeedInRevolutionsPerSecond(y * 2); // Change to mm/s^2 when the system is being implmented
   AOAT_stepper.setSpeedInRevolutionsPerSecond(E0);  // Change to mm/s^2 when the system is being implmented ?
   AOAB_stepper.setSpeedInRevolutionsPerSecond(E1);
@@ -208,6 +212,7 @@ void setup(void)
   attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y4HomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor7LimitSw), x2HomeIsr, CHANGE);
   //attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger
   //attachInterrupt(digitalPinToInterrupt(Estop_pin), estopIsr, FALLING); //External Trigger  
 
@@ -357,6 +362,10 @@ In general all interrputs need to be kept as short as possible
 */
 
 void xHomeIsr()
+{
+  xhome = !xhome; // set set them as hommed when the homing function is called
+}
+void x2HomeIsr()
 {
   xhome = !xhome; // set set them as hommed when the homing function is called
 }
