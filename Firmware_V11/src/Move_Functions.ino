@@ -92,7 +92,7 @@ void HomeAll(void)
 {
   // Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
   // This ensures that all the axis are not allready on their limit swtiches
-  X_stepper.setupRelativeMoveInSteps(10 * 6400); // Future: Make these iun terms of MM
+  X_stepper.setupRelativeMoveInSteps(2 * 6400); // Future: Make these iun terms of MM
   Y0_stepper.setupRelativeMoveInSteps(10 * 6400);
   Y12_stepper.setupRelativeMoveInSteps(10 * 6400);
   Y3_stepper.setupRelativeMoveInSteps(10 * 6400);
@@ -109,7 +109,10 @@ void HomeAll(void)
   }
   Serial.print("got through the firt part of home all");
   xhome = false; // we are now garenteed to be at least 5 off the axis
-  yhome = false;
+  y1home = false;
+  y2home = false;
+  y3home = false;
+  y4home = false;
   aoathome = false;
   aoabhome = false;
   // Refrencing the block diagram of the stm32f446 on page 16 of the pfd to understand the ports refrenced below
@@ -122,6 +125,12 @@ void HomeAll(void)
   PD -> GPIO port D
   PE -> GPIO port E
   */
+  LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_12);
+  LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_1);
+  LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_3);
+  LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_1);
+  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_10);
+  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_0); // reset pins to default state
 
   LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
@@ -129,7 +138,7 @@ void HomeAll(void)
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
   LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
-  while (xhome == false || yhome == false || aoathome == false || aoabhome == false)
+  while (xhome == false || y1home == false || aoathome == false || aoabhome == false|| y2home == false) //|| y3home == false|| y4home == false )
   { // While they arent hit the end stop we move the motors
     if (xhome == false)
     {
@@ -137,11 +146,14 @@ void HomeAll(void)
       // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
     }
-    if (yhome == false)
+    if (y2home == false)
+    {
+      LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_0);
+    }
+    if (y1home == false)
     {
       // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
       // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
-      LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_0);
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
       LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
     }
@@ -155,7 +167,7 @@ void HomeAll(void)
       // motorgpiof=motorgpiof-0b0000001000000000;
       LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
     }
-    delayMicroseconds(2); // delay between high and low (Aka how long the pin is high)
+    delayMicroseconds(5); // delay between high and low (Aka how long the pin is high)
     // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
     LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
@@ -163,7 +175,7 @@ void HomeAll(void)
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
     LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
-    delayMicroseconds(70); // delay between high states, how long between step signals
+    delayMicroseconds(300); // delay between high states, how long between step signals
     // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
   }
   //

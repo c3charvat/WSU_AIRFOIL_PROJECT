@@ -125,9 +125,9 @@ bool parseData()
             LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
             LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
             LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
-            while (yhome == false)
+            while (y1home == false)
             {
-              if (yhome == false)
+              if (y1home == false)
               {
                 // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
                 // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
