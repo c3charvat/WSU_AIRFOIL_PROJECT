@@ -388,8 +388,10 @@ bool parseData()
         Micro_stepping[3] = Temp_Settings[2];
         Micro_stepping[4] = Temp_Settings[3];
         driverX.microsteps(Micro_stepping[0]);
+        driverX2.microsteps(Micro_stepping[0]);
         driverY0.microsteps(Micro_stepping[1]);
-        driverY12.microsteps(Micro_stepping[1]);
+        driverY1.microsteps(Micro_stepping[1]);
+        driverY2.microsteps(Micro_stepping[1]);
         driverY3.microsteps(Micro_stepping[2]);
         driverAOAT.microsteps(Micro_stepping[3]);
         driverAOAB.microsteps(Micro_stepping[4]);
@@ -406,8 +408,10 @@ bool parseData()
       else
       {
         driverX.en_spreadCycle(Temp_Settings[0]);
+        driverX2.en_spreadCycle(Temp_Settings[0]);
         driverY0.en_spreadCycle(Temp_Settings[1]);
-        driverY12.en_spreadCycle(Temp_Settings[2]);
+        driverY1.en_spreadCycle(Temp_Settings[2]);
+        driverY2.en_spreadCycle(Temp_Settings[2]);
         driverY3.en_spreadCycle(Temp_Settings[2]);
         driverAOAT.en_spreadCycle(Temp_Settings[3]);
         driverAOAB.en_spreadCycle(Temp_Settings[4]);

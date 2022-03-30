@@ -33,8 +33,10 @@ In the Case of this set up since the drivers are in Uart mode the adress of the 
 */
 // TMC Stepper Class
 TMC2209Stepper driverX(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverX2(PE1, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
 TMC2209Stepper driverY0(PD11, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverY12(PC6, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY1(PC6, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
 TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver Address) Software serial X axis
 TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
 TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
@@ -107,6 +109,7 @@ float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB
 float movevar[5] = {0, 0, 0, 0, 0};          // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Homing function varibles ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 volatile bool xhome = false;
+volatile bool x2home = false;
 volatile bool y1home = false;
 volatile bool y2home = false;
 volatile bool y3home = false;
@@ -367,7 +370,7 @@ void xHomeIsr()
 }
 void x2HomeIsr()
 {
-  xhome = !xhome; // set set them as hommed when the homing function is called
+  x2home = !xhome; // set set them as hommed when the homing function is called
 }
 void y1HomeIsr()
 {

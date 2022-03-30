@@ -117,6 +117,7 @@ void HomeAll(void)
   }
   Serial.print("got through the firt part of home all");
   xhome = false; // we are now garenteed to be at least 5 off the axis
+  x2home= false;
   y1home = false;
   y2home = false;
   y3home = false;
@@ -136,9 +137,11 @@ void HomeAll(void)
   LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_12);
   LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_1);
   LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_3);
-  LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_1);
-  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_10);
-  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_0); // reset pins to default state
+  LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_1);
+  LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_10);
+  LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_0); // reset pins to default state
+  LL_GPIO_SetOutputPin(GPIOE, LL_GPIO_PIN_3); // reset pins to default state
+  LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_14);
 
   LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
@@ -146,13 +149,22 @@ void HomeAll(void)
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
   LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
-  while (xhome == false || y1home == false || aoathome == false || aoabhome == false|| y2home == false) //|| y3home == false|| y4home == false )
+  LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
+  LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
+
+  while (xhome == false ||x2home == false  || y1home == false || aoathome == false || aoabhome == false|| y2home == false) //|| y3home == false|| y4home == false )
   { // While they arent hit the end stop we move the motors
     if (xhome == false)
     {
       // The X axis is home
       // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
+    }
+    if (xhome == false) // changed so the 
+    {
+      // The X axis is home
+      // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
+      LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_2);
     }
     if (y2home == false)
     {
@@ -163,7 +175,18 @@ void HomeAll(void)
       // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
       // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
+    }
+    if (y3home == false)
+    {
+      // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
+      // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
       LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
+    }
+    if (y4home == false)
+    {
+      // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
+      // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
+      LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_6);
     }
     if (aoathome == false)
     {
@@ -177,13 +200,15 @@ void HomeAll(void)
     }
     delayMicroseconds(5); // delay between high and low (Aka how long the pin is high)
     // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
-    LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
-    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
-    LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
-    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
-    LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
-    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
-    delayMicroseconds(300); // delay between high states, how long between step signals
+  LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
+  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
+  LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
+  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
+  LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
+  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
+  LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
+  LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
+    delayMicroseconds(350); // delay between high states, how long between step signals
     // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
   }
   //
