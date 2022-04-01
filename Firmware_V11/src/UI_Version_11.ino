@@ -116,14 +116,14 @@ volatile bool y3home = false;
 volatile bool y4home = false;
 volatile bool aoathome = false;
 volatile bool aoabhome = false;
-const int Motor0LimitSw = PG6; // X axis limit switch
+const int Motor0LimitSw = PG6; 
 const int Motor1LimitSw =PG12;
-const int Motor2LimitSw = PG9; // Y axis limit switch
-const int Motor3LimitSw =PG13; // Second Y enstop
-const int Motor4LimitSw = PG10; // AoAT limit switch
-const int Motor5LimitSw =PG14; // Thrid Y endstop
-const int Motor6LimitSw = PG11; // AoA B Limit swtich
-const int Motor7LimitSw =PG15; // 4th Y endstop 
+const int Motor2LimitSw = PG9; 
+const int Motor3LimitSw =PG13; 
+const int Motor4LimitSw = PG10; 
+const int Motor5LimitSw =PG14; 
+const int Motor6LimitSw = PG11; 
+const int Motor7LimitSw =PG15;  
 // Reset Pin -> off of the RGB HEADDER J37
 // const int Reset=PB0;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -98,10 +98,10 @@ void HomeAll(void)
   // This ensures that all the axis are not allready on their limit swtiches
   X_stepper.setupRelativeMoveInSteps(2 * 6400); // Future: Make these iun terms of MM
   X2_stepper.setupRelativeMoveInSteps(2 * 6400); // Future: Make these iun terms of MM
-  Y0_stepper.setupRelativeMoveInSteps(5 * 6400);
-  Y1_stepper.setupRelativeMoveInSteps(5 * 6400);
-  Y2_stepper.setupRelativeMoveInSteps(5 * 6400);
-  Y3_stepper.setupRelativeMoveInSteps(10 * 6400);
+  Y0_stepper.setupRelativeMoveInSteps(2 * 6400);
+  Y1_stepper.setupRelativeMoveInSteps(2 * 6400);
+  Y2_stepper.setupRelativeMoveInSteps(2 * 6400);
+  Y3_stepper.setupRelativeMoveInSteps(2 * 6400);
   AOAT_stepper.setupRelativeMoveInSteps(10 / (Degree_per_step[2] / Micro_stepping[2]));
   AOAB_stepper.setupRelativeMoveInSteps(10 / (Degree_per_step[3] / Micro_stepping[3]));
   while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y1_stepper.motionComplete()) || (!Y2_stepper.motionComplete()) ||(!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
@@ -160,7 +160,7 @@ void HomeAll(void)
       // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
     }
-    if (xhome == false) // changed so the 
+    if (xhome == false) // changed so the x axis only uses on enstop 
     {
       // The X axis is home
       // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
@@ -200,14 +200,14 @@ void HomeAll(void)
     }
     delayMicroseconds(5); // delay between high and low (Aka how long the pin is high)
     // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
-  LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
-  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
-  LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
-  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
-  LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
-  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
-  LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
-  LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
+    LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
+    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
+    LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
+    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
+    LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
+    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
+    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
+    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
     delayMicroseconds(350); // delay between high states, how long between step signals
     // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
   }
