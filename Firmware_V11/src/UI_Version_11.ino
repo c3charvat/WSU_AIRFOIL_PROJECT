@@ -79,8 +79,8 @@ SpeedyStepper Y2_stepper;
 SpeedyStepper X2_stepper;
 //  Stepper settings
 
-int16_t *Acceleration; // For The Acceleration setting in the LCD UI
-int16_t *Speed;        // For the LCD UI
+uint8_t *Acceleration; // For The Acceleration setting in the LCD UI
+uint8_t *Speed;        // For the LCD UI
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Serial Input Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 const byte numChars = 64;          // Max Number of charcter read from serial in one input
@@ -96,14 +96,14 @@ bool newData = false;                // Cotrol Entry into the Serial Reader
 float AoA[2]; // floating point for AoA: Top,Bottom
 // Passing in unsigned 8 bit intger ( Thats what the fucking UI command wants)
 // the max of a 8 bit int is 255 and there are 360 derees ** this willl have to be changed to support up to .05 ) which will require
-int16_t AoA_t_value[3]; // Top AoA: Hundreds,tens/ones,Decimal
-int16_t AoA_b_value[3]; // Bottom AoA: Hundreds,tens/ones,Decimal
+uint8_t AoA_t_value[3]; // Top AoA: Hundreds,tens/ones,Decimal
+uint8_t AoA_b_value[3]; // Bottom AoA: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ X Movement Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float Xpos;         // X position float value
-int16_t X_value[3]; // X pos : Hundreds,tens/ones,Decimal
+uint8_t X_value[3]; // X pos : Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ Y Movemnt Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float Ypos;         // X position float value
-int16_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
+uint8_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Absolute Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB,EXTRA" // modified for new motherboard
 float movevar[5] = {0, 0, 0, 0, 0};          // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
