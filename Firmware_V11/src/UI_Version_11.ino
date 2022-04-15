@@ -45,8 +45,8 @@ TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, D
 /* In This section are the maximum travel distances for each of the axis */
 int Micro_stepping[5] = {64, 64, 64, 64, 64};         // mirco stepping for the drivers
 float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; // mirco stepping for the drivers
-const int Xpos_MAX = 500;                             // Max X length in MM
-const int Ypos_MAX = 500;                             // MAy Y length in MM
+const int Xpos_MAX = 350;                             // Max X length in MM
+const int Ypos_MAX = 245;                             // MAy Y length in MM
 const int X_Lead_p = 2;                               // X lead screw pitch in mm/revolution
 const int Y_Lead_p = 2;                               // Y lead screw pitch in mm
 const int AOA_MAX = 500;                              // Angle of attack max in 360 degrees
@@ -79,8 +79,8 @@ SpeedyStepper Y2_stepper;
 SpeedyStepper X2_stepper;
 //  Stepper settings
 
-uint8_t *Acceleration; // For The Acceleration setting in the LCD UI
-uint8_t *Speed;        // For the LCD UI
+int16_t *Acceleration; // For The Acceleration setting in the LCD UI
+int16_t *Speed;        // For the LCD UI
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Serial Input Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 const byte numChars = 64;          // Max Number of charcter read from serial in one input
@@ -96,14 +96,14 @@ bool newData = false;                // Cotrol Entry into the Serial Reader
 float AoA[2]; // floating point for AoA: Top,Bottom
 // Passing in unsigned 8 bit intger ( Thats what the fucking UI command wants)
 // the max of a 8 bit int is 255 and there are 360 derees ** this willl have to be changed to support up to .05 ) which will require
-uint8_t AoA_t_value[3]; // Top AoA: Hundreds,tens/ones,Decimal
-uint8_t AoA_b_value[3]; // Bottom AoA: Hundreds,tens/ones,Decimal
+int16_t AoA_t_value[3]; // Top AoA: Hundreds,tens/ones,Decimal
+int16_t AoA_b_value[3]; // Bottom AoA: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ X Movement Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float Xpos;         // X position float value
-uint8_t X_value[3]; // X pos : Hundreds,tens/ones,Decimal
+int16_t X_value[3]; // X pos : Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ Y Movemnt Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float Ypos;         // X position float value
-uint8_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
+int16_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Absolute Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB,EXTRA" // modified for new motherboard
 float movevar[5] = {0, 0, 0, 0, 0};          // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
@@ -275,7 +275,7 @@ void loop(void)
   if (current_selection == 3)
   {
     //u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[0], 0, 5, 1, " 0-3 Hundreds Degrees");
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], 0, 99, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
+    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], -5, 20, 3, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
     AoA[0] = AoA_t_value[0] * 100 + AoA_t_value[1] + AoA_t_value[2] / 10; // This is the desierd angle we want in a floting point int.
@@ -290,7 +290,7 @@ void loop(void)
   if (current_selection == 4)
   {
     //u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[0], 0, 3, 1, " 0-3 Hundreds Degrees");
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], 0, 99, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
+    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], -5, 20, 2, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
     AoA[1] = AoA_b_value[0] * 100 + AoA_b_value[1] + AoA_b_value[2] / 10; // This is the desierd angle we want in a floting point int.
@@ -316,13 +316,13 @@ void loop(void)
     {
       // Acceleration Settings Code
       u8g2.userInterfaceInputValue("Acceleration:", "", Acceleration, 0, 20, 2, "*25 Rev/s^2");
-      SET_ACELL(*Acceleration * 25, *Acceleration * 25, *Acceleration * 25, *Acceleration * 25);
+      SET_ACELL(*Acceleration * 25, *Acceleration * 25, *Acceleration * 5, *Acceleration * 5);
     }
     if (Sub_selection == 2)
     {
       // Speed Settings
       u8g2.userInterfaceInputValue("Speed:", "", Speed, 0, 20, 2, "*25 Rev/s");
-      SET_SPEED(*Speed * 25, *Speed * 25, *Speed * 25, *Speed * 25);
+      SET_SPEED(*Speed * 25, *Speed * 25, *Speed * 5, *Speed * 5);
     }
     if (Sub_selection == 3)
     {

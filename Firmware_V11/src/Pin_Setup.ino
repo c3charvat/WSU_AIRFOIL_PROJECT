@@ -108,9 +108,9 @@ const int Fan2 = PD12;
 pinMode(Fan0, OUTPUT);
 pinMode(Fan1,OUTPUT);
 pinMode(Fan2,OUTPUT);
-digitalWrite(Fan0,LOW);
-digitalWrite(Fan1,LOW);
-digitalWrite(Fan2,LOW);
+digitalWrite(Fan0,HIGH);
+digitalWrite(Fan1,HIGH);
+digitalWrite(Fan2,HIGH);
 /*
 Fan 6 and 7 are on by default.
 The remaining fan pins can be reused the top pin is hot as defined by the jumpers see pin diagram. 
