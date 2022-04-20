@@ -32,19 +32,23 @@ void MOVE_FUNCTION(void)
   // Normal Mode LCD
   Serial.println("Steps to move");
   Serial.println(movevar[0] * 6400);
-  X_stepper.setupRelativeMoveInSteps(movevar[0] * 6400); // Future: Make these iun terms of MM
-  Y0_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
-  Y12_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
-  Y3_stepper.setupRelativeMoveInSteps(movevar[1] * 6400);
-  AOAT_stepper.setupRelativeMoveInSteps(movevar[2] / (Degree_per_step[2] / Micro_stepping[2]));
-  AOAB_stepper.setupRelativeMoveInSteps(movevar[3] / (Degree_per_step[3] / Micro_stepping[3]));
+  X_stepper.setupRelativeMoveInSteps(movevar[0]/5 *200*8); // Future: Make these iun terms of MM
+  X2_stepper.setupRelativeMoveInSteps(movevar[0]/5 *200*8); // Future: Make these iun terms of MM
+  Y0_stepper.setupRelativeMoveInSteps(movevar[1]/2 *200*8);
+  Y1_stepper.setupRelativeMoveInSteps(movevar[1]/2 *200*8);
+  Y2_stepper.setupRelativeMoveInSteps(movevar[1]/2 *200*8);
+  Y3_stepper.setupRelativeMoveInSteps(movevar[1]/2 *200*8);
+  AOAT_stepper.setupRelativeMoveInSteps(movevar[2]/1.8*5.18*8);
+  AOAB_stepper.setupRelativeMoveInSteps(movevar[3]/1.8*5.18*8);
   // Call A Blocking Function that Stops the Machine from doing anything else while the stepper is moving  This is desired since we aren not updating mid move.
   Serial.println("Entering while loop");
-  while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y12_stepper.motionComplete()) || (!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
+  while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y1_stepper.motionComplete()) || (!Y2_stepper.motionComplete()) ||(!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
   {
     X_stepper.processMovement();
+    X2_stepper.processMovement();
     Y0_stepper.processMovement();
-    Y12_stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do system interups and blah blah.
+    Y1_stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do speical system intrrupts
+    Y2_stepper.processMovement();
     Y3_stepper.processMovement();
     AOAT_stepper.processMovement();
     AOAB_stepper.processMovement();
@@ -90,25 +94,35 @@ void MOVE_FUNCTION(void)
 // home function
 void HomeAll(void)
 {
-  // Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
-  // This ensures that all the axis are not allready on their limit swtiches
-  X_stepper.setupRelativeMoveInSteps(2 * 6400); // Future: Make these iun terms of MM
-  Y0_stepper.setupRelativeMoveInSteps(10 * 6400);
-  Y12_stepper.setupRelativeMoveInSteps(10 * 6400);
-  Y3_stepper.setupRelativeMoveInSteps(10 * 6400);
-  AOAT_stepper.setupRelativeMoveInSteps(10 / (Degree_per_step[2] / Micro_stepping[2]));
-  AOAB_stepper.setupRelativeMoveInSteps(10 / (Degree_per_step[3] / Micro_stepping[3]));
-  while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y12_stepper.motionComplete()) || (!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
+ //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
+ //// This ensures that all the axis are not allready on their limit swtiches
+  if(digitalRead(PG6)==HIGH){
+  X_stepper.setupRelativeMoveInSteps(10/5 *200*8); // Future: Make these iun terms of MM
+  X2_stepper.setupRelativeMoveInSteps(10/5 *200*8); // Future: Make these iun terms of MM
+  }
+  if(digitalRead(PG12)==HIGH ||digitalRead(PG9)==HIGH ||digitalRead(PG13)==HIGH ||digitalRead(PG10)==HIGH) // make sure the end stop isnt allready pressed
+  {
+  Y0_stepper.setupRelativeMoveInSteps(15/2*200*8);
+  Y1_stepper.setupRelativeMoveInSteps(15/2*200*8);
+  Y2_stepper.setupRelativeMoveInSteps(15/2*200*8);
+  Y3_stepper.setupRelativeMoveInSteps(15/2*200*8);
+  }
+  // AOAT_stepper.setupRelativeMoveInSteps(20/.36*8); // handle this later due to them not being able to roatate 360 degrees
+  //AOAB_stepper.setupRelativeMoveInSteps(20/.36*8);
+  while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y1_stepper.motionComplete()) || (!Y2_stepper.motionComplete()) ||(!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
   {
     X_stepper.processMovement();
+    X2_stepper.processMovement();
     Y0_stepper.processMovement();
-    Y12_stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do system interups and blah blah.
+    Y1_stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do speical system intrrupts
+    Y2_stepper.processMovement();
     Y3_stepper.processMovement();
-    AOAT_stepper.processMovement();
-    AOAB_stepper.processMovement();
+    //AOAT_stepper.processMovement();
+    //AOAB_stepper.processMovement();
   }
   Serial.print("got through the firt part of home all");
   xhome = false; // we are now garenteed to be at least 5 off the axis
+  x2home= false;
   y1home = false;
   y2home = false;
   y3home = false;
@@ -128,9 +142,11 @@ void HomeAll(void)
   LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_12);
   LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_1);
   LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_3);
-  LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_1);
-  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_10);
-  LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_0); // reset pins to default state
+  LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_1);
+  LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_10);
+  LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_0); // reset pins to default state
+  LL_GPIO_SetOutputPin(GPIOE, LL_GPIO_PIN_3); // reset pins to default state
+  LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_14);
 
   LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
@@ -138,13 +154,22 @@ void HomeAll(void)
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
   LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
-  while (xhome == false || y1home == false || aoathome == false || aoabhome == false|| y2home == false) //|| y3home == false|| y4home == false )
+  LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
+  LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
+
+  while (xhome == false || y1home == false || y2home == false || y3home == false|| y4home == false )// || aoathome == false) || aoabhome == false||
   { // While they arent hit the end stop we move the motors
     if (xhome == false)
     {
       // The X axis is home
       // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
+    }
+    if (xhome == false) // changed so the x axis only uses on enstop 
+    {
+      // The X axis is home
+      // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
+      LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_2);
     }
     if (y2home == false)
     {
@@ -155,30 +180,82 @@ void HomeAll(void)
       // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
       // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
+    }
+    if (y3home == false)
+    {
+      // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
+      // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
       LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
     }
-    if (aoathome == false)
+    if (y4home == false)
     {
-      // motorgpiog=motorgpiog-0b0000000000010000;
-      LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
+      // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
+      // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
+      LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_6);
     }
-    if (aoabhome == false)
-    {
-      // motorgpiof=motorgpiof-0b0000001000000000;
-      LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
-    }
+    // if (aoathome == false)
+    // {
+    //   // motorgpiog=motorgpiog-0b0000000000010000;
+    //   LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
+    // }
+    // if (aoabhome == false)
+    // {
+    //   // motorgpiof=motorgpiof-0b0000001000000000;
+    //   LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+    // }
     delayMicroseconds(5); // delay between high and low (Aka how long the pin is high)
     // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
-    LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
+    //LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
     LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
     LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
-    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
-    delayMicroseconds(300); // delay between high states, how long between step signals
+    //LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
+    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
+    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
+    delayMicroseconds(270); // delay between high states, how long between step signals
     // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
   }
-  //
+  // begin AoA Homing 
+  int Thomecount = 4000; // # nuber of possbile steps to make a half circle
+  int Bhomecount = 4000;
+ LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_10);
+ LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_0);
+  while (aoathome == false || aoabhome == false)
+  { // While they arent hit the end stop we move the motors
+    if (aoathome == false && Thomecount>0)
+    {
+      // motorgpiog=motorgpiog-0b0000000000010000;
+      LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
+      Thomecount = Thomecount-1; 
+    }
+    else // if it doesnt dint it going forward switch directions and go a back.
+    {
+      LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_10); // switch directions to slwitch directions
+      delayMicroseconds(5);
+      LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
+      Thomecount = 4000;
+
+    }
+    if (aoabhome == false && Bhomecount>0)
+    {
+      // motorgpiof=motorgpiof-0b0000001000000000;
+      LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+      Bhomecount = Bhomecount -1;
+    }
+    else
+    {
+      LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_0);
+      delayMicroseconds(5);
+      LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+      Bhomecount =4000;
+    }
+    delayMicroseconds(5); // delay between high and low (Aka how long the pin is high)
+    // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
+    LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
+    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
+    delayMicroseconds(500);
+  }
   Xpos = 0;
   Ypos = 0;
   AoA[0] = 0;

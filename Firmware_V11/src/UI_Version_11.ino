@@ -33,8 +33,10 @@ In the Case of this set up since the drivers are in Uart mode the adress of the 
 */
 // TMC Stepper Class
 TMC2209Stepper driverX(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverX2(PE1, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
 TMC2209Stepper driverY0(PD11, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverY12(PC6, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY1(PC6, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
 TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver Address) Software serial X axis
 TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
 TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
@@ -43,8 +45,8 @@ TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, D
 /* In This section are the maximum travel distances for each of the axis */
 int Micro_stepping[5] = {64, 64, 64, 64, 64};         // mirco stepping for the drivers
 float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; // mirco stepping for the drivers
-const int Xpos_MAX = 500;                             // Max X length in MM
-const int Ypos_MAX = 500;                             // MAy Y length in MM
+const int Xpos_MAX = 350;                             // Max X length in MM
+const int Ypos_MAX = 245;                             // MAy Y length in MM
 const int X_Lead_p = 2;                               // X lead screw pitch in mm/revolution
 const int Y_Lead_p = 2;                               // Y lead screw pitch in mm
 const int AOA_MAX = 500;                              // Angle of attack max in 360 degrees
@@ -69,12 +71,12 @@ The advanced features of the Stepper Driver are handled via Uart.
 */
 SpeedyStepper X_stepper;    // motor 0
 SpeedyStepper Y0_stepper;   // motor 1
-SpeedyStepper Y12_stepper;  // motor 2_1 2_2
+SpeedyStepper Y1_stepper;  // motor 2_1 2_2
 SpeedyStepper Y3_stepper;   // motor 3
 SpeedyStepper AOAT_stepper; // motor 4
 SpeedyStepper AOAB_stepper; // motor 5
-// SpeedyStepper E3stepper;
-// SpeedyStepper E4stepper;
+SpeedyStepper Y2_stepper;
+SpeedyStepper X2_stepper;
 //  Stepper settings
 
 uint8_t *Acceleration; // For The Acceleration setting in the LCD UI
@@ -94,8 +96,8 @@ bool newData = false;                // Cotrol Entry into the Serial Reader
 float AoA[2]; // floating point for AoA: Top,Bottom
 // Passing in unsigned 8 bit intger ( Thats what the fucking UI command wants)
 // the max of a 8 bit int is 255 and there are 360 derees ** this willl have to be changed to support up to .05 ) which will require
-uint8_t AoA_t_value[3]; // Top AoA: Hundreds,tens/ones,Decimal
-uint8_t AoA_b_value[3]; // Bottom AoA: Hundreds,tens/ones,Decimal
+uint8_t AoA_t_value[4]; // Top AoA: Hundreds,tens/ones,Decimal
+uint8_t AoA_b_value[4]; // Bottom AoA: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ X Movement Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float Xpos;         // X position float value
 uint8_t X_value[3]; // X pos : Hundreds,tens/ones,Decimal
@@ -107,20 +109,21 @@ float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB
 float movevar[5] = {0, 0, 0, 0, 0};          // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Homing function varibles ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 volatile bool xhome = false;
+volatile bool x2home = false;
 volatile bool y1home = false;
 volatile bool y2home = false;
 volatile bool y3home = false;
 volatile bool y4home = false;
 volatile bool aoathome = false;
 volatile bool aoabhome = false;
-const int Motor0LimitSw = PG6; // X axis limit switch
+const int Motor0LimitSw = PG6; 
 const int Motor1LimitSw =PG12;
-const int Motor2LimitSw = PG9; // Y axis limit switch
-const int Motor3LimitSw =PG13; // Second Y enstop
-const int Motor4LimitSw = PG10; // AoAT limit switch
-const int Motor5LimitSw =PG14; // Thrid Y endstop
-const int Motor6LimitSw = PG11; // AoA B Limit swtich
-const int Motor7LimitSw =PG15; // 4th Y endstop 
+const int Motor2LimitSw = PG9; 
+const int Motor3LimitSw =PG13; 
+const int Motor4LimitSw = PG10; 
+const int Motor5LimitSw =PG14; 
+const int Motor6LimitSw = PG11; 
+const int Motor7LimitSw =PG15;  
 // Reset Pin -> off of the RGB HEADDER J37
 // const int Reset=PB0;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -165,8 +168,10 @@ uint8_t Com_selection = 2;    // communications selection tracker by default use
 void SET_ACELL(float x, float y, float E0, float E1)
 {
   X_stepper.setAccelerationInRevolutionsPerSecondPerSecond(x * 2);
+  X2_stepper.setAccelerationInRevolutionsPerSecondPerSecond(x * 2);
   Y0_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y * 2);
-  Y12_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y * 2); // By Default the Z axis will allways be attached to the Y (Verticle Axis)
+  Y1_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y * 2); // By Default the Z axis will allways be attached to the Y (Verticle Axis)
+  Y2_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y * 2);
   Y3_stepper.setAccelerationInRevolutionsPerSecondPerSecond(y * 2);
   AOAT_stepper.setAccelerationInRevolutionsPerSecondPerSecond(E0); // Change to mm/s when the system is being implmented
   AOAB_stepper.setAccelerationInRevolutionsPerSecondPerSecond(E1); // Change to mm/s when the system is being implmented
@@ -179,8 +184,10 @@ void SET_ACELL(float x, float y, float E0, float E1)
 void SET_SPEED(int x, int y, int E0, int E1)
 {
   X_stepper.setSpeedInRevolutionsPerSecond(x * 2); // multpied by the leadscrew pitch because we are in rev/s and the value entered is in mm/s
+  X2_stepper.setSpeedInRevolutionsPerSecond(x * 2);
   Y0_stepper.setSpeedInRevolutionsPerSecond(y * 2);
-  Y12_stepper.setSpeedInRevolutionsPerSecond(y * 2);
+  Y1_stepper.setSpeedInRevolutionsPerSecond(y * 2);
+  Y2_stepper.setSpeedInRevolutionsPerSecond(y * 2);
   Y3_stepper.setSpeedInRevolutionsPerSecond(y * 2); // Change to mm/s^2 when the system is being implmented
   AOAT_stepper.setSpeedInRevolutionsPerSecond(E0);  // Change to mm/s^2 when the system is being implmented ?
   AOAB_stepper.setSpeedInRevolutionsPerSecond(E1);
@@ -201,13 +208,14 @@ void setup(void)
   // while (! Serial); // debug waiting for the computer to connect
   Serial.println(Y_to_micro);
   // set up the interrpts
-  attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), y2HomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor3LimitSw), y3HomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y4HomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), y2HomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor3LimitSw), y3HomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y4HomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor7LimitSw), x2HomeIsr, HIGH);
   //attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger
   //attachInterrupt(digitalPinToInterrupt(Estop_pin), estopIsr, FALLING); //External Trigger  
 
@@ -221,7 +229,7 @@ void setup(void)
   gui_output_function();       // initilize the GUI
                                /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 
-  u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE9, /* menu_prev_pin= */ PE12, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
+  u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE12, /* menu_prev_pin= */ PE9, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
   // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion.
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
   u8g2.setFont(u8g2_font_6x12_tr);
@@ -266,11 +274,12 @@ void loop(void)
   }
   if (current_selection == 3)
   {
-    //u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[0], 0, 5, 1, " 0-3 Hundreds Degrees");
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], 0, 99, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 9, 1, " 0-9 Decimal Degree");
+    u8g2.userInterfaceInputValue("AOA top:", "-", &AoA_t_value[0], 0, 20, 1, " 0-20 Negitive");
+    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], 0, 9, 1, " 0-9 Negitive Decimal Degree");
+    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 20, 3, " 0-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
+    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    AoA[0] = AoA_t_value[0] * 100 + AoA_t_value[1] + AoA_t_value[2] / 10; // This is the desierd angle we want in a floting point int.
+    AoA[0] = -1* AoA_t_value[0]+ -1*AoA_t_value[1]/10 + AoA_t_value[2]+AoA_t_value[3]/10+20; // This is the desierd angle we want in a floting point int.
     // Move function call here
     MOVE_FUNCTION();
     // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step
@@ -281,11 +290,12 @@ void loop(void)
   }
   if (current_selection == 4)
   {
-    //u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[0], 0, 3, 1, " 0-3 Hundreds Degrees");
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], 0, 99, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 9, 1, " 0-9 Decimal Degree");
+    u8g2.userInterfaceInputValue("AOA Bottom:", "-", &AoA_b_value[0], 0, 20, 1, " 0-20 Negitive");
+    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], 0, 9, 1, " 0-9 Decimal Degree");
+    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 20, 2, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
+    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    AoA[1] = AoA_b_value[0] * 100 + AoA_b_value[1] + AoA_b_value[2] / 10; // This is the desierd angle we want in a floting point int.
+    AoA[1] = -1* AoA_b_value[0]+ -1*AoA_b_value[1]/10 + AoA_b_value[2]+AoA_b_value[3]/10+20; // This is the desierd angle we want in a floting point int.
     // move function call here
     MOVE_FUNCTION();
     // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step
@@ -308,13 +318,13 @@ void loop(void)
     {
       // Acceleration Settings Code
       u8g2.userInterfaceInputValue("Acceleration:", "", Acceleration, 0, 20, 2, "*25 Rev/s^2");
-      SET_ACELL(*Acceleration * 25, *Acceleration * 25, *Acceleration * 25, *Acceleration * 25);
+      SET_ACELL(*Acceleration * 25, *Acceleration * 25, *Acceleration * 5, *Acceleration * 5);
     }
     if (Sub_selection == 2)
     {
       // Speed Settings
       u8g2.userInterfaceInputValue("Speed:", "", Speed, 0, 20, 2, "*25 Rev/s");
-      SET_SPEED(*Speed * 25, *Speed * 25, *Speed * 25, *Speed * 25);
+      SET_SPEED(*Speed * 25, *Speed * 25, *Speed * 5, *Speed * 5);
     }
     if (Sub_selection == 3)
     {
@@ -359,6 +369,10 @@ In general all interrputs need to be kept as short as possible
 void xHomeIsr()
 {
   xhome = !xhome; // set set them as hommed when the homing function is called
+}
+void x2HomeIsr()
+{
+  x2home = !xhome; // set set them as hommed when the homing function is called
 }
 void y1HomeIsr()
 {
