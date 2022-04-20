@@ -96,8 +96,8 @@ bool newData = false;                // Cotrol Entry into the Serial Reader
 float AoA[2]; // floating point for AoA: Top,Bottom
 // Passing in unsigned 8 bit intger ( Thats what the fucking UI command wants)
 // the max of a 8 bit int is 255 and there are 360 derees ** this willl have to be changed to support up to .05 ) which will require
-uint8_t AoA_t_value[3]; // Top AoA: Hundreds,tens/ones,Decimal
-uint8_t AoA_b_value[3]; // Bottom AoA: Hundreds,tens/ones,Decimal
+uint8_t AoA_t_value[4]; // Top AoA: Hundreds,tens/ones,Decimal
+uint8_t AoA_b_value[4]; // Bottom AoA: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ X Movement Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float Xpos;         // X position float value
 uint8_t X_value[3]; // X pos : Hundreds,tens/ones,Decimal
@@ -208,14 +208,14 @@ void setup(void)
   // while (! Serial); // debug waiting for the computer to connect
   Serial.println(Y_to_micro);
   // set up the interrpts
-  attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), y2HomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor3LimitSw), y3HomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y4HomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(Motor7LimitSw), x2HomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), y2HomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor3LimitSw), y3HomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y4HomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor7LimitSw), x2HomeIsr, HIGH);
   //attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger
   //attachInterrupt(digitalPinToInterrupt(Estop_pin), estopIsr, FALLING); //External Trigger  
 
@@ -229,7 +229,7 @@ void setup(void)
   gui_output_function();       // initilize the GUI
                                /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 
-  u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE9, /* menu_prev_pin= */ PE12, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
+  u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE12, /* menu_prev_pin= */ PE9, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
   // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion.
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
   u8g2.setFont(u8g2_font_6x12_tr);
@@ -274,11 +274,12 @@ void loop(void)
   }
   if (current_selection == 3)
   {
-    //u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[0], 0, 5, 1, " 0-3 Hundreds Degrees");
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], -5, 20, 3, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 9, 1, " 0-9 Decimal Degree");
+    u8g2.userInterfaceInputValue("AOA top:", "-", &AoA_t_value[0], 0, 20, 1, " 0-20 Negitive");
+    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], 0, 9, 1, " 0-9 Negitive Decimal Degree");
+    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 20, 3, " 0-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
+    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    AoA[0] = AoA_t_value[0] * 100 + AoA_t_value[1] + AoA_t_value[2] / 10; // This is the desierd angle we want in a floting point int.
+    AoA[0] = -1* AoA_t_value[0]+ -1*AoA_t_value[1]/10 + AoA_t_value[2]+AoA_t_value[3]/10+20; // This is the desierd angle we want in a floting point int.
     // Move function call here
     MOVE_FUNCTION();
     // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step
@@ -289,11 +290,12 @@ void loop(void)
   }
   if (current_selection == 4)
   {
-    //u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[0], 0, 3, 1, " 0-3 Hundreds Degrees");
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], -5, 20, 2, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 9, 1, " 0-9 Decimal Degree");
+    u8g2.userInterfaceInputValue("AOA Bottom:", "-", &AoA_b_value[0], 0, 20, 1, " 0-20 Negitive");
+    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], 0, 9, 1, " 0-9 Decimal Degree");
+    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 20, 2, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
+    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    AoA[1] = AoA_b_value[0] * 100 + AoA_b_value[1] + AoA_b_value[2] / 10; // This is the desierd angle we want in a floting point int.
+    AoA[1] = -1* AoA_b_value[0]+ -1*AoA_b_value[1]/10 + AoA_b_value[2]+AoA_b_value[3]/10+20; // This is the desierd angle we want in a floting point int.
     // move function call here
     MOVE_FUNCTION();
     // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step

@@ -94,14 +94,19 @@ void MOVE_FUNCTION(void)
 // home function
 void HomeAll(void)
 {
-  // Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
-  // This ensures that all the axis are not allready on their limit swtiches
+ //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
+ //// This ensures that all the axis are not allready on their limit swtiches
+  if(digitalRead(PG6)==HIGH){
   X_stepper.setupRelativeMoveInSteps(10/5 *200*8); // Future: Make these iun terms of MM
   X2_stepper.setupRelativeMoveInSteps(10/5 *200*8); // Future: Make these iun terms of MM
+  }
+  if(digitalRead(PG12)==HIGH ||digitalRead(PG9)==HIGH ||digitalRead(PG13)==HIGH ||digitalRead(PG10)==HIGH) // make sure the end stop isnt allready pressed
+  {
   Y0_stepper.setupRelativeMoveInSteps(15/2*200*8);
   Y1_stepper.setupRelativeMoveInSteps(15/2*200*8);
   Y2_stepper.setupRelativeMoveInSteps(15/2*200*8);
   Y3_stepper.setupRelativeMoveInSteps(15/2*200*8);
+  }
   // AOAT_stepper.setupRelativeMoveInSteps(20/.36*8); // handle this later due to them not being able to roatate 360 degrees
   //AOAB_stepper.setupRelativeMoveInSteps(20/.36*8);
   while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y1_stepper.motionComplete()) || (!Y2_stepper.motionComplete()) ||(!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
@@ -208,7 +213,7 @@ void HomeAll(void)
     //LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
-    delayMicroseconds(500); // delay between high states, how long between step signals
+    delayMicroseconds(270); // delay between high states, how long between step signals
     // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
   }
   // begin AoA Homing 
