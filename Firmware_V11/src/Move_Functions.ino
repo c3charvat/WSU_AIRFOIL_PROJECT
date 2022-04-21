@@ -156,7 +156,7 @@ void HomeAll(void)
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
   LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
   LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
-
+  delayMicroseconds(10);
   while (xhome == false || y1home == false || y2home == false || y3home == false|| y4home == false )// || aoathome == false) || aoabhome == false||
   { // While they arent hit the end stop we move the motors
     if (xhome == false)
@@ -203,7 +203,7 @@ void HomeAll(void)
     //   // motorgpiof=motorgpiof-0b0000001000000000;
     //   LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
     // }
-    delayMicroseconds(5); // delay between high and low (Aka how long the pin is high)
+    delayMicroseconds(10); // delay between high and low (Aka how long the pin is high)
     // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
     //LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
@@ -213,7 +213,7 @@ void HomeAll(void)
     //LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
-    delayMicroseconds(270); // delay between high states, how long between step signals
+    delayMicroseconds(350); // delay between high states, how long between step signals
     // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
   }
   // begin AoA Homing 
