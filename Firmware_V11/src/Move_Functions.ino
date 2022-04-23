@@ -259,12 +259,12 @@ void HomeAll(void)
   }
   Xpos = 0;
   Ypos = 0;
-  AoA[0] = 20;
-  AoA[1] = 20;
+  AoA[0] = 0;
+  AoA[1] = 0;
   CurrentPositions[0] = 0;
   CurrentPositions[1] = 0;
-  CurrentPositions[2] = 0;
-  CurrentPositions[3] = 0;
+  CurrentPositions[2] = -20;
+  CurrentPositions[3] = -20;
   volatile bool xhome = false;
   volatile bool yhome = false;
   volatile bool aoathome = false; // second it leaves this function we assume its not home
