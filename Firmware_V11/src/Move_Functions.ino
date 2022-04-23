@@ -24,8 +24,8 @@ void MOVE_FUNCTION(void)
   // Parse Out The Data into the correct move variable
   movevar[0] = ABS_POS(Xpos, 0);   // X Move
   movevar[1] = ABS_POS(Ypos, 1);   // Y and Z Move  // Pull Data From LCD MENU VARIBLES
-  movevar[2] = ABS_POS(AoA[0], 2); // E0 Move AoA Top
-  movevar[3] = ABS_POS(AoA[1], 3); // E1 Move AoA Bottom
+  movevar[2] = ABS_POS(-1*(AoA[0]), 2); // E0 Move AoA Top
+  movevar[3] = ABS_POS(-1*(AoA[1]), 3); // E1 Move AoA Bottom
   gui_output_function();           // return the stuff to the python the gui
 
   Serial.println("Motion_selection == 2 Com select == 2");
@@ -122,7 +122,7 @@ void HomeAll(void)
   }
   Serial.print("got through the firt part of home all");
   xhome = false; // we are now garenteed to be at least 5 off the axis
-  x2home= false;
+  //x2home= false;
   y1home = false;
   y2home = false;
   y3home = false;
@@ -156,6 +156,7 @@ void HomeAll(void)
   LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
   LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
   LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
+  delay(10);
 
   while (xhome == false || y1home == false || y2home == false || y3home == false|| y4home == false )// || aoathome == false) || aoabhome == false||
   { // While they arent hit the end stop we move the motors
@@ -164,13 +165,13 @@ void HomeAll(void)
       // The X axis is home
       // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
-    }
-    if (xhome == false) // changed so the x axis only uses on enstop 
-    {
-      // The X axis is home
-      // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
       LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_2);
     }
+    // if (xhome == false) // changed so the x axis only uses on enstop 
+    // {
+    //   // The X axis is home
+    //   // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
+    // }
     if (y2home == false)
     {
       LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_0);
@@ -213,12 +214,12 @@ void HomeAll(void)
     //LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
-    delayMicroseconds(270); // delay between high states, how long between step signals
+    delayMicroseconds(280); // delay between high states, how long between step signals
     // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
   }
   // begin AoA Homing 
-  int Thomecount = 4000; // # nuber of possbile steps to make a half circle
-  int Bhomecount = 4000;
+  int Thomecount = 160*8; // # nuber of possbile steps to make a half circle
+  int Bhomecount = 160*8;
  LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_10);
  LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_0);
   while (aoathome == false || aoabhome == false)
@@ -234,7 +235,7 @@ void HomeAll(void)
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_10); // switch directions to slwitch directions
       delayMicroseconds(5);
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
-      Thomecount = 4000;
+      Thomecount = 200*8;
 
     }
     if (aoabhome == false && Bhomecount>0)
@@ -248,7 +249,7 @@ void HomeAll(void)
       LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_0);
       delayMicroseconds(5);
       LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
-      Bhomecount =4000;
+      Bhomecount =200*8;
     }
     delayMicroseconds(5); // delay between high and low (Aka how long the pin is high)
     // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
@@ -258,8 +259,8 @@ void HomeAll(void)
   }
   Xpos = 0;
   Ypos = 0;
-  AoA[0] = 0;
-  AoA[1] = 0;
+  AoA[0] = 20;
+  AoA[1] = 20;
   CurrentPositions[0] = 0;
   CurrentPositions[1] = 0;
   CurrentPositions[2] = 0;
@@ -268,4 +269,8 @@ void HomeAll(void)
   volatile bool yhome = false;
   volatile bool aoathome = false; // second it leaves this function we assume its not home
   volatile bool aoabhome = false;
+  movevar[0] = 0; // clear out any previous data that may or maynot have been canceled
+  movevar[1] = 0;
+  movevar[2] = 0;
+  movevar[3] = 0;
 }

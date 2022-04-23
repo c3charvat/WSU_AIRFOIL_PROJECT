@@ -49,7 +49,7 @@ const int Xpos_MAX = 350;                             // Max X length in MM
 const int Ypos_MAX = 245;                             // MAy Y length in MM
 const int X_Lead_p = 2;                               // X lead screw pitch in mm/revolution
 const int Y_Lead_p = 2;                               // Y lead screw pitch in mm
-const int AOA_MAX = 500;                              // Angle of attack max in 360 degrees
+const int AOA_MAX = 40;                              // Angle of attack max in 360 degrees
 float X_mm_to_micro = (1 / X_Lead_p) * (360 / Degree_per_step[0]) * (Micro_stepping[0]);
 float Y_mm_to_micro = (1 / Y_Lead_p) * (360 / Degree_per_step[1]) * (Micro_stepping[1]);
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pin Define~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -208,14 +208,14 @@ void setup(void)
   // while (! Serial); // debug waiting for the computer to connect
   Serial.println(Y_to_micro);
   // set up the interrpts
-  attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, HIGH);
-  attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, HIGH);
-  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), y2HomeIsr, HIGH);
-  attachInterrupt(digitalPinToInterrupt(Motor3LimitSw), y3HomeIsr, HIGH);
-  attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y4HomeIsr, HIGH);
-  attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, HIGH);
-  attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, HIGH);
-  attachInterrupt(digitalPinToInterrupt(Motor7LimitSw), x2HomeIsr, HIGH);
+  attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), y2HomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor3LimitSw), y3HomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y4HomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(Motor7LimitSw), x2HomeIsr, CHANGE);
   //attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger
   //attachInterrupt(digitalPinToInterrupt(Estop_pin), estopIsr, FALLING); //External Trigger  
 
@@ -224,8 +224,8 @@ void setup(void)
   PIN_SETUP(); // Initilize all the Pins
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
-  SET_ACELL(5, 10, 10, 10);   // Set motor acceleration
-  SET_SPEED(5, 20, 20, 20); // Set motor Speed
+  SET_ACELL(10, 10, 10, 10);   // Set motor acceleration
+  SET_SPEED(10, 20, 20, 20); // Set motor Speed
   gui_output_function();       // initilize the GUI
                                /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 
@@ -268,7 +268,7 @@ void loop(void)
     u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[1], 0, 3, 1, " *-* Hundreds of MM ");
     u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[2], 0, 60, 2, " *-* Tens/Ones MM ");
     u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[3], 0, 9, 1, " *-* Decimal MM ");
-    Ypos = Y_value[0] * 1000 + Y_value[1] * 100 + Y_value[2] + Y_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
+    Ypos =Y_value[0] * 1000 + Y_value[1] * 100 + Y_value[2] + Y_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
     /// move function call here
     MOVE_FUNCTION();
   }
@@ -279,7 +279,7 @@ void loop(void)
     u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 20, 3, " 0-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    AoA[0] = -1* AoA_t_value[0]+ -1*AoA_t_value[1]/10 + AoA_t_value[2]+AoA_t_value[3]/10+20; // This is the desierd angle we want in a floting point int.
+    AoA[0] = -1* AoA_t_value[0]+ -1*AoA_t_value[1]/10 + AoA_t_value[2]+AoA_t_value[3]/10; // This is the desierd angle we want in a floting point int.
     // Move function call here
     MOVE_FUNCTION();
     // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step
@@ -295,7 +295,7 @@ void loop(void)
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 20, 2, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    AoA[1] = -1* AoA_b_value[0]+ -1*AoA_b_value[1]/10 + AoA_b_value[2]+AoA_b_value[3]/10+20; // This is the desierd angle we want in a floting point int.
+    AoA[1] = -1* AoA_b_value[0]+ -1*AoA_b_value[1]/10 + AoA_b_value[2]+AoA_b_value[3]/10; // This is the desierd angle we want in a floting point int.
     // move function call here
     MOVE_FUNCTION();
     // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step
@@ -318,7 +318,7 @@ void loop(void)
     {
       // Acceleration Settings Code
       u8g2.userInterfaceInputValue("Acceleration:", "", Acceleration, 0, 20, 2, "*25 Rev/s^2");
-      SET_ACELL(*Acceleration * 25, *Acceleration * 25, *Acceleration * 5, *Acceleration * 5);
+      SET_ACELL(*Acceleration * 25, *Acceleration * 25, *Acceleration , *Acceleration);
     }
     if (Sub_selection == 2)
     {
