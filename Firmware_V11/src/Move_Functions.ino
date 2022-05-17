@@ -15,7 +15,7 @@
 // const int Motor7LimitSw =PG15;
 
 void MOVE_FUNCTION(void)
-{                 // Selection =0
+{ 
   movevar[0] = 0; // clear out any previous data that may or maynot have been canceled
   movevar[1] = 0;
   movevar[2] = 0;
