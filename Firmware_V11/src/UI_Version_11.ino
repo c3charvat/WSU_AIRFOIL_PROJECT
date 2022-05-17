@@ -386,12 +386,7 @@ void y3HomeIsr()
 {
   y3home = !y3home;
 }
-void y4HomeIsr()
-{
-  y4home = !y4home;
-}
-void aoatHomeIsr()
-{
+ 
   aoathome = !aoathome;
 }
 void aoabHomeIsr()
