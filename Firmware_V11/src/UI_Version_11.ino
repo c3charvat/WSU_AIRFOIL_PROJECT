@@ -3,7 +3,7 @@ Version 12
 Written by: Collin Charvat
 liscence: N/A
 This program was written to drive the Dual Airfoil experiment at Wright State Uni.
-The main gaols of this code are to drive 5 steppers in multiple different modes of operation/
+The main gaols of this code are to drive 8 steppers in multiple different modes of operation/
 They are:
 LCD Static - As Soon as an axis is commanded to move, move and the stay there and hold until otherwise.
 LCD Trigger - allow the end user to input muiltple axis destinations then press a menu selection to move all axis at once
@@ -274,16 +274,10 @@ void loop(void)
   }
   if (current_selection == 3)
   {
-<<<<<<< HEAD
-    //u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[0], 0, 5, 1, " 0-3 Hundreds Degrees");
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], -20, 20, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
-    u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0,9, 1, " 0-9 Decimal Degree");
-=======
     u8g2.userInterfaceInputValue("AOA top:", "-", &AoA_t_value[0], 0, 20, 1, " 0-20 Negitive");
     u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], 0, 9, 1, " 0-9 Negitive Decimal Degree");
     u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 20, 3, " 0-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[3], 0, 9, 1, " 0-9 Decimal Degree");
->>>>>>> a69ea15d21c107e8e2fe505b48be77261ed3c42f
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
     AoA[0] = -1* AoA_t_value[0]+ -1*AoA_t_value[1]/10 + AoA_t_value[2]+AoA_t_value[3]/10; // This is the desierd angle we want in a floting point int.
     // Move function call here
@@ -296,16 +290,10 @@ void loop(void)
   }
   if (current_selection == 4)
   {
-<<<<<<< HEAD
-    //u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[0], 0, 3, 1, " 0-3 Hundreds Degrees");
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], -20, 20, 2, " 0-99 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
-    u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 9, 1, " 0-9 Decimal Degree");
-=======
     u8g2.userInterfaceInputValue("AOA Bottom:", "-", &AoA_b_value[0], 0, 20, 1, " 0-20 Negitive");
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], 0, 9, 1, " 0-9 Decimal Degree");
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 20, 2, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[3], 0, 9, 1, " 0-9 Decimal Degree");
->>>>>>> a69ea15d21c107e8e2fe505b48be77261ed3c42f
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
     AoA[1] = -1* AoA_b_value[0]+ -1*AoA_b_value[1]/10 + AoA_b_value[2]+AoA_b_value[3]/10; // This is the desierd angle we want in a floting point int.
     // move function call here
