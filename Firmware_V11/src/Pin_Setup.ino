@@ -38,13 +38,13 @@ const int MOTOR5_STEP_PIN = PC13;  // z axis
 const int MOTOR5_DIRECTION_PIN  = PF0;  // z axis 
 const int MOTOR5_ENABLE= PF1;  // z axis;
 // Motor 6
-//const int MOTOR6_STEP_PIN = PE2;  // z axis 
-//const int MOTOR6_DIRECTION_PIN  = PE3;  // z axis 
-//const int MOTOR6_ENABLE= PD4;  // z axis;
+const int MOTOR6_STEP_PIN = PE2;  // z axis 
+const int MOTOR6_DIRECTION_PIN  = PE3;  // z axis 
+const int MOTOR6_ENABLE= PD4;  // z axis;
 // Motor 7
-//const int MOTOR7_STEP_PIN = PE6;  // z axis 
-//const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis  // disabled for SWD programming 
-//const int MOTOR7_ENABLE= PE0;  // z axis;
+const int MOTOR7_STEP_PIN = PE6;  // z axis 
+const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis  // disabled for SWD programming 
+const int MOTOR7_ENABLE= PE0;  // z axis;
 
 
 
@@ -54,53 +54,67 @@ void PIN_SETUP(){
 //pinMode(Reset,OUTPUT);
 //digitalWrite(Reset,HIGH);
 
-//X Stepper
+//X Stepper 
 pinMode(MOTOR0_STEP_PIN, OUTPUT);
 pinMode(MOTOR0_DIRECTION_PIN , OUTPUT);
 pinMode(MOTOR0_ENABLE , OUTPUT);
-// Y Stepper 
+// Y0 Stepper 
 pinMode(MOTOR1_STEP_PIN, OUTPUT);
 pinMode(MOTOR1_DIRECTION_PIN , OUTPUT);
 pinMode(MOTOR1_ENABLE , OUTPUT);
-// "Z" Y Stepper 1-2 // Hardware Doubled
+// "Z" Y Stepper 1// Hardware Doubled
 pinMode(MOTOR2_STEP_PIN, OUTPUT);
 pinMode(MOTOR2_DIRECTION_PIN , OUTPUT);
 pinMode(MOTOR2_ENABLE , OUTPUT);
-// E0 Stepper A0A top
+// Y2 
 pinMode(MOTOR3_STEP_PIN, OUTPUT);
 pinMode(MOTOR3_DIRECTION_PIN , OUTPUT);
 pinMode(MOTOR3_ENABLE , OUTPUT);
-// E1 Stepper A0A Bottom
+// A0A Top
 pinMode(MOTOR4_STEP_PIN, OUTPUT);
 pinMode(MOTOR4_DIRECTION_PIN, OUTPUT);
 pinMode(MOTOR4_ENABLE, OUTPUT);
-// E2 Extra
+// AoA Bottom  
 pinMode(MOTOR5_STEP_PIN, OUTPUT);
 pinMode(MOTOR5_DIRECTION_PIN, OUTPUT);
 pinMode(MOTOR5_ENABLE, OUTPUT);
-// // E3 Extra
-// pinMode(MOTOR6_STEP_PIN, OUTPUT);
-// pinMode(MOTOR6_DIRECTION_PIN, OUTPUT);
-// pinMode(MOTOR6_ENABLE, OUTPUT);
-// E4 Extra
-//pinMode(MOTOR7_STEP_PIN, OUTPUT);
-//pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
-//pinMode(MOTOR7_ENABLE, OUTPUT);
+// x2 Motor 
+pinMode(MOTOR6_STEP_PIN, OUTPUT);
+pinMode(MOTOR6_DIRECTION_PIN, OUTPUT);
+pinMode(MOTOR6_ENABLE, OUTPUT);
+// Y motor 4 
+pinMode(MOTOR7_STEP_PIN, OUTPUT);
+pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
+pinMode(MOTOR7_ENABLE, OUTPUT);
 // Limit Switches
 pinMode(Motor0LimitSw, INPUT);
-// pinMode(Motor1LimitSw, INPUT);
+pinMode(Motor1LimitSw, INPUT);
 pinMode(Motor2LimitSw, INPUT);
-// pinMode(Motor3LimitSw, INPUT);
+pinMode(Motor3LimitSw, INPUT);
 pinMode(Motor4LimitSw, INPUT);
-// pinMode(Motor5LimitSw, INPUT);
+pinMode(Motor5LimitSw, INPUT);
 pinMode(Motor6LimitSw, INPUT);
-//pinMode(Motor7LimitSw, INPUT);
+pinMode(Motor7LimitSw, INPUT);
 // Extras 
 // pinMode(4, OUTPUT); // Fan Pin Initilization 
 pinMode(BEEPER, OUTPUT); // Beeper on LCD
 pinMode(BUTTON, INPUT); // Encoder button
 pinMode(ENCODER_RT, INPUT); // Encoder Move Direction
-pinMode(ENCODER_LT, INPUT); // Encoder Move Direction 
+pinMode(ENCODER_LT, INPUT); // Encoder Move Direction
+// Fan setup
+const int Fan0 = PA8;
+const int Fan1 = PE5;
+const int Fan2 = PD12; 
+pinMode(Fan0, OUTPUT);
+pinMode(Fan1,OUTPUT);
+pinMode(Fan2,OUTPUT);
+digitalWrite(Fan0,HIGH);
+digitalWrite(Fan1,HIGH);
+digitalWrite(Fan2,HIGH);
+/*
+Fan 6 and 7 are on by default.
+The remaining fan pins can be reused the top pin is hot as defined by the jumpers see pin diagram. 
+*/
 // Stepper Enables 
 digitalWrite(MOTOR0_ENABLE , LOW); // Set the Enable Pin to Low to Enable the Driver 
 digitalWrite(MOTOR1_ENABLE , LOW);
@@ -108,17 +122,17 @@ digitalWrite(MOTOR2_ENABLE , LOW);
 digitalWrite(MOTOR3_ENABLE , LOW);
 digitalWrite(MOTOR4_ENABLE , LOW);
 digitalWrite(MOTOR5_ENABLE , LOW);
-//digitalWrite(MOTOR6_ENABLE , LOW); // Extras disabled for now
-//digitalWrite(MOTOR7_ENABLE , LOW);
+digitalWrite(MOTOR6_ENABLE , LOW); // Extras disabled for now
+digitalWrite(MOTOR7_ENABLE , LOW);
 
 // digitalWrite(BEEPER, HIGH); // test if board is running code without lcd
 // Connect the Stepper Library To the Correct Pins 
 X_stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
 Y0_stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
-Y12_stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
+Y1_stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
 Y3_stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
 AOAT_stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
 AOAB_stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
-//E3stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-//E4stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+X2_stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
+Y2_stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
 }

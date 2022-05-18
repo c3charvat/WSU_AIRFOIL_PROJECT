@@ -103,20 +103,20 @@ bool parseData()
         {
           if (strtokIndx[0] == 'X' || strtokIndx[0] == 'x')
           { // if the first character is X
-          LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
+            LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
             while (xhome == false)
             { // While they arent hit the end stop we move the motors
               if (xhome == false)
               {
                 LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
               }
-              delayMicroseconds(2); 
+              delayMicroseconds(2);
               LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
-              delayMicroseconds(200); 
+              delayMicroseconds(200);
             }
             Xpos = 0;
             CurrentPositions[1] = 0;
-            volatile bool xhome=false;
+            volatile bool xhome = false;
             return true;
           }
           if (strtokIndx[0] == 'Y' || strtokIndx[0] == 'y')
@@ -125,9 +125,9 @@ bool parseData()
             LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
             LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
             LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
-            while (yhome == false)
+            while (y1home == false)
             {
-              if (yhome == false)
+              if (y1home == false)
               {
                 // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
                 // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
@@ -135,16 +135,16 @@ bool parseData()
                 LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
                 LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
               }
-              delayMicroseconds(2); 
+              delayMicroseconds(2);
               LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
               LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
               LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
-              delayMicroseconds(110); 
+              delayMicroseconds(110);
             }
             Serial.print("Finshed y Homing");
             Ypos = 0;
             CurrentPositions[2] = 0;
-            volatile bool yhome=false;
+            volatile bool yhome = false;
             return true;
           }
           if (strtokIndx[0] == 'A' || strtokIndx[0] == 'a')
@@ -160,13 +160,13 @@ bool parseData()
                   // motorgpiog=motorgpiog-0b0000000000010000;
                   LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
                 }
-                delayMicroseconds(2); 
+                delayMicroseconds(2);
                 LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9);
-                delayMicroseconds(200); 
+                delayMicroseconds(200);
               }
               AoA[0] = 0;
-              CurrentPositions[3] = 0; 
-              volatile bool aoathome=false;
+              CurrentPositions[3] = 0;
+              volatile bool aoathome = false;
               return true;
             }
             if (strtokIndx[3] == 'B' || strtokIndx[3] == 'b')
@@ -182,11 +182,11 @@ bool parseData()
                 }
                 delayMicroseconds(2); // delay between high and low (Aka how long the pin is high)
                 LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
-                delayMicroseconds(200); 
+                delayMicroseconds(200);
               }
               AoA[1] = 0;
               CurrentPositions[4] = 0;
-              volatile bool aoabhome=false;
+              volatile bool aoabhome = false;
               return true;
             }
           }
@@ -388,8 +388,10 @@ bool parseData()
         Micro_stepping[3] = Temp_Settings[2];
         Micro_stepping[4] = Temp_Settings[3];
         driverX.microsteps(Micro_stepping[0]);
+        driverX2.microsteps(Micro_stepping[0]);
         driverY0.microsteps(Micro_stepping[1]);
-        driverY12.microsteps(Micro_stepping[1]);
+        driverY1.microsteps(Micro_stepping[1]);
+        driverY2.microsteps(Micro_stepping[1]);
         driverY3.microsteps(Micro_stepping[2]);
         driverAOAT.microsteps(Micro_stepping[3]);
         driverAOAB.microsteps(Micro_stepping[4]);
@@ -406,8 +408,10 @@ bool parseData()
       else
       {
         driverX.en_spreadCycle(Temp_Settings[0]);
+        driverX2.en_spreadCycle(Temp_Settings[0]);
         driverY0.en_spreadCycle(Temp_Settings[1]);
-        driverY12.en_spreadCycle(Temp_Settings[2]);
+        driverY1.en_spreadCycle(Temp_Settings[2]);
+        driverY2.en_spreadCycle(Temp_Settings[2]);
         driverY3.en_spreadCycle(Temp_Settings[2]);
         driverAOAT.en_spreadCycle(Temp_Settings[3]);
         driverAOAB.en_spreadCycle(Temp_Settings[4]);

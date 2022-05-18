@@ -963,7 +963,7 @@ if __name__ == '__main__':
     root.configure(bg='#222222')
     style = ttk.Style(root)
     try:
-        root.tk.call('source','C://Users//Collin//Documents//WSU_AIRFOIL_GITHUB//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
+        root.tk.call('source','C://Users//Hnwhite//Documents//WSU_AIRFOIL_PROJECT//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
     except:
         root.tk.call('source','C://Users//ecslogon//Documents//PlatformIO//Projects//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
     root.tk.call("set_theme", "dark") 
