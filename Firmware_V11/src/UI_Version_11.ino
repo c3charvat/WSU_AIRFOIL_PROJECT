@@ -159,7 +159,8 @@ uint8_t current_selection = 0; // Keep track of current selection in menu
 uint8_t Sub_selection = 0;
 uint8_t Com_selection = 2;    // communications selection tracker by default use the LCD
 //uint8_t Motion_selection = 2; // Default to OFF
-
+// Experimental Menu Stuff
+uint8_t button_event =0;
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`End Variables~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -206,7 +207,7 @@ void setup(void)
   float Y_to_micro = 6400;
   Serial.begin(9600); // Begin serial ouput communication for debug and input of value array.
   // while (! Serial); // debug waiting for the computer to connect
-  Serial.println(Y_to_micro);
+  //Serial.println(Y_to_micro);
   // set up the interrpts
   attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, CHANGE);
@@ -386,7 +387,12 @@ void y3HomeIsr()
 {
   y3home = !y3home;
 }
- 
+void y4HomeIsr()
+{
+  y4home = !y4home;
+}
+void aoatHomeIsr()
+{
   aoathome = !aoathome;
 }
 void aoabHomeIsr()

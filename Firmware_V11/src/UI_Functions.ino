@@ -57,6 +57,45 @@ void SERIAL_UI(void)
     }
   } // End while loop
 }
+// untested code bit aim here is to simplfy the direction menus down to one input menu
+// u8g2.userInterfaceInputValue("AOA top:", "-", &AoA_t_value[0], 0, 20, 1, " 0-20 Negitive");
+void Draw_userinput(const char *title, const char *pre, float *value, float lo, float hi, const char *post){
+  float DisplayValue = *value;
+  String TempString=String(DisplayValue); // convert to a string 
+  u8g2.clearBuffer();
+  do
+  {
+    // draw the stuff here
+    Draw_dialog(u8g2, 0, 0, 128, 64,title, pre, TempString , post, "", "Enter", true);
+    u8g2.sendBuffer();
+    check_button_event();
+    if(button_event == U8X8_MSG_GPIO_MENU_NEXT ){ // if the encoder is truned positive
+      DisplayValue=DisplayValue+.01;
+      if(DisplayValue> hi){
+        DisplayValue=DisplayValue-.01;
+      }
+      button_event= 0;
+    }
+    if(button_event == U8X8_MSG_GPIO_MENU_PREV ){ // if the encoder is truned negitive 
+      DisplayValue=DisplayValue-.01;
+      if(DisplayValue< lo){
+        DisplayValue=DisplayValue+.01;
+      }
+      button_event= 0;
+    }
+    String TempString=String(DisplayValue); // convert to a string 
+	  delay(20); // debounce stop this functgion fom running so fast the vlaues go everywhere
+    u8g2.clearBuffer();
+  } while(button_event != U8X8_MSG_GPIO_MENU_SELECT);
+  button_event= 0; // reset button_event back to zero
+}
+
+void check_button_event(void)
+{
+  if ( button_event == 0 )
+    button_event = u8g2.getMenuEvent();
+}
+
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Setup for a Button ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // The following is a custom menu i wrote for the serial UI LCD menu 
