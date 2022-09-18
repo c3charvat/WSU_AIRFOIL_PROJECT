@@ -232,6 +232,9 @@ void HomeAll(void)
  LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_0);
   while (aoathome == false || aoabhome == false)
   { // While they arent hit the end stop we move the motors
+    if(Endstop_Bypass_enable==true){
+      break;
+    }
     if (aoathome == false && Thomecount>0)
     {
       // motorgpiog=motorgpiog-0b0000000000010000;
