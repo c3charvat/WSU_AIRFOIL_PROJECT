@@ -28,6 +28,13 @@ These are sets of pre- Made functions and code that simplifies the code.
 #endif
 using namespace TMC2208_n; // Allows the TMC2209 to use functions out of tmc2208 required
 #define DRIVER_ADDRESS 0b00
+
+// Dev Settings
+bool Endstop_Bypass_enable=true;
+bool Verbose_mode=true;
+
+
+
 /*
 In the Case of this set up since the drivers are in Uart mode the adress of the Driver is zero since each of drivers has their own UART wire
 */
@@ -96,14 +103,14 @@ bool newData = false;                // Cotrol Entry into the Serial Reader
 float AoA[2]; // floating point for AoA: Top,Bottom
 // Passing in unsigned 8 bit intger ( Thats what the fucking UI command wants)
 // the max of a 8 bit int is 255 and there are 360 derees ** this willl have to be changed to support up to .05 ) which will require
-uint8_t AoA_t_value[4]; // Top AoA: Hundreds,tens/ones,Decimal
-uint8_t AoA_b_value[4]; // Bottom AoA: Hundreds,tens/ones,Decimal
+float AoA_t_value[4]; // Top AoA: Hundreds,tens/ones,Decimal
+float AoA_b_value[4]; // Bottom AoA: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ X Movement Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float Xpos;         // X position float value
-uint8_t X_value[3]; // X pos : Hundreds,tens/ones,Decimal
+float X_value[3]; // X pos : Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ Y Movemnt Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float Ypos;         // X position float value
-uint8_t Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
+float Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Absolute Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB,EXTRA" // modified for new motherboard
 float movevar[5] = {0, 0, 0, 0, 0};          // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
@@ -280,6 +287,7 @@ void loop(void)
     // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 20, 3, " 0-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
+    Draw_userinput("AOA Top:", "  ", &AoA_t_value[2], 0 , 10 , "Degrees");
     AoA[0] = -1* AoA_t_value[0]+ -1*AoA_t_value[1]/10 + AoA_t_value[2]+AoA_t_value[3]/10; // This is the desierd angle we want in a floting point int.
     // Move function call here
     MOVE_FUNCTION();
