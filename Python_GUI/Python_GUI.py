@@ -965,7 +965,10 @@ if __name__ == '__main__':
     try:
         root.tk.call('source','C://Users//Hnwhite//Documents//WSU_AIRFOIL_PROJECT//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
     except:
-        root.tk.call('source','C://Users//ecslogon//Documents//PlatformIO//Projects//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
+        try:
+            root.tk.call('source','C://Users//ecslogon//Documents//PlatformIO//Projects//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
+        except:
+            root.tk.call('source','C://Users//Collin//Documents//WSU_AIRFOIL_GITHUB//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
     root.tk.call("set_theme", "dark") 
     filePath = tk.StringVar()
     root.title(APP_TITLE) # PaneWindow
