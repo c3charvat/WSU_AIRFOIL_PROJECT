@@ -44,6 +44,9 @@ void MOVE_FUNCTION(void)
   Serial.println("Entering while loop");
   while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y1_stepper.motionComplete()) || (!Y2_stepper.motionComplete()) ||(!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
   {
+    if(Endstop_Bypass_enable==true){
+      break;
+    }
     X_stepper.processMovement();
     X2_stepper.processMovement();
     Y0_stepper.processMovement();
@@ -111,6 +114,9 @@ void HomeAll(void)
   //AOAB_stepper.setupRelativeMoveInSteps(20/.36*8);
   while ((!X_stepper.motionComplete()) || (!Y0_stepper.motionComplete()) || (!Y1_stepper.motionComplete()) || (!Y2_stepper.motionComplete()) ||(!Y3_stepper.motionComplete()) || (!AOAT_stepper.motionComplete()) || (!AOAB_stepper.motionComplete()))
   {
+    if(Endstop_Bypass_enable==true){
+      break;
+    }
     X_stepper.processMovement();
     X2_stepper.processMovement();
     Y0_stepper.processMovement();
@@ -159,6 +165,9 @@ void HomeAll(void)
   delay(10);
   while (xhome == false || y1home == false || y2home == false || y3home == false|| y4home == false )// || aoathome == false) || aoabhome == false||
   { // While they arent hit the end stop we move the motors
+    if(Endstop_Bypass_enable==true){
+      break;
+    }
     if (xhome == false)
     {
       // The X axis is home
