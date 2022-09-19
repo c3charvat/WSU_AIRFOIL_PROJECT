@@ -1,20 +1,20 @@
 // Cutsom UI Functions Go Here
 void MAIN_MENU()
 {
-  // MAIN MENU UI Function
-  //  Head back to Main meanu
+  //MAIN MENU UI Function
+  // Head back to Main meanu
   current_selection = u8g2.userInterfaceSelectionList( // Bings up the Main Menu
       "Air Foil Control",
       current_selection,
       Main_menu);
 }
-// Serial UI Function
+//Serial UI Function
 
 // potentiall replace the void pass in with a pass in of the postition variables? ~~~ Find way to make this refresh with every serial input
 void SERIAL_UI(void)
 {
   // ~~~~~~~~~~~~~~~~~~~~~~SERIAL_UI Function ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  serial_flush_buffer();                                                                                                                                                                                      // Flush out anything that was ented before it was suposed to be.
+  serial_flush_buffer(); // Flush out anything that was ented before it was suposed to be.
   Serial.println("This demo expects data frommated like:\n <G X###.## Y###.## AoAT###.## AoAB###.##>\n OR\n <M A X###.## Y###.## AoAT###.## AoAB###.##>\n OR\n <M S X###.## Y###.## AoAT###.## AoAB###.##>"); // Prep Serial Menu
   Serial.println("FAILURE TO FOLLOW THE FORMATTING CAN CAUSE UNEXPECTED SYSTEM MOVEMENT\n IVE DONE MY BEST TO PREVENT THIS\n");
   Serial.println();
@@ -37,9 +37,9 @@ void SERIAL_UI(void)
     TempString0 += " X Pos";                          // Just adding to the String here
     String TempString1 = String(CurrentPositions[1]); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
     TempString1 += " Y Pos";
-    String TempString2 = String(CurrentPositions[2] * -1); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
+    String TempString2 = String(CurrentPositions[2]*-1); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
     TempString2 += " AoA Top";
-    String TempString3 = String(CurrentPositions[3] * -1); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
+    String TempString3 = String(CurrentPositions[3]*-1); // CONVERT CURRENT A0A POSITION INTO A STRING (Local Variables
     TempString3 += " AoA Bottom:";
     u8g2.clearBuffer();
     Draw_dialog(u8g2, 0, 0, 128, 64, "Serial Mode\n", TempString0, TempString1, TempString2, TempString3, "Return", false);
@@ -52,73 +52,71 @@ void SERIAL_UI(void)
       u8g2.sendBuffer();
       Com_selection = 2;
       Sub_selection = 1; // default sub_selction back to 1 so you dont end up in the serial menu every time you click settings.
-      // return 1;
+      //return 1;
       MAIN_MENU();
     }
   } // End while loop
 }
 // untested code bit aim here is to simplfy the direction menus down to one input menu
 // u8g2.userInterfaceInputValue("AOA top:", "-", &AoA_t_value[0], 0, 20, 1, " 0-20 Negitive");
-void Draw_userinput(const char *title, const char *pre, float *DisplayValue, float lo, float hi, const char *post)
-{
-  // float DisplayValue = *Value;
-  int button_event = 0;
-  String TempString = String(*DisplayValue); // convert to a string
+void Draw_userinput(const char *title, const char *pre, float *DisplayValue, float lo, float hi, const char *post){
+  //float DisplayValue = *Value;
+  int button_event =0;
+  String TempString=String(*DisplayValue); // convert to a string 
   u8g2.clearBuffer();
-  do
+  float increments[]={100,10,1,.1,.01};
+  for ( int i=0; i<=4; i++)
   {
-    // draw the stuff here
-    // u8g2.clear();
-    Draw_dialog(u8g2, 0, 0, 128, 64, title, pre, TempString, post, "", "Enter", true);
-    u8g2.sendBuffer();
-    button_event = check_button_event();
-    if (button_event == U8X8_MSG_GPIO_MENU_NEXT)
-    { // if the encoder is truned positive
-      *DisplayValue = *DisplayValue + .01;
-      if (*DisplayValue > hi)
-      {
-        *DisplayValue = *DisplayValue - .01;
+    do
+    {
+      // draw the stuff here
+      //u8g2.clear();
+      Draw_dialog(u8g2, 0, 0, 128, 64,title, pre, TempString ,String(increments[i]), post , "Enter", true);
+      u8g2.sendBuffer();
+      button_event=check_button_event();
+      if(button_event == U8X8_MSG_GPIO_MENU_NEXT ){ // if the encoder is truned positive
+        *DisplayValue=*DisplayValue+increments[i];
+        if(*DisplayValue >= hi+1){
+          *DisplayValue=*DisplayValue-increments[i];
+        }
+        button_event= 0;
+        Serial.println("NEXT");
       }
-      button_event = 0;
-      Serial.println("NEXT");
-    }
-    if (button_event == U8X8_MSG_GPIO_MENU_PREV)
-    { // if the encoder is truned negitive
-      *DisplayValue = *DisplayValue - .01;
-      if (*DisplayValue < lo)
-      {
-        *DisplayValue = *DisplayValue + .01;
+      if(button_event == U8X8_MSG_GPIO_MENU_PREV ){ // if the encoder is truned negitive 
+        *DisplayValue=*DisplayValue-increments[i];
+        if(*DisplayValue < lo-1){
+          *DisplayValue=*DisplayValue+increments[i];
+        }
+        button_event= 0;
+        Serial.println("PREV");
+
       }
-      button_event = 0;
-      Serial.println("PREV");
-    }
-    TempString = String(*DisplayValue); // convert to a string
-    delay(20);                          // debounce stop this functgion fom running so fast the vlaues go everywhere
-    u8g2.clearBuffer();
-  } while (button_event != U8X8_MSG_GPIO_MENU_SELECT);
-  button_event = 0; // reset button_event back to zero
-  //*Value=DisplayValue;
+      TempString=String(*DisplayValue); // convert to a string 
+      delay(20); // debounce stop this functgion fom running so fast the vlaues go everywhere
+      u8g2.clearBuffer();
+    } while(button_event != U8X8_MSG_GPIO_MENU_SELECT);
+    button_event= 0; // reset button_event back to zero
+    //*Value=DisplayValue;
+  }
 }
 
 int check_button_event()
 {
-  button_event = 0;
+  button_event=0;
   do
   {
-    if (Encoder_LT.changed() or Encoder_RT.changed())
+    button_event = u8g2.getMenuEvent();
+    if(button_event != 0)
     {
-      button_event = u8g2.getMenuEvent();
-      if (button_event != 0)
-      {
-        Serial.println(button_event);
-      }
+      Serial.println(button_event);
     }
   } while (button_event == 0);
   return button_event;
 }
 
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Setup for a Button ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// The following is a custom menu i wrote for the serial UI LCD menu
+// The following is a custom menu i wrote for the serial UI LCD menu 
 // See here for examples https://p3dt.net/u8g2sim/
 void Draw_button(U8G2 u8g2, uint8_t x, uint8_t y, uint8_t width, String str, bool clicked)
 {
@@ -139,7 +137,7 @@ void Draw_button(U8G2 u8g2, uint8_t x, uint8_t y, uint8_t width, String str, boo
   }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Setup for a dialog box with a button at the bottom ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void Draw_dialog(U8G2 u8g2, uint8_t x, uint8_t y, uint8_t width, uint8_t height, String title, String msg1, String msg2, String msg3, String msg4, String btn, bool clicked)
+void Draw_dialog(U8G2 u8g2, uint8_t x, uint8_t y, uint8_t width, uint8_t height, String title, String pre, String value, String increment , String post, String btn, bool clicked)
 {
   u8g2.drawRFrame(x, y, width, height, 2);
 
@@ -147,10 +145,10 @@ void Draw_dialog(U8G2 u8g2, uint8_t x, uint8_t y, uint8_t width, uint8_t height,
   u8g2.drawStr(x + (width / 2) - ((String(title).length() * (u8g2.getMaxCharWidth())) / 2), y + u8g2.getMaxCharHeight(), title.c_str());
   u8g2.drawHLine(x, y + u8g2.getMaxCharHeight() + 1, width);
 
-  u8g2.drawStr(x + 2, y + u8g2.getMaxCharHeight() * 2 + 1, msg1.c_str());
-  u8g2.drawStr(x + 2, y + u8g2.getMaxCharHeight() * 3 + 1, msg2.c_str());
-  u8g2.drawStr(x + 2, y + u8g2.getMaxCharHeight() * 4 + 1, msg3.c_str());
-  u8g2.drawStr(x + 2, y + u8g2.getMaxCharHeight() * 5 + 1, msg4.c_str());
+  u8g2.drawStr(x + 2, y + u8g2.getMaxCharHeight() * 2 + 1, pre.c_str());
+  u8g2.drawStr(x + 2, y + u8g2.getMaxCharHeight() * 3 + 1, value.c_str());
+  u8g2.drawStr(x + 2, y + u8g2.getMaxCharHeight() * 4 + 1, increment.c_str());
+  u8g2.drawStr(x + 2 + u8g2.getStrWidth(increment.c_str()), y + u8g2.getMaxCharHeight() * 4 + 1, post.c_str());
 
   Draw_button(u8g2, x + width / 4, y + height - u8g2.getMaxCharHeight() * 2, width / 2, btn, clicked);
 }
