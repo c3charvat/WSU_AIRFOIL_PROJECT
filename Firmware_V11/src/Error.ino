@@ -21,6 +21,7 @@ bool  Angle_Error(int a) { // pass in an intager corresponding to the axis that 
     MAIN_MENU();
     return 0;
   }
+  return 0; //
 }
 void Somthing_Error(void) {
   uint8_t Error_selection;
