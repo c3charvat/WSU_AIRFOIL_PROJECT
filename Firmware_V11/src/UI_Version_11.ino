@@ -26,23 +26,32 @@ These are sets of pre- Made functions and code that simplifies the code.
 #ifdef U8X8_HAVE_HW_I2C
 #include <Wire.h>
 #endif
-using namespace TMC2208_n; // Allows the TMC2209 to use functions out of tmc2208 required
+typedef void (*pFunction)(void); // bootloader jump function
+using namespace TMC2208_n;       // Allows the TMC2209 to use functions out of tmc2208 required
 #define DRIVER_ADDRESS 0b00
-
+#define BOOTLOADER_FLAG_VALUE 0xDEADBEEF
+#define BOOTLOADER_FLAG_OFFSET 100
+#define BOOTLOADER_ADDRESS 0x1FFF0000
+#define DOCTOPUS_BOARD
+#define DOCTOPUS_BOARD_FROM_HSE
 // Dev Settings
-bool Endstop_Bypass_enable=true;
-bool Verbose_mode=true;
-
+bool Endstop_Bypass_enable = true;
+bool Verbose_mode = true;
+// Jump to bootloader stuff:
+extern int _estack;
+uint32_t *bootloader_flag;
+pFunction JumpToApplication;
+uint32_t JumpAddress;
 
 /*
 In the Case of this set up since the drivers are in Uart mode the adress of the Driver is zero since each of drivers has their own UART wire
 */
 // TMC Stepper Class
 TMC2209Stepper driverX(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverX2(PE1, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverX2(PE1, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
 TMC2209Stepper driverY0(PD11, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverY1(PC6, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY1(PC6, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
 TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver Address) Software serial X axis
 TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
 TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
@@ -55,7 +64,7 @@ const int Xpos_MAX = 350;                             // Max X length in MM
 const int Ypos_MAX = 245;                             // MAy Y length in MM
 const int X_Lead_p = 2;                               // X lead screw pitch in mm/revolution
 const int Y_Lead_p = 2;                               // Y lead screw pitch in mm
-const int AOA_MAX = 40;                              // Angle of attack max in 360 degrees
+const int AOA_MAX = 40;                               // Angle of attack max in 360 degrees
 float X_mm_to_micro = (1 / X_Lead_p) * (360 / Degree_per_step[0]) * (Micro_stepping[0]);
 float Y_mm_to_micro = (1 / Y_Lead_p) * (360 / Degree_per_step[1]) * (Micro_stepping[1]);
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Pin Define~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,8 +72,8 @@ float Y_mm_to_micro = (1 / Y_Lead_p) * (360 / Degree_per_step[1]) * (Micro_stepp
 U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/PE13, /* data=*/PE15, /* CS=*/PE14, /* reset=*/PE10); //
 // Define the LCD Type and Pins Reset is currently pin 29 which us unused or unconnected on the board.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Trigger Pin Define  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-const int TRIGGER_PIN = 24; // Temp0 pin on Melzi board
-volatile bool Go_Pressed = false; // Default state of the trigger ISR variable 
+const int TRIGGER_PIN = 24;       // Temp0 pin on Melzi board
+volatile bool Go_Pressed = false; // Default state of the trigger ISR variable
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ Estop Pin define ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 const int Estop_pin = 24;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MOTION CONTROL  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -77,7 +86,7 @@ The advanced features of the Stepper Driver are handled via Uart.
 */
 SpeedyStepper X_stepper;    // motor 0
 SpeedyStepper Y0_stepper;   // motor 1
-SpeedyStepper Y1_stepper;  // motor 2_1 2_2
+SpeedyStepper Y1_stepper;   // motor 2_1 2_2
 SpeedyStepper Y3_stepper;   // motor 3
 SpeedyStepper AOAT_stepper; // motor 4
 SpeedyStepper AOAB_stepper; // motor 5
@@ -105,10 +114,10 @@ float AoA[2]; // floating point for AoA: Top,Bottom
 float AoA_t_value[4]; // Top AoA: Hundreds,tens/ones,Decimal
 float AoA_b_value[4]; // Bottom AoA: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ X Movement Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-float Xpos;         // X position float value
+float Xpos;       // X position float value
 float X_value[3]; // X pos : Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ Y Movemnt Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-float Ypos;         // X position float value
+float Ypos;       // X position float value
 float Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Absolute Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB,EXTRA" // modified for new motherboard
@@ -122,14 +131,14 @@ volatile bool y3home = false;
 volatile bool y4home = false;
 volatile bool aoathome = false;
 volatile bool aoabhome = false;
-const int Motor0LimitSw = PG6; 
-const int Motor1LimitSw =PG12;
-const int Motor2LimitSw = PG9; 
-const int Motor3LimitSw =PG13; 
-const int Motor4LimitSw = PG10; 
-const int Motor5LimitSw =PG14; 
-const int Motor6LimitSw = PG11; 
-const int Motor7LimitSw =PG15;  
+const int Motor0LimitSw = PG6;
+const int Motor1LimitSw = PG12;
+const int Motor2LimitSw = PG9;
+const int Motor3LimitSw = PG13;
+const int Motor4LimitSw = PG10;
+const int Motor5LimitSw = PG14;
+const int Motor6LimitSw = PG11;
+const int Motor7LimitSw = PG15;
 // Reset Pin -> off of the RGB HEADDER J37
 // const int Reset=PB0;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Menu Stuff~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -147,27 +156,31 @@ const char *Setting_list = // Define the Settings Sub menu options
     "Speed\n"
     "Serial Com.\n" // "Trigger Mode\n"
     "Home All Axis\n"
+    "Firmware Flash\n"
     "BACK";
 
 const char *Com_select = // Communcations method select menu
     "SERIAL\n"
     "LCD";
-// const char *Motion_select = // motion select menu 
+// const char *Motion_select = // motion select menu
 //     "Trigger ON\n"
 //     "Trigger OFF";
 
 const char *Error_String = // Error strings
-    "Acknowledge\n"
-    "Main Menu\n"
-    "Software Restart";
+    " Acknowledge \n"
+    " Main Menu \n"
+    " Software Restart ";
+
+const char *Y_or_N_String = // Error strings
+    " YES \n"
+    " NO ";
 
 uint8_t current_selection = 0; // Keep track of current selection in menu
 uint8_t Sub_selection = 0;
-uint8_t Com_selection = 2;    // communications selection tracker by default use the LCD
-//uint8_t Motion_selection = 2; // Default to OFF
-// Experimental Menu Stuff
-uint8_t button_event =0;
-
+uint8_t Com_selection = 2; // communications selection tracker by default use the LCD
+// uint8_t Motion_selection = 2; // Default to OFF
+//  Experimental Menu Stuff
+uint8_t button_event = 0;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`End Variables~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -208,12 +221,42 @@ void SET_SPEED(int x, int y, int E0, int E1)
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SETUP lOOP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void setup(void)
 {
-  // float X_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[0])*Micro_stepping[0];
+  // This is hella dangerous messing with the stack here but hey gotta learn somehow
+  bootloader_flag = (uint32_t *)(&_estack - BOOTLOADER_FLAG_OFFSET); // below top of stack
+
+  if (*bootloader_flag == BOOTLOADER_FLAG_VALUE)
+  {
+
+    *bootloader_flag = 1;
+    /* Jump to system memory bootloader */
+    HAL_SuspendTick();
+    HAL_RCC_DeInit();
+    HAL_DeInit();
+    JumpAddress = *(__IO uint32_t *)(BOOTLOADER_ADDRESS + 4);
+    JumpToApplication = (pFunction)JumpAddress;
+    //__ASM volatile ("movs r3, #0\nldr r3, [r3, #0]\nMSR msp, r3\n" : : : "r3", "sp");
+    JumpToApplication();
+  }
+  if (*bootloader_flag = 1)
+  {
+    //__memory_changed(void);
+    HAL_RCC_DeInit();
+    SystemClock_Config();
+    HAL_Init();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOH_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+  }
+  *bootloader_flag = 0; // So next boot won't be affecteed
+
+  // HAL_Init();
+  // SystemClock_Config();
+  //  float X_to_micro=(1/X_Lead_p)*360*(1/Degree_per_step[0])*Micro_stepping[0];
   float X_to_micro = 6400;
   float Y_to_micro = 6400;
   Serial.begin(9600); // Begin serial ouput communication for debug and input of value array.
   // while (! Serial); // debug waiting for the computer to connect
-  //Serial.println(Y_to_micro);
+  // Serial.println(Y_to_micro);
   // set up the interrpts
   attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, CHANGE);
@@ -223,18 +266,18 @@ void setup(void)
   attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(Motor7LimitSw), x2HomeIsr, CHANGE);
-  //attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger
-  //attachInterrupt(digitalPinToInterrupt(Estop_pin), estopIsr, FALLING); //External Trigger  
+  // attachInterrupt(digitalPinToInterrupt(TRIGGER_PIN), motionTriggerIsr, FALLING); //External Trigger
+  // attachInterrupt(digitalPinToInterrupt(Estop_pin), estopIsr, FALLING); //External Trigger
 
   // delay(5000); // dely five seconds so the monitor can connect first --> VsCode monitor only
   DRIVER_SETUP();
   PIN_SETUP(); // Initilize all the Pins
   Serial.println("PUT LCD INTO DESIRED MODE AND SERIAL COMMUNCATION -->BEFORE<-- YOU INPUT --->ANYTHING<---!!!\n");
   Serial.println("");
-  SET_ACELL(10, 10, 10, 10);   // Set motor acceleration
+  SET_ACELL(10, 10, 10, 10); // Set motor acceleration
   SET_SPEED(10, 20, 20, 20); // Set motor Speed
-  gui_output_function();       // initilize the GUI
-                               /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
+  gui_output_function();     // initilize the GUI
+                             /* Here we need to home all Axis and print over serial : % X0.00 Y0.00 T0.00 B0.00 % to initilize the GUI */
 
   u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE12, /* menu_prev_pin= */ PE9, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
   // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion.
@@ -264,7 +307,7 @@ void loop(void)
     // u8g2.userInterfaceInputValue("X movment:", "", &X_value[1], 0, 5, 1, " *-* Hundreds of MM ");
     // u8g2.userInterfaceInputValue("X movment:", "", &X_value[2], 0, 60, 2, " *-* Tens/Ones MM ");
     // u8g2.userInterfaceInputValue("X movment:", "", &X_value[3], 0, 9, 1, " *-* Decimal MM ");
-    Draw_userinput("X position:", "  ", &X_value[2], -500 , 1000 , "mm");
+    Draw_userinput("X position:", "  ", &X_value[2], -500, 1000, "mm");
     Xpos = X_value[0] * 1000 + X_value[1] * 100 + X_value[2] + X_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
     // move function call here
     MOVE_FUNCTION();
@@ -276,8 +319,8 @@ void loop(void)
     // u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[1], 0, 3, 1, " *-* Hundreds of MM ");
     // u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[2], 0, 60, 2, " *-* Tens/Ones MM ");
     // u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[3], 0, 9, 1, " *-* Decimal MM ");
-    Draw_userinput("Y position:", "  ", &Y_value[2], -500 , 1000 , "mm");
-    Ypos =Y_value[0] * 1000 + Y_value[1] * 100 + Y_value[2] + Y_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
+    Draw_userinput("Y position:", "  ", &Y_value[2], -500, 1000, "mm");
+    Ypos = Y_value[0] * 1000 + Y_value[1] * 100 + Y_value[2] + Y_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
     /// move function call here
     MOVE_FUNCTION();
   }
@@ -288,8 +331,8 @@ void loop(void)
     // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 20, 3, " 0-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    Draw_userinput("AOA Top:", "  ", &AoA_t_value[2], -500 , 1000 , "Degrees");
-    AoA[0] = -1* AoA_t_value[0]+ -1*AoA_t_value[1]/10 + AoA_t_value[2]+AoA_t_value[3]/10; // This is the desierd angle we want in a floting point int.
+    Draw_userinput("AOA Top:", "  ", &AoA_t_value[2], -500, 1000, "Degrees");
+    AoA[0] = -1 * AoA_t_value[0] + -1 * AoA_t_value[1] / 10 + AoA_t_value[2] + AoA_t_value[3] / 10; // This is the desierd angle we want in a floting point int.
     // Move function call here
     MOVE_FUNCTION();
     // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step
@@ -305,8 +348,8 @@ void loop(void)
     // u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 20, 2, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     // u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    Draw_userinput("AOA Bottom:", "  ", &AoA_b_value[2], -500 , 1000 , "Degrees");
-    AoA[1] = -1* AoA_b_value[0]+ -1*AoA_b_value[1]/10 + AoA_b_value[2]+AoA_b_value[3]/10; // This is the desierd angle we want in a floting point int.
+    Draw_userinput("AOA Bottom:", "  ", &AoA_b_value[2], -500, 1000, "Degrees");
+    AoA[1] = -1 * AoA_b_value[0] + -1 * AoA_b_value[1] / 10 + AoA_b_value[2] + AoA_b_value[3] / 10; // This is the desierd angle we want in a floting point int.
     // move function call here
     MOVE_FUNCTION();
     // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step
@@ -329,7 +372,7 @@ void loop(void)
     {
       // Acceleration Settings Code
       u8g2.userInterfaceInputValue("Acceleration:", "", Acceleration, 0, 20, 2, "*25 Rev/s^2");
-      SET_ACELL(*Acceleration * 25, *Acceleration * 25, *Acceleration , *Acceleration);
+      SET_ACELL(*Acceleration * 25, *Acceleration * 25, *Acceleration, *Acceleration);
     }
     if (Sub_selection == 2)
     {
@@ -357,6 +400,26 @@ void loop(void)
       HomeAll();
     }
     if (Sub_selection == 5)
+    {
+      uint8_t FW_selection = 2; // default to hovering over the No option.
+      // Head back to Main meanu
+      FW_selection = u8g2.userInterfaceMessage("FIRMWARE FLASH:", "Are you sure you want", "to flash firmware?", Y_or_N_String);
+
+      if (FW_selection == 1)
+      {
+        // Ok go back to where the function was called from This option works because where this error is called
+        //__disable_irq(); // may or may not be relevant
+        *bootloader_flag = BOOTLOADER_FLAG_VALUE;
+        NVIC_SystemReset();
+      }
+      if (FW_selection == 2)
+      {
+        // Head back to Main meanu
+        Abs_pos_error = true;
+        MAIN_MENU();
+      }
+    }
+    if (Sub_selection == 6)
     {
       // Head back to Main meanu
       MAIN_MENU();
@@ -409,11 +472,13 @@ void aoabHomeIsr()
 {
   aoabhome = !aoabhome;
 }
-void motionTriggerIsr(){
+void motionTriggerIsr()
+{
   Go_Pressed = true;
 }
-void estopIsr(){
-  NVIC_SystemReset(); // use a software reset to kill the board 
+void estopIsr()
+{
+  NVIC_SystemReset(); // use a software reset to kill the board
 }
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
@@ -426,7 +491,7 @@ Include it in every version that is compiled form this platfrom IO envrioment
 
 extern "C" void SystemClock_Config(void)
 {
-#ifdef OCTOPUS_BOARD
+//#ifdef OCTOPUS_BOARD
 #ifdef OCTOPUS_BOARD_FROM_HSI
   /* boot from HSI, internal 16MHz RC, to 168MHz. **NO USB POSSIBLE**, needs HSE! */
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -510,49 +575,49 @@ extern "C" void SystemClock_Config(void)
     Error_Handler();
   }
 #endif
-#else
-  /* nucleo board, 8MHz external clock input, HSE in bypass mode */
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+  // #else
+  //   /* nucleo board, 8MHz external clock input, HSE in bypass mode */
+  //   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  //   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  //   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-   */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 168;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 7;
-  RCC_OscInitStruct.PLL.PLLR = 2;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the CPU, AHB and APB buses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+  //   /** Configure the main internal regulator output voltage
+  //    */
+  //   __HAL_RCC_PWR_CLK_ENABLE();
+  //   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  //   /** Initializes the RCC Oscillators according to the specified parameters
+  //    * in the RCC_OscInitTypeDef structure.
+  //    */
+  //   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  //   RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  //   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  //   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  //   RCC_OscInitStruct.PLL.PLLM = 4;
+  //   RCC_OscInitStruct.PLL.PLLN = 168;
+  //   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  //   RCC_OscInitStruct.PLL.PLLQ = 7;
+  //   RCC_OscInitStruct.PLL.PLLR = 2;
+  //   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  //   {
+  //     Error_Handler();
+  //   }
+  //   /** Initializes the CPU, AHB and APB buses clocks
+  //    */
+  //   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  //   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  //   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  //   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  //   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CLK48;
-  PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLQ;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-#endif
+  //   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+  //   {
+  //     Error_Handler();
+  //   }
+  //   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CLK48;
+  //   PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLQ;
+  //   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  //   {
+  //     Error_Handler();
+  //   }
+  // #endif
 }
