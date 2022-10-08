@@ -42,9 +42,9 @@ const int MOTOR6_STEP_PIN = PE2;  // z axis
 const int MOTOR6_DIRECTION_PIN  = PE3;  // z axis 
 const int MOTOR6_ENABLE= PD4;  // z axis;
 // Motor 7
-const int MOTOR7_STEP_PIN = PE6;  // z axis 
-const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis  // disabled for SWD programming 
-const int MOTOR7_ENABLE= PE0;  // z axis;
+//const int MOTOR7_STEP_PIN = PE6;  // z axis 
+//const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis  // disabled for SWD programming 
+//const int MOTOR7_ENABLE= PE0;  // z axis;
 
 
 
@@ -83,9 +83,9 @@ pinMode(MOTOR6_STEP_PIN, OUTPUT);
 pinMode(MOTOR6_DIRECTION_PIN, OUTPUT);
 pinMode(MOTOR6_ENABLE, OUTPUT);
 // Y motor 4 
-pinMode(MOTOR7_STEP_PIN, OUTPUT);
-pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
-pinMode(MOTOR7_ENABLE, OUTPUT);
+//pinMode(MOTOR7_STEP_PIN, OUTPUT);
+//pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
+//pinMode(MOTOR7_ENABLE, OUTPUT);
 // Limit Switches
 pinMode(Motor0LimitSw, INPUT);
 pinMode(Motor1LimitSw, INPUT);
@@ -94,7 +94,7 @@ pinMode(Motor3LimitSw, INPUT);
 pinMode(Motor4LimitSw, INPUT);
 pinMode(Motor5LimitSw, INPUT);
 pinMode(Motor6LimitSw, INPUT);
-pinMode(Motor7LimitSw, INPUT);
+//pinMode(Motor7LimitSw, INPUT);
 // Extras 
 // pinMode(4, OUTPUT); // Fan Pin Initilization 
 pinMode(BEEPER, OUTPUT); // Beeper on LCD
@@ -123,7 +123,7 @@ digitalWrite(MOTOR3_ENABLE , LOW);
 digitalWrite(MOTOR4_ENABLE , LOW);
 digitalWrite(MOTOR5_ENABLE , LOW);
 digitalWrite(MOTOR6_ENABLE , LOW); // Extras disabled for now
-digitalWrite(MOTOR7_ENABLE , LOW);
+//digitalWrite(MOTOR7_ENABLE , LOW);
 
 // digitalWrite(BEEPER, HIGH); // test if board is running code without lcd
 // Connect the Stepper Library To the Correct Pins 
@@ -134,5 +134,5 @@ Y3_stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
 AOAT_stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
 AOAB_stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
 X2_stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-Y2_stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+//Y2_stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
 }
