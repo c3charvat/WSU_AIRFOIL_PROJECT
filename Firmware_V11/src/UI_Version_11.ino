@@ -35,7 +35,7 @@ using namespace TMC2208_n;       // Allows the TMC2209 to use functions out of t
 #define DOCTOPUS_BOARD
 #define DOCTOPUS_BOARD_FROM_HSE
 // Dev Settings
-bool Endstop_Bypass_enable = true;
+bool Endstop_Bypass_enable = false;
 bool Verbose_mode = true;
 // Jump to bootloader stuff:
 extern int _estack;
@@ -60,7 +60,7 @@ TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, D
 /* In This section are the maximum travel distances for each of the axis */
 int Micro_stepping[5] = {64, 64, 64, 64, 64};         // mirco stepping for the drivers
 float Degree_per_step[5] = {1.8, 1.8, 1.8, 1.8, 1.8}; // mirco stepping for the drivers
-const int Xpos_MAX = 350;                             // Max X length in MM
+const int Xpos_MAX = 390;                             // Max X length in MM
 const int Ypos_MAX = 245;                             // MAy Y length in MM
 const int X_Lead_p = 2;                               // X lead screw pitch in mm/revolution
 const int Y_Lead_p = 2;                               // Y lead screw pitch in mm
@@ -302,36 +302,39 @@ void loop(void)
   //  }
   if (current_selection == 1)
   {
+    float increments[]={100,10,1,.1,.01};
     // X movement
     // u8g2.userInterfaceInputValue( "X movment:", "", &X_value[0] , 0, 3 , 1 , " *-* Thousands of MM "); // Removed at the request of Dr. Y Functionality preserved
     // u8g2.userInterfaceInputValue("X movment:", "", &X_value[1], 0, 5, 1, " *-* Hundreds of MM ");
     // u8g2.userInterfaceInputValue("X movment:", "", &X_value[2], 0, 60, 2, " *-* Tens/Ones MM ");
     // u8g2.userInterfaceInputValue("X movment:", "", &X_value[3], 0, 9, 1, " *-* Decimal MM ");
-    Draw_userinput("X position:", "  ", &X_value[2], -500, 1000, "mm");
+    Draw_userinput("X position:", "  ", &X_value[2],0, 1000, "mm", increments);
     Xpos = X_value[0] * 1000 + X_value[1] * 100 + X_value[2] + X_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
     // move function call here
     MOVE_FUNCTION();
   }
   if (current_selection == 2)
   {
+    float increments[]={100,10,1,.1,.01};
     // Y movemnt
     // u8g2.userInterfaceInputValue( "Y movment:", "", &Y_value[0] , 0, 3 , 1 , " *-* Thousands of MM "); // Removed at the request of Dr. Y Functionality preserved
     // u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[1], 0, 3, 1, " *-* Hundreds of MM ");
     // u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[2], 0, 60, 2, " *-* Tens/Ones MM ");
     // u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[3], 0, 9, 1, " *-* Decimal MM ");
-    Draw_userinput("Y position:", "  ", &Y_value[2], -500, 1000, "mm");
+    Draw_userinput("Y position:", "  ", &Y_value[2], 0, 245, "mm", increments);
     Ypos = Y_value[0] * 1000 + Y_value[1] * 100 + Y_value[2] + Y_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
     /// move function call here
     MOVE_FUNCTION();
   }
   if (current_selection == 3)
   {
+    float increments[]={1,.1,.01};
     // u8g2.userInterfaceInputValue("AOA top:", "-", &AoA_t_value[0], 0, 20, 1, " 0-20 Negitive");
     // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], 0, 9, 1, " 0-9 Negitive Decimal Degree");
     // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 20, 3, " 0-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    Draw_userinput("AOA Top:", "  ", &AoA_t_value[2], -500, 1000, "Degrees");
+    Draw_userinput("AOA Top:", "  ", &AoA_t_value[2], -500, 1000, "Degrees",increments);
     AoA[0] = -1 * AoA_t_value[0] + -1 * AoA_t_value[1] / 10 + AoA_t_value[2] + AoA_t_value[3] / 10; // This is the desierd angle we want in a floting point int.
     // Move function call here
     MOVE_FUNCTION();
@@ -343,12 +346,13 @@ void loop(void)
   }
   if (current_selection == 4)
   {
+    float increments[]={1,.1,.01};
     // u8g2.userInterfaceInputValue("AOA Bottom:", "-", &AoA_b_value[0], 0, 20, 1, " 0-20 Negitive");
     // u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], 0, 9, 1, " 0-9 Decimal Degree");
     // u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 20, 2, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     // u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    Draw_userinput("AOA Bottom:", "  ", &AoA_b_value[2], -500, 1000, "Degrees");
+    Draw_userinput("AOA Bottom:", "  ", &AoA_b_value[2], -500, 1000, "Degrees",increments);
     AoA[1] = -1 * AoA_b_value[0] + -1 * AoA_b_value[1] / 10 + AoA_b_value[2] + AoA_b_value[3] / 10; // This is the desierd angle we want in a floting point int.
     // move function call here
     MOVE_FUNCTION();
