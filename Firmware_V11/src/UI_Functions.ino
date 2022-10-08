@@ -59,12 +59,11 @@ void SERIAL_UI(void)
 }
 // untested code bit aim here is to simplfy the direction menus down to one input menu
 // u8g2.userInterfaceInputValue("AOA top:", "-", &AoA_t_value[0], 0, 20, 1, " 0-20 Negitive");
-void Draw_userinput(const char *title, const char *pre, float *DisplayValue, float lo, float hi, const char *post){
+void Draw_userinput(const char *title, const char *pre, float *DisplayValue, float lo, float hi, const char *post, float increments[] ){
   //float DisplayValue = *Value;
   int button_event =0;
   String TempString=String(*DisplayValue); // convert to a string 
   u8g2.clearBuffer();
-  float increments[]={100,10,1,.1,.01};
   for ( int i=0; i<=4; i++)
   {
     do
