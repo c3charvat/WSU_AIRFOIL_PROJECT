@@ -13,11 +13,13 @@ bool  Angle_Error(int a) { // pass in an intager corresponding to the axis that 
   if ( Error_selection == 1) {
     // Ok go back to where the function was called from This option works because where this error is called
     Abs_pos_error= true;
+    serial_flush_buffer();
     return 0;
   }
   if ( Error_selection == 2) {
     // Head back to Main meanu
     Abs_pos_error= true;
+    serial_flush_buffer();
     MAIN_MENU();
     return 0;
   }
@@ -33,12 +35,14 @@ void Somthing_Error(void) {
 
   if ( Error_selection == 1) {
     // acknowledge
+    serial_flush_buffer();
     return;
     
   }
   if ( Error_selection == 2) {
     // Head back to Main meanu
     MAIN_MENU();
+    serial_flush_buffer();
   }
   if ( Error_selection ==3){
     // software resert -> from mbed os
