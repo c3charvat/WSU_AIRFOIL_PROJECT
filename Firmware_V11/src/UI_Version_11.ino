@@ -311,7 +311,7 @@ void loop(void)
     // u8g2.userInterfaceInputValue("X movment:", "", &X_value[1], 0, 5, 1, " *-* Hundreds of MM ");
     // u8g2.userInterfaceInputValue("X movment:", "", &X_value[2], 0, 60, 2, " *-* Tens/Ones MM ");
     // u8g2.userInterfaceInputValue("X movment:", "", &X_value[3], 0, 9, 1, " *-* Decimal MM ");
-    Draw_userinput("X position:", "  ", &X_value[2],0, 1000, "mm", increments);
+    Draw_userinput("X position:", "  ", &X_value[2],0, 300, "mm", increments);
     Xpos = X_value[0] * 1000 + X_value[1] * 100 + X_value[2] + X_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
     // move function call here
     MOVE_FUNCTION();
@@ -337,7 +337,7 @@ void loop(void)
     // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 20, 3, " 0-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    Draw_userinput("AOA Top:", "  ", &AoA_t_value[2], -500, 1000, "Degrees",increments);
+    Draw_userinput("AOA Top:", "  ", &AoA_t_value[2], -10, 30, "Degrees",increments);
     AoA[0] = -1 * AoA_t_value[0] + -1 * AoA_t_value[1] / 10 + AoA_t_value[2] + AoA_t_value[3] / 10; // This is the desierd angle we want in a floting point int.
     // Move function call here
     MOVE_FUNCTION();
@@ -355,7 +355,7 @@ void loop(void)
     // u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 20, 2, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
     // u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[3], 0, 9, 1, " 0-9 Decimal Degree");
     //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    Draw_userinput("AOA Bottom:", "  ", &AoA_b_value[2], -500, 1000, "Degrees",increments);
+    Draw_userinput("AOA Bottom:", "  ", &AoA_b_value[2], -10, 30, "Degrees",increments);
     AoA[1] = -1 * AoA_b_value[0] + -1 * AoA_b_value[1] / 10 + AoA_b_value[2] + AoA_b_value[3] / 10; // This is the desierd angle we want in a floting point int.
     // move function call here
     MOVE_FUNCTION();
