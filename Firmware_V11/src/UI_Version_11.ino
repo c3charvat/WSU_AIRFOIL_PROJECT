@@ -246,6 +246,9 @@ void setup(void)
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOH_CLK_ENABLE();
     __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOG_CLK_ENABLE();
+    __HAL_RCC_GPIOF_CLK_ENABLE();
+    __HAL_RCC_GPIOE_CLK_ENABLE();
   }
   *bootloader_flag = 0; // So next boot won't be affecteed
 
@@ -407,6 +410,9 @@ void loop(void)
 
       if (FW_selection == 1)
       {
+        u8g2.clear();
+        u8g2.drawStr(2,u8g2.getMaxCharHeight() * 3 + 1, "Firmware Flash Mode!");
+        u8g2.sendBuffer();
         // Ok go back to where the function was called from This option works because where this error is called
         //__disable_irq(); // may or may not be relevant
         *bootloader_flag = BOOTLOADER_FLAG_VALUE;
