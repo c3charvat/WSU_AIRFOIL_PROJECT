@@ -3,13 +3,6 @@ Version 12
 Written by: Collin Charvat
 liscence: N/A
 This program was written to drive the Dual Airfoil experiment at Wright State Uni.
-The main gaols of this code are to drive 8 steppers in multiple different modes of operation/
-They are:
-LCD Static - As Soon as an axis is commanded to move, move and the stay there and hold until otherwise.
-LCD Trigger - allow the end user to input muiltple axis destinations then press a menu selection to move all axis at once
-LCD w. Ext. Trigger - The same as above, but the menu does nothing instead the system waits on a physical trigger to begin motion
-Serial Static- As soon as data is passed in via serial move.
-Serial W. Ext. Trigger - allow the user to program the desired destination the press the external trigger to move
 */
 /* Libraries
 These are sets of pre- Made functions and code that simplifies the code.
@@ -35,7 +28,7 @@ using namespace TMC2208_n;       // Allows the TMC2209 to use functions out of t
 #define DOCTOPUS_BOARD
 #define DOCTOPUS_BOARD_FROM_HSE
 // Dev Settings
-bool Endstop_Bypass_enable = false;
+bool Endstop_Bypass_enable = true;
 bool Verbose_mode = true;
 // Jump to bootloader stuff:
 extern int _estack;
@@ -106,19 +99,13 @@ char tempChars[numChars] = {};     // temporary char array used when parsing sin
 int Speed_Data[5] = {0, 0, 0, 0, 0}; // Hold the Speed Data
 int Acell_Data[5] = {0, 0, 0, 0, 0}; // Hold the acelleration data
 bool newData = false;                // Cotrol Entry into the Serial Reader
-// ~~~~~~~~~~~~~~~~~~~ LCD Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~ UI Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~~~~~~~~~~~~~~ Angle of Attack Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float AoA[2]; // floating point for AoA: Top,Bottom
-// Passing in unsigned 8 bit intger ( Thats what the fucking UI command wants)
-// the max of a 8 bit int is 255 and there are 360 derees ** this willl have to be changed to support up to .05 ) which will require
-float AoA_t_value[4]; // Top AoA: Hundreds,tens/ones,Decimal
-float AoA_b_value[4]; // Bottom AoA: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ X Movement Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float Xpos;       // X position float value
-float X_value[3]; // X pos : Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ Y Movemnt Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float Ypos;       // X position float value
-float Y_value[3]; // Y pos: Hundreds,tens/ones,Decimal
 // ~~~~~~~~~~~~~~~~~~~~~~~~~ Absolute Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float CurrentPositions[5] = {0, 0, 0, 0, 0}; // X,Y,AOAT,AOAB -> " x y AOAT AOAB,EXTRA" // modified for new motherboard
 float movevar[5] = {0, 0, 0, 0, 0};          // X,Y,AOAT,AOAB , E2 // modified for new motherboard this wont get used though since the extra stepper is going to mirror another axis
@@ -291,10 +278,12 @@ void setup(void)
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VOID LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void loop(void)
+void loop(void) // Super loop that drives the whole system.
 {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ User Interface Code ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   MAIN_MENU(); // issues the main menu command
+  // To Do Bring in All Global Varibles to here and form them into a struct and then pass that into the functions like Serial UI and Home all/
+
   //
   //  if ( current_selection == 0 ) {
   //    u8g2.userInterfaceMessage(
@@ -307,39 +296,21 @@ void loop(void)
   {
     float increments[]={100,10,1,.1,.01};
     // X movement
-    // u8g2.userInterfaceInputValue( "X movment:", "", &X_value[0] , 0, 3 , 1 , " *-* Thousands of MM "); // Removed at the request of Dr. Y Functionality preserved
-    // u8g2.userInterfaceInputValue("X movment:", "", &X_value[1], 0, 5, 1, " *-* Hundreds of MM ");
-    // u8g2.userInterfaceInputValue("X movment:", "", &X_value[2], 0, 60, 2, " *-* Tens/Ones MM ");
-    // u8g2.userInterfaceInputValue("X movment:", "", &X_value[3], 0, 9, 1, " *-* Decimal MM ");
-    Draw_userinput("X position:", "  ", &X_value[2],0, 300, "mm", increments);
-    Xpos = X_value[0] * 1000 + X_value[1] * 100 + X_value[2] + X_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
-    // move function call here
+    Draw_userinput("X position:", "  ", &Xpos,0, Xpos_MAX , "mm", increments);
     MOVE_FUNCTION();
   }
   if (current_selection == 2)
   {
     float increments[]={100,10,1,.1,.01};
-    // Y movemnt
-    // u8g2.userInterfaceInputValue( "Y movment:", "", &Y_value[0] , 0, 3 , 1 , " *-* Thousands of MM "); // Removed at the request of Dr. Y Functionality preserved
-    // u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[1], 0, 3, 1, " *-* Hundreds of MM ");
-    // u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[2], 0, 60, 2, " *-* Tens/Ones MM ");
-    // u8g2.userInterfaceInputValue("Y movment:", "", &Y_value[3], 0, 9, 1, " *-* Decimal MM ");
-    Draw_userinput("Y position:", "  ", &Y_value[2], 0, 245, "mm", increments);
-    Ypos = Y_value[0] * 1000 + Y_value[1] * 100 + Y_value[2] + Y_value[3] / 10; // add the two intgers toghter into a float because jesus its so much easier to work with the intger
-    /// move function call here
+    // y movement
+    Draw_userinput("Y position:", "  ", &Ypos, 0, Ypos_MAX, "mm", increments);
     MOVE_FUNCTION();
   }
   if (current_selection == 3)
   {
     float increments[]={1,.1,.01};
-    // u8g2.userInterfaceInputValue("AOA top:", "-", &AoA_t_value[0], 0, 20, 1, " 0-20 Negitive");
-    // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[1], 0, 9, 1, " 0-9 Negitive Decimal Degree");
-    // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[2], 0, 20, 3, " 0-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
-    // u8g2.userInterfaceInputValue("AOA Top:", "", &AoA_t_value[3], 0, 9, 1, " 0-9 Decimal Degree");
-    //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    Draw_userinput("AOA Top:", "  ", &AoA_t_value[2], -10, 30, "Degrees",increments);
-    AoA[0] = -1 * AoA_t_value[0] + -1 * AoA_t_value[1] / 10 + AoA_t_value[2] + AoA_t_value[3] / 10; // This is the desierd angle we want in a floting point int.
-    // Move function call here
+    //AOA Top movment 
+    Draw_userinput("AOA Top:", "  ", &AoA[0], -10, 30, "Degrees",increments);
     MOVE_FUNCTION();
     // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step
 
@@ -349,17 +320,10 @@ void loop(void)
   }
   if (current_selection == 4)
   {
+    //AOA Bottom Movement
     float increments[]={1,.1,.01};
-    // u8g2.userInterfaceInputValue("AOA Bottom:", "-", &AoA_b_value[0], 0, 20, 1, " 0-20 Negitive");
-    // u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[1], 0, 9, 1, " 0-9 Decimal Degree");
-    // u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[2], 0, 20, 2, " -5-20 Tens/Ones Degree"); // Error Message needs to be made if the input is made over the max AoA
-    // u8g2.userInterfaceInputValue("AOA Bottom:", "", &AoA_b_value[3], 0, 9, 1, " 0-9 Decimal Degree");
-    //  headder,re string, pointer to unsigned char, min value, max vlaue, # of digits , post char
-    Draw_userinput("AOA Bottom:", "  ", &AoA_b_value[2], -10, 30, "Degrees",increments);
-    AoA[1] = -1 * AoA_b_value[0] + -1 * AoA_b_value[1] / 10 + AoA_b_value[2] + AoA_b_value[3] / 10; // This is the desierd angle we want in a floting point int.
-    // move function call here
+    Draw_userinput("AOA Bottom:", "  ", &AoA[1], -10, 30, "Degrees",increments);
     MOVE_FUNCTION();
-    // 200 possible steps per revolution and 1/16 miro stepping meaning a pssiblity of 3,200 possible postions 360*/1.8 degrees/step
   }
 
   if (current_selection == 5)
@@ -418,7 +382,7 @@ void loop(void)
         u8g2.drawStr(2,u8g2.getMaxCharHeight() * 3 + 1, "Firmware Flash Mode!");
         u8g2.sendBuffer();
         // Ok go back to where the function was called from This option works because where this error is called
-        //__disable_irq(); // may or may not be relevant
+        //__disable_irq(); // Dont disable inttrupts or the clocks can init after the jump out
         *bootloader_flag = BOOTLOADER_FLAG_VALUE;
         NVIC_SystemReset();
       }
