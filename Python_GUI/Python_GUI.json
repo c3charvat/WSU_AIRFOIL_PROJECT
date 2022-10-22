@@ -8,11 +8,8 @@
     "databits": 8,
     "parity": "N",
     "stopbits": 1,
-    "portindex": 3,
+    "portindex": -1,
     "portlist": {
-        "COM4": "USB Serial Device (COM4)",
-        "COM5": "USB Serial Device (COM5)",
-        "COM1": "Communications Port (COM1)",
-        "COM3": "USB Serial Device (COM3)"
+        "COM1": "Communications Port (COM1)"
     }
 }

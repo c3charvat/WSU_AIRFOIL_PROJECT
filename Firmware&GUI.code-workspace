@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "Firmware_V11"
+		},
+		{
+			"path": "FirmwareV_12"
 		}
 	],
 	"settings": {
