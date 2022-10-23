@@ -5,6 +5,9 @@
 #include <TMCStepper.h>
 #include <TMCStepper_UTILITY.h>
 #include <stm32yyxx_ll_gpio.h>
+
+#include "Pin_Setup.h"
+
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
 #endif
@@ -28,6 +31,21 @@ extern int _estack;
 uint32_t *bootloader_flag;
 pFunction JumpToApplication;
 uint32_t JumpAddress;
+
+
+
+//n pre delcared functions 
+void setup();
+void xHomeIsr();
+void x2HomeIsr();
+void y1HomeIsr();
+void y2HomeIsr();
+void y3HomeIsr();
+void y4HomeIsr();
+void aoatHomeIsr();
+void aoabHomeIsr();
+void motionTriggerIsr();
+void estopIsr();
 
 
 int main()
@@ -62,17 +80,112 @@ int main()
     __HAL_RCC_GPIOE_CLK_ENABLE();
   }
   *bootloader_flag = 0; // So next boot won't be affecteed
-    // Begin normal run
-    // run set 
+    ////// Begin normal run
+    /// Global Varibles
+    /// run setup 
+    setup();
+    // initilise External Coms
+    // handle usb connection setup
+    // handle wifi connection setup
+    // check connection status - if there is somthing connected or trying to connect. 
+    // set connection status 
+    // if there is somthing connected Auto change to that Com. 
+
     // jump into main application
     // infinite loop
     for ( ; ; ) { // run the main application 
     // statement(s)
+
+
     }
+}
+
+void setup(){
+    // put the initlization code here.
+    /// Setup Innterupts
+    attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), y2HomeIsr, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(Motor3LimitSw), y3HomeIsr, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y4HomeIsr, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(Motor7LimitSw), x2HomeIsr, CHANGE);
+    //// Setpper Driver Initilization
+    // TMC Stepper Class
+    TMC2209Stepper driverX(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
+    TMC2209Stepper driverX2(PE1, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
+    TMC2209Stepper driverY0(PD11, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
+    TMC2209Stepper driverY1(PC6, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
+    TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
+    TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver Address) Software serial X axis
+    TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
+    TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
+    // TMC2209Stepper driverE3(PE1, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
+    
+    //Speedy Stepper            // Octopus board plug. 
+    SpeedyStepper X_stepper;    // motor 0
+    SpeedyStepper Y0_stepper;   // motor 1
+    SpeedyStepper Y1_stepper;   // motor 2_1
+    SpeedyStepper Y3_stepper;   // motor 3
+    SpeedyStepper AOAT_stepper; // motor 4
+    SpeedyStepper AOAB_stepper; // motor 5
+    SpeedyStepper Y2_stepper;   // motor 6
+    SpeedyStepper X2_stepper;   // motor 7
+
+    X_stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
+    Y0_stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
+    Y1_stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
+    Y3_stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
+    AOAT_stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
+    AOAB_stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
+    X2_stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
+//Y2_stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+
 }
 
 
 
+void xHomeIsr()
+{
+  xhome = !xhome; // set set them as hommed when the homing function is called
+}
+void x2HomeIsr()
+{
+  x2home = !xhome; // set set them as hommed when the homing function is called
+}
+void y1HomeIsr()
+{
+  y1home = !y1home;
+}
+void y2HomeIsr()
+{
+  y2home = !y2home;
+}
+void y3HomeIsr()
+{
+  y3home = !y3home;
+}
+void y4HomeIsr()
+{
+  y4home = !y4home;
+}
+void aoatHomeIsr()
+{
+  aoathome = !aoathome;
+}
+void aoabHomeIsr()
+{
+  aoabhome = !aoabhome;
+}
+void motionTriggerIsr()
+{
+  Go_Pressed = true;
+}
+void estopIsr()
+{
+  NVIC_SystemReset(); // use a software reset to kill the board
+}
 
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
