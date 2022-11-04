@@ -1,13 +1,13 @@
 {
 	"folders": [
 		{
-			"path": "Python_GUI"
+			"path": "../Python_GUI"
 		},
 		{
-			"path": "Firmware_V11"
+			"path": "../Firmware_V11"
 		},
 		{
-			"path": "Firmware_V12"
+			"path": "."
 		}
 	],
 	"settings": {

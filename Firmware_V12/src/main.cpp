@@ -2,6 +2,7 @@
 #include <Arduino.h> // Include Github links here
 #include <U8g2lib.h>
 #include <SpeedyStepper.h>
+#include "SerialTransfer.h"
 #include <TMCStepper.h>
 #include <TMCStepper_UTILITY.h>
 #include <stm32yyxx_ll_gpio.h>
@@ -32,10 +33,43 @@ uint32_t *bootloader_flag;
 pFunction JumpToApplication;
 uint32_t JumpAddress;
 
+//// Setpper Driver Initilization
+// TMC Stepper Class
+TMC2209Stepper driverX(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverX2(PE1, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY0(PD11, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY1(PC6, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver Address) Software serial X axis
+TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
+TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
+// TMC2209Stepper driverE3(PE1, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
+
+// Speedy Stepper            // Octopus board plug.
+SpeedyStepper X_stepper;    // motor 0
+SpeedyStepper Y0_stepper;   // motor 1
+SpeedyStepper Y1_stepper;   // motor 2_1
+SpeedyStepper Y3_stepper;   // motor 3
+SpeedyStepper AOAT_stepper; // motor 4
+SpeedyStepper AOAB_stepper; // motor 5
+SpeedyStepper Y2_stepper;   // motor 6
+SpeedyStepper X2_stepper;   // motor 7
+
+// Packetized Serial Trasfer
+SerialTransfer Esp32com;
 
 
-//n pre delcared functions 
-void setup();
+struct __attribute__((packed)) STRUCT {
+  char z;
+  float y;
+} TXStruct; // out
+
+struct __attribute__((packed)) STRUCT {
+  char z;
+  float y;
+} RxStruct; // in
+
+// n pre delcared functions
 void xHomeIsr();
 void x2HomeIsr();
 void y1HomeIsr();
@@ -47,11 +81,25 @@ void aoabHomeIsr();
 void motionTriggerIsr();
 void estopIsr();
 
+void setup()
+{
+  // put the initlization code here.
+
+  /// Setup Innterupts
+  X_stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
+  Y0_stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
+  Y1_stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
+  Y3_stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
+  AOAT_stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
+  AOAB_stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
+  X2_stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
+  // Y2_stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+}
 
 int main()
 {
-    // Run bootloader code
-    // This is hella dangerous messing with the stack here but hey gotta learn somehow
+  // Run bootloader code
+  // This is hella dangerous messing with the stack here but hey gotta learn somehow
   bootloader_flag = (uint32_t *)(&_estack - BOOTLOADER_FLAG_OFFSET); // below top of stack
   if (*bootloader_flag == BOOTLOADER_FLAG_VALUE)
   {
@@ -80,71 +128,37 @@ int main()
     __HAL_RCC_GPIOE_CLK_ENABLE();
   }
   *bootloader_flag = 0; // So next boot won't be affecteed
-    ////// Begin normal run
-    /// Global Varibles
-    /// run setup 
-    setup();
-    // initilise External Coms
-    // handle usb connection setup
-    // handle wifi connection setup
-    // check connection status - if there is somthing connected or trying to connect. 
-    // set connection status 
-    // if there is somthing connected Auto change to that Com. 
+  ////// Begin normal run
+  /// Global Varibles
+  /// run setup
+  setup();
+  // Attach inttrumpts here
 
-    // jump into main application
-    // infinite loop
-    for ( ; ; ) { // run the main application 
-    // statement(s)
+  // initilise External Coms
+  Serial1.begin(115200); // ESP32 COMS
+  Esp32com.begin(Serial1);
+  // handle usb connection setup
+  // handle wifi connection setup
+  // check connection status - if there is somthing connected or trying to connect.
+  // set connection status
+  // if there is somthing connected Auto change to that Com.
 
+  // jump into main application
+  // infinite loop
+  for (;;)
+  { // run the main
 
+    if (Esp32com.available())
+    {
+      // use this variable to keep track of how many
+      // bytes we've processed from the receive buffer
+      uint16_t recSize = 0;
+
+      recSize = Esp32com.rxObj(testStruct, recSize);
     }
+    // statement(s)
+  }
 }
-
-void setup(){
-    // put the initlization code here.
-    /// Setup Innterupts
-    attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), xHomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y1HomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), y2HomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor3LimitSw), y3HomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y4HomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor7LimitSw), x2HomeIsr, CHANGE);
-    //// Setpper Driver Initilization
-    // TMC Stepper Class
-    TMC2209Stepper driverX(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
-    TMC2209Stepper driverX2(PE1, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
-    TMC2209Stepper driverY0(PD11, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
-    TMC2209Stepper driverY1(PC6, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
-    TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
-    TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver Address) Software serial X axis
-    TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
-    TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
-    // TMC2209Stepper driverE3(PE1, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
-    
-    //Speedy Stepper            // Octopus board plug. 
-    SpeedyStepper X_stepper;    // motor 0
-    SpeedyStepper Y0_stepper;   // motor 1
-    SpeedyStepper Y1_stepper;   // motor 2_1
-    SpeedyStepper Y3_stepper;   // motor 3
-    SpeedyStepper AOAT_stepper; // motor 4
-    SpeedyStepper AOAB_stepper; // motor 5
-    SpeedyStepper Y2_stepper;   // motor 6
-    SpeedyStepper X2_stepper;   // motor 7
-
-    X_stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
-    Y0_stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
-    Y1_stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
-    Y3_stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
-    AOAT_stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
-    AOAB_stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
-    X2_stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-//Y2_stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
-
-}
-
-
 
 void xHomeIsr()
 {
@@ -187,18 +201,17 @@ void estopIsr()
   NVIC_SystemReset(); // use a software reset to kill the board
 }
 
-
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
 /*
 This section of code determines how the system clock is cofigured this is important for the
 STM32F446ZET6 in this case our board runs at 168 MHz not the 8Mhz external clock the board expects by default
 No need to understand, attempt to or even try to.
-Include it in every version that is compiled form this platfrom IO envrioment/stm32dunio envrioment 
+Include it in every version that is compiled form this platfrom IO envrioment/stm32dunio envrioment
 */
 
 extern "C" void SystemClock_Config(void)
 {
-//#ifdef OCTOPUS_BOARD
+// #ifdef OCTOPUS_BOARD
 #ifdef OCTOPUS_BOARD_FROM_HSI
   /* boot from HSI, internal 16MHz RC, to 168MHz. **NO USB POSSIBLE**, needs HSE! */
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
