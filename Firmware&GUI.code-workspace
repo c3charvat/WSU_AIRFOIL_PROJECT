@@ -8,6 +8,10 @@
 		},
 		{
 			"path": "Firmware_V12"
+		},
+		{
+			"name": "FirmwareV_12",
+			"path": "FirmwareV_12"
 		}
 	],
 	"settings": {
