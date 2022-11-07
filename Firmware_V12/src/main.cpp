@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <Arduino.h> // Include Github links here
 #include <U8g2lib.h>
 #include <SpeedyStepper.h>
@@ -6,7 +7,7 @@
 #include <TMCStepper.h>
 #include <TMCStepper_UTILITY.h>
 #include <stm32yyxx_ll_gpio.h>
-
+// Include custom functions written after this
 #include "Pin_Setup.h"
 
 #ifdef U8X8_HAVE_HW_SPI
@@ -25,13 +26,18 @@ using namespace TMC2208_n;       // Allows the TMC2209 to use functions out of t
 #define DOCTOPUS_BOARD_FROM_HSE
 using namespace std;
 // Dev Settings
-bool Endstop_Bypass_enable = true;
-bool Verbose_mode = true;
+//bool Swd_programming_mode = true;
+//bool Endstop_bypass_enable = true; // moved into a namespace 
+//bool Verbose_mode = true;
 // Jump to bootloader stuff:
 extern int _estack;
 uint32_t *bootloader_flag;
 pFunction JumpToApplication;
 uint32_t JumpAddress;
+//
+HardwareSerial Serial1(PD9,PD8); // Second serial instance for the wifi
+
+
 
 //// Setpper Driver Initilization
 // TMC Stepper Class
@@ -43,61 +49,75 @@ TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Dr
 TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver Address) Software serial X axis
 TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
 TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
-// TMC2209Stepper driverE3(PE1, PA6, .11f, DRIVER_ADDRESS ); // (RX, TX,RESENSE, Driver address) Software serial X axis
+
 
 // Speedy Stepper            // Octopus board plug.
-SpeedyStepper X_stepper;    // motor 0
-SpeedyStepper Y0_stepper;   // motor 1
-SpeedyStepper Y1_stepper;   // motor 2_1
-SpeedyStepper Y3_stepper;   // motor 3
-SpeedyStepper AOAT_stepper; // motor 4
-SpeedyStepper AOAB_stepper; // motor 5
-SpeedyStepper Y2_stepper;   // motor 6
-SpeedyStepper X2_stepper;   // motor 7
+SpeedyStepper x0_Stepper;    // motor 0
+SpeedyStepper y0_Stepper;   // motor 1
+SpeedyStepper y1_Stepper;   // motor 2_1 2_2 os mirriored of this axis but doesnt work?
+SpeedyStepper y3_Stepper;   // motor 3
+SpeedyStepper aoat_Stepper; // motor 4
+SpeedyStepper aoab_Stepper; // motor 5
+SpeedyStepper y2_Stepper;   // motor 6
+SpeedyStepper x1_Stepper;   // motor 7
 
 // Packetized Serial Trasfer
-SerialTransfer Esp32com;
+SerialTransfer esp32COM;
+SerialTransfer usbCOM;
 
+// structure definitions 
+struct __attribute__((packed)) ConnectTestStruct{
+  char name;
+  bool connected;
+};
 
-struct __attribute__((packed)) STRUCT {
+struct __attribute__((packed)) ControlStruct{ // store which com method has control
+  char control;
+  //(wireless or usb)
+}; // keep track of 
+
+struct __attribute__((packed)) TXStruct { // store the data comming in 
   char z;
-  float y;
-} TXStruct; // out
+  float xpos;
+  float ypos;
+  float aoatpos;
+  float aoabpos;
+  struct ControlStruct* source; // pointer to the control source 
+}; // out
 
-struct __attribute__((packed)) STRUCT {
+struct __attribute__((packed)) PositionStruct {
   char z;
-  float y;
-} RxStruct; // in
+  float xpos;
+  float ypos;
+  float aoatpos;
+  float aoabpos;
+  struct ControlStruct* source; // pointer to the control source struct
+};
+
 
 // n pre delcared functions
-void xHomeIsr();
-void x2HomeIsr();
-void y1HomeIsr();
-void y2HomeIsr();
-void y3HomeIsr();
-void y4HomeIsr();
-void aoatHomeIsr();
-void aoabHomeIsr();
-void motionTriggerIsr();
-void estopIsr();
+
 
 void setup()
 {
   // put the initlization code here.
 
   /// Setup Innterupts
-  X_stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
-  Y0_stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
-  Y1_stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
-  Y3_stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
-  AOAT_stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
-  AOAB_stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
-  X2_stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-  // Y2_stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+  x0_Stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
+  y0_Stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
+  y1_Stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
+  y3_Stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
+  aoat_Stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
+  aoab_Stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
+  x1_Stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
+  if(DEV_constants::Swd_programming_mode == false){
+    y2_Stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+  }
 }
 
 int main()
 {
+  // Do not edit above this line in main it will break the bootloader code 
   // Run bootloader code
   // This is hella dangerous messing with the stack here but hey gotta learn somehow
   bootloader_flag = (uint32_t *)(&_estack - BOOTLOADER_FLAG_OFFSET); // below top of stack
@@ -128,18 +148,32 @@ int main()
     __HAL_RCC_GPIOE_CLK_ENABLE();
   }
   *bootloader_flag = 0; // So next boot won't be affecteed
-  ////// Begin normal run
+  ////// Begin normal operation ///////
+  
+  // create the data strucures 
+  ConnectTestStruct UsbTest;
+  ConnectTestStruct WifiTest;
+  TXStruct RecievedData;
+  PositionStruct CurrentPostions;
+
+  
+
+  
+  
   /// Global Varibles
   /// run setup
   setup();
-  // Attach inttrumpts here
-
   // initilise External Coms
   Serial1.begin(115200); // ESP32 COMS
-  Esp32com.begin(Serial1);
-  // handle usb connection setup
-  // handle wifi connection setup
+  esp32COM.begin(Serial1); // hand off the serial instance to serial transfer
+  Serial2.begin(115200); // usb C coms
+  usbCOM.begin(Serial2);
   // check connection status - if there is somthing connected or trying to connect.
+  // Send packet on both usb and wifi
+  // wait some time
+  // check for responce on both
+    // if there is a responce on both (send a prompt) to disconnect the usb cable 
+    //else set control to the one that responded.
   // set connection status
   // if there is somthing connected Auto change to that Com.
 
@@ -147,59 +181,19 @@ int main()
   // infinite loop
   for (;;)
   { // run the main
-
-    if (Esp32com.available())
+    if (esp32COM.available())
     {
       // use this variable to keep track of how many
       // bytes we've processed from the receive buffer
       uint16_t recSize = 0;
 
-      recSize = Esp32com.rxObj(testStruct, recSize);
+      recSize = esp32COM.rxObj(testStruct, recSize);
     }
     // statement(s)
   }
 }
 
-void xHomeIsr()
-{
-  xhome = !xhome; // set set them as hommed when the homing function is called
-}
-void x2HomeIsr()
-{
-  x2home = !xhome; // set set them as hommed when the homing function is called
-}
-void y1HomeIsr()
-{
-  y1home = !y1home;
-}
-void y2HomeIsr()
-{
-  y2home = !y2home;
-}
-void y3HomeIsr()
-{
-  y3home = !y3home;
-}
-void y4HomeIsr()
-{
-  y4home = !y4home;
-}
-void aoatHomeIsr()
-{
-  aoathome = !aoathome;
-}
-void aoabHomeIsr()
-{
-  aoabhome = !aoabhome;
-}
-void motionTriggerIsr()
-{
-  Go_Pressed = true;
-}
-void estopIsr()
-{
-  NVIC_SystemReset(); // use a software reset to kill the board
-}
+
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
 /*
@@ -207,6 +201,7 @@ This section of code determines how the system clock is cofigured this is import
 STM32F446ZET6 in this case our board runs at 168 MHz not the 8Mhz external clock the board expects by default
 No need to understand, attempt to or even try to.
 Include it in every version that is compiled form this platfrom IO envrioment/stm32dunio envrioment
+Underclocked to 168mhz for stability?
 */
 
 extern "C" void SystemClock_Config(void)
