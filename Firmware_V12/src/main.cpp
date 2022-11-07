@@ -122,15 +122,19 @@ int main()
   ////// Begin normal operation ///////
   
   // create the data strucures 
-  ConnectTestStruct *UsbTest, Usb;
-  ConnectTestStruct *WifiTest,Wifi;
-  ControlStruct *Source, source;
-  PositionStruct *RecievedDataPtr,RecievedData;
-  PositionStruct *CurrentPostionsPtr, CurrentPostions;
+  ConnectTestStruct *UsbTest_ptr, Usb;
+  ConnectTestStruct *WifiTest_ptr,Wifi;
+  ControlStruct *Source_ptr, Source;
+  PositionStruct *RecievedData_ptr,RecievedData;
+  PositionStruct *CurrentPostions_ptr, CurrentPostions;
+
+  // Error Struct 
+
+  Error *Error_ptr,Error_struct;
 
   //initilize the structures
-  initialize_Movement_Struct(CurrentPostionsPtr,Source);
-  initialize_Movement_Struct(RecievedDataPtr,Source);
+  initialize_Movement_Struct(CurrentPostions_ptr,Source_ptr);
+  initialize_Movement_Struct(RecievedData_ptr,Source_ptr);
 
   
 
