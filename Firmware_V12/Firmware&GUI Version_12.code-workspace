@@ -1,24 +1,16 @@
 {
-	"folders": [
-		{
-			"path": "../Python_GUI"
-		},
-		{
-			"path": "../Firmware_V11"
-		},
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-		"files.associations": {
-			"array": "cpp",
-			"deque": "cpp",
-			"string": "cpp",
-			"unordered_map": "cpp",
-			"vector": "cpp",
-			"string_view": "cpp",
-			"initializer_list": "cpp"
-		}
-	}
+    "folders": [
+        {
+            "name": "Firmware_V12",
+            "path": "."
+        },
+        {
+            "name": "Firmware_V11",
+            "path": "../Firmware_V11"
+        },
+        {
+            "name": "Python_GUI",
+            "path": "../Python_GUI"
+        }
+    ]
 }
