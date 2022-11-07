@@ -8,6 +8,22 @@ The SwD interface will not work untill a full power off and the SwD pins have be
  Page 54 for more information
 */
 
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+// define your own namespace to hold constants
+namespace DEV_constants
+{
+    // constants have internal linkage by default
+    constexpr bool Swd_programming_mode = true;
+    constexpr bool Endstop_bypass_enable = true;
+    constexpr bool Verbose_mode = true;
+    constexpr bool Usb_only = false;
+    //constexpr bool  
+}
+
+
+
 // Misc connections 
 extern const int BUTTON; // encoder click on Creality Melzi screen
 extern const int BEEPER; // factory beeper on Creality Melzi screen
@@ -48,9 +64,9 @@ extern const int MOTOR6_STEP_PIN;  // z axis
 extern const int MOTOR6_DIRECTION_PIN;  // z axis 
 extern const int MOTOR6_ENABLE;  // z axis;
 // Motor 7
-//extern const int MOTOR7_STEP_PIN = PE6;  // z axis 
-//extern const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis  // disabled for SWD programming 
-//extern const int MOTOR7_ENABLE= PE0;  // z axis;
+extern const int MOTOR7_STEP_PIN;  // z axis 
+extern const int MOTOR7_DIRECTION_PIN;  // z axis  // disabled for SWD programming 
+extern const int MOTOR7_ENABLE; // z axis;
 
 
 extern const int Motor0LimitSw;
@@ -62,9 +78,30 @@ extern const int Motor5LimitSw;
 extern const int Motor6LimitSw;
 extern const int Motor7LimitSw;
 
+// Interrupts Varible declerations
+extern volatile bool x0home;
+extern volatile bool x1home;
+extern volatile bool y0home;
+extern volatile bool y1home;
+extern volatile bool y2home;
+extern volatile bool y3home;
+extern volatile bool aoathome;
+extern volatile bool aoabhome;
+
 
 
 // functions 
 
 void PIN_SETUP();
+void x0HomeIsr();
+void x1HomeIsr();
+void y0HomeIsr();
+void y1HomeIsr();
+void y2HomeIsr();
+void y3HomeIsr();
+void aoatHomeIsr();
+void aoabHomeIsr();
+void motionTriggerIsr();
+void estopIsr();
 
+#endif
