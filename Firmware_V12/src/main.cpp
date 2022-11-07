@@ -1,20 +1,21 @@
 
-#include <iostream>
-#include <Arduino.h> // Include Github links here
-#include <U8g2lib.h>
-#include <SpeedyStepper.h>
+#include "Arduino.h" // Include Github links here
+#include "U8g2lib.h"
+#include "SpeedyStepper.h"
 #include "SerialTransfer.h"
-#include <TMCStepper.h>
-#include <TMCStepper_UTILITY.h>
-#include <stm32yyxx_ll_gpio.h>
+#include "TMCStepper.h"
+#include "TMCStepper_UTILITY.h"
+#include "stm32yyxx_ll_gpio.h"
 // Include custom functions written after this
 #include "Pin_Setup.h"
+#include "Data_structures.h"
+#include "Movement.hpp"
 
 #ifdef U8X8_HAVE_HW_SPI
-#include <SPI.h>
+#include "SPI.h"
 #endif
 #ifdef U8X8_HAVE_HW_I2C
-#include <Wire.h>
+#include "Wire.h"
 #endif
 typedef void (*pFunction)(void); // bootloader jump function
 using namespace TMC2208_n;       // Allows the TMC2209 to use functions out of tmc2208 required
@@ -35,7 +36,7 @@ uint32_t *bootloader_flag;
 pFunction JumpToApplication;
 uint32_t JumpAddress;
 //
-HardwareSerial Serial1(PD9,PD8); // Second serial instance for the wifi
+HardwareSerial Serial2(PD9,PD8); // Second serial instance for the wifi
 
 
 
@@ -64,38 +65,6 @@ SpeedyStepper x1_Stepper;   // motor 7
 // Packetized Serial Trasfer
 SerialTransfer esp32COM;
 SerialTransfer usbCOM;
-
-// structure definitions 
-struct __attribute__((packed)) ConnectTestStruct{
-  char name;
-  bool connected;
-};
-
-struct __attribute__((packed)) ControlStruct{ // store which com method has control
-  char control;
-  //(wireless or usb)
-}; // keep track of 
-
-struct __attribute__((packed)) TXStruct { // store the data comming in 
-  char z;
-  float xpos;
-  float ypos;
-  float aoatpos;
-  float aoabpos;
-  struct ControlStruct* source; // pointer to the control source 
-}; // out
-
-struct __attribute__((packed)) PositionStruct {
-  char z;
-  float xpos;
-  float ypos;
-  float aoatpos;
-  float aoabpos;
-  struct ControlStruct* source; // pointer to the control source struct
-};
-
-
-// n pre delcared functions
 
 
 void setup()
@@ -151,10 +120,15 @@ int main()
   ////// Begin normal operation ///////
   
   // create the data strucures 
-  ConnectTestStruct UsbTest;
-  ConnectTestStruct WifiTest;
-  TXStruct RecievedData;
-  PositionStruct CurrentPostions;
+  ConnectTestStruct *UsbTest, Usb;
+  ConnectTestStruct *WifiTest,Wifi;
+  ControlStruct *Source, source;
+  PositionStruct *RecievedDataPtr,RecievedData;
+  PositionStruct *CurrentPostionsPtr, CurrentPostions;
+
+  //initilize the structures
+  initialize_Movement_Struct(CurrentPostionsPtr,Source);
+  initialize_Movement_Struct(RecievedDataPtr,Source);
 
   
 
@@ -164,8 +138,8 @@ int main()
   /// run setup
   setup();
   // initilise External Coms
-  Serial1.begin(115200); // ESP32 COMS
-  esp32COM.begin(Serial1); // hand off the serial instance to serial transfer
+  Serial.begin(115200); // ESP32 COMS
+  esp32COM.begin(Serial); // hand off the serial instance to serial transfer
   Serial2.begin(115200); // usb C coms
   usbCOM.begin(Serial2);
   // check connection status - if there is somthing connected or trying to connect.
@@ -187,7 +161,7 @@ int main()
       // bytes we've processed from the receive buffer
       uint16_t recSize = 0;
 
-      recSize = esp32COM.rxObj(testStruct, recSize);
+      //recSize = esp32COM.rxObj(testStruct, recSize);
     }
     // statement(s)
   }
