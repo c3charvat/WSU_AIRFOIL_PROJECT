@@ -8,8 +8,10 @@
 #include "stm32yyxx_ll_gpio.h"
 // Include custom functions written after this
 #include "Pin_Setup.h"
+#include "Settings.hpp"
 #include "Data_structures.h"
 #include "Movement.hpp"
+
 
 #ifdef U8X8_HAVE_HW_SPI
 #include "SPI.h"

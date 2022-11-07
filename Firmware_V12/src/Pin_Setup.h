@@ -8,20 +8,8 @@ The SwD interface will not work untill a full power off and the SwD pins have be
  Page 54 for more information
 */
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
-
-// define your own namespace to hold constants
-namespace DEV_constants
-{
-    // constants have internal linkage by default
-    constexpr bool Swd_programming_mode = true;
-    constexpr bool Endstop_bypass_enable = true;
-    constexpr bool Verbose_mode = true;
-    constexpr bool Usb_only = false;
-    //constexpr bool  
-}
-
+#ifndef PIN_CONSTANTS_H
+#define PIN_CONSTANTS_H
 
 
 // Misc connections 

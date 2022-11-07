@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <SpeedyStepper.h>
+#include <Settings.hpp>
 #include <Pin_Setup.h>
 /*
 This file sets up the Pin Modes
