@@ -19,12 +19,15 @@ namespace Settings
     // constexpr float Y_POSITION_MAX = 245;
     constexpr float X_POSITION_MAX = (390 / 2);      // max position in mm
     constexpr float X_POSITION_MIN = -1 * (390 / 2); // max position in mm
-    constexpr float Y_POSITION_MAX = (245 / 2);
-    constexpr float Y_POSITION_MIN = -1 * (245 / 2);
+    constexpr float Y_POSITION_MAX = (245);
+    constexpr float Y_POSITION_MIN = 0;
     constexpr float AOA_T_POSITION_MAX = 40;
-    constexpr float AOA_T_POSITION_MIN = -20;
+    constexpr float AOA_T_POSITION_MIN = -40;
     constexpr float AOA_B_POSITION_MAX = 40;
-    constexpr float AOA_B_POSITION_MIN = -20;
+    constexpr float AOA_B_POSITION_MIN = -40;
+
+    constexpr float AOA_T_HOME_OFFSET = -20;
+    constexpr float AOA_B_HOME_OFFSET = -20;
 
     constexpr float MinMaxArray[8] = {X_POSITION_MAX, X_POSITION_MIN, Y_POSITION_MAX, 
     Y_POSITION_MIN, AOA_T_POSITION_MAX, AOA_T_POSITION_MIN, AOA_B_POSITION_MAX, AOA_B_POSITION_MIN};
