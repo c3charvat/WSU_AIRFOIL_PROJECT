@@ -35,6 +35,6 @@ struct Error {
   String error_information_3;
   String originating_function_name;
   bool recoverable;
-}
+};
 
 #endif
