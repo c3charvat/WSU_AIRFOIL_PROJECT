@@ -54,8 +54,8 @@ TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, D
 TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
 
 
-// Speedy Stepper            // Octopus board plug.
-SpeedyStepper x0_Stepper;    // motor 0
+// Speedy Stepper Class     // Octopus board plug.
+SpeedyStepper x0_Stepper;   // motor 0
 SpeedyStepper y0_Stepper;   // motor 1
 SpeedyStepper y1_Stepper;   // motor 2_1 2_2 os mirriored of this axis but doesnt work?
 SpeedyStepper y3_Stepper;   // motor 3
@@ -144,8 +144,8 @@ int main()
   /// run setup
   setup();
   // initilise External Coms
-  Serial.begin(115200); // ESP32 COMS
-  esp32COM.begin(Serial); // hand off the serial instance to serial transfer
+  //Serial.begin(115200); // ESP32 COMS
+  //esp32COM.begin(Serial); // hand off the serial instance to serial transfer
   Serial2.begin(115200); // usb C coms
   usbCOM.begin(Serial2);
   // check connection status - if there is somthing connected or trying to connect.
