@@ -4,6 +4,7 @@
 #include "SpeedyStepper.h"
 #include "Pin_Setup.h"
 #include "Data_structures.h"
+#include "amt21_driver.hpp"
 using namespace std;
 
 extern SpeedyStepper x0_Stepper;   // motor 0
@@ -339,6 +340,7 @@ void HomeAll(struct PositionStruct *current_pos, struct Error *error)
     initialize_Movement_Struct_NC(input_data_ptr);
 
     MOVE_FUNCTION(current_pos,input_data_ptr,error);
+    
 
     // TODO: Call the move function here and bring the wings back to level and stacked against eachtoher
 }
