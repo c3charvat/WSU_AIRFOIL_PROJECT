@@ -39,6 +39,7 @@ pFunction JumpToApplication;
 uint32_t JumpAddress;
 //
 HardwareSerial Serial2(PD9,PD8); // Second serial instance for the wifi
+HardwareSerial Serial3(PA10,PA9); // Third serial instance for the rs484 encoders. This can be treated as a simplex, the only time we write out is to initilize.
 
 
 
@@ -88,18 +89,19 @@ void setup()
 
 int main()
 {
+  ////////////////////////////////////////// Begin normal operation ////////////////////////////////////////////////////////////////////////
   // Do not edit above this line in main it will break the bootloader code 
   // Run bootloader code
   // This is hella dangerous messing with the stack here but hey gotta learn somehow
-  bootloader_flag = (uint32_t *)(&_estack - BOOTLOADER_FLAG_OFFSET); // below top of stack
+  bootloader_flag = (uint32_t *)(&_estack - BOOTLOADER_FLAG_OFFSET); // below top of stack ******* The bootloader offset will have to be checked after the first flash to make sure it doesnt get overwritten******
   if (*bootloader_flag == BOOTLOADER_FLAG_VALUE)
   {
 
     *bootloader_flag = 1;
     /* Jump to system memory bootloader */
-    HAL_SuspendTick();
-    HAL_RCC_DeInit();
-    HAL_DeInit();
+    HAL_SuspendTick();    // Kill whats running (in a sense)
+    HAL_RCC_DeInit();     // Kill the the clocks 
+    HAL_DeInit();         // Kill the  HAL layer all together 
     JumpAddress = *(__IO uint32_t *)(BOOTLOADER_ADDRESS + 4);
     JumpToApplication = (pFunction)JumpAddress;
     //__ASM volatile ("movs r3, #0\nldr r3, [r3, #0]\nMSR msp, r3\n" : : : "r3", "sp");
@@ -108,18 +110,19 @@ int main()
   if (*bootloader_flag = 1)
   {
     //__memory_changed(void);
-    HAL_RCC_DeInit();
-    SystemClock_Config();
-    HAL_Init();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
+    HAL_RCC_DeInit();               // Kill the clocks they are configured wrong. (HSI DEFAULTS NO PERIFIERIALS)
+    SystemClock_Config();           // Reconfigure the system clock to HSE
+    HAL_Init();                     // Reinit the HAL LAYER 
+    __HAL_RCC_GPIOC_CLK_ENABLE();   // Enable the clocks 
     __HAL_RCC_GPIOH_CLK_ENABLE();
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOG_CLK_ENABLE();
     __HAL_RCC_GPIOF_CLK_ENABLE();
     __HAL_RCC_GPIOE_CLK_ENABLE();
   }
-  *bootloader_flag = 0; // So next boot won't be affecteed
-  ////// Begin normal operation ///////
+  *bootloader_flag = 0; // So next boot won't be affecteed // Fall through the boot code section and set the boot flag to 0 if everything goes good.
+
+  ////////////////////////////////////////// Begin normal operation ///////
   
   // create the data strucures 
   ConnectTestStruct *UsbTest_ptr, Usb;
