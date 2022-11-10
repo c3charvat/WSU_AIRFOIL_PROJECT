@@ -196,6 +196,8 @@ void y3HomeIsr()
 {
   y3home = !y3home;
 }
+
+//#ifndef Has_rs485_ecoders
 void aoatHomeIsr()
 {
   aoathome = !aoathome;
@@ -204,6 +206,8 @@ void aoabHomeIsr()
 {
   aoabhome = !aoabhome;
 }
+
+//#endif
 // void motionTriggerIsr()
 // {
 //   Go_Pressed = true;

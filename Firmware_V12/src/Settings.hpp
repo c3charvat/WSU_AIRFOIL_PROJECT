@@ -1,6 +1,9 @@
 #ifndef Settings_Hpp
 #define Settings_Hpp
 
+
+#define Has_rs485_ecoders
+
 // define your own namespace to hold constants
 namespace DEV_constants
 {
@@ -8,6 +11,12 @@ namespace DEV_constants
     constexpr bool Swd_programming_mode = true;
     constexpr bool Endstop_bypass_enable = true;
     constexpr bool Verbose_mode = true;
+    #ifdef Has_rs485_ecoders
+    constexpr bool rs485_ecoders = true;
+    #endif
+    #ifndef Has_rs485_ecoders
+    constexpr bool rs485_ecoders =false;
+    #endif
     constexpr bool Usb_only = false;
     // constexpr bool
 }

@@ -108,7 +108,9 @@ PositionStruct REL_MOVEMENT_CALC(struct PositionStruct *current_pos, struct Posi
     return next_pos;
 }
 
-void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error)
+#ifdef Has_rs485_ecoders
+
+void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
 {
     struct PositionStruct *next_pos_ptr,next_pos;
     next_pos=REL_MOVEMENT_CALC(current_pos,input_data,error);
@@ -150,7 +152,7 @@ void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *in
 
 }
 
-void HomeAll(struct PositionStruct *current_pos, struct Error *error)
+void HomeAll(struct PositionStruct *current_pos, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
 {
     //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
     //// This ensures that all the axis are not allready on their limit swtiches
@@ -180,7 +182,7 @@ void HomeAll(struct PositionStruct *current_pos, struct Error *error)
         y1_Stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do speical system intrrupts
         y2_Stepper.processMovement();
         y3_Stepper.processMovement();
-        // aoat_Stepper.processMovement();
+        // aoat_Stepper.processMovement(); // moved to a seperate homing secq
         // aoab_Stepper.processMovement();
     }
     Serial.print("got through the firt part of home all");
@@ -283,7 +285,213 @@ void HomeAll(struct PositionStruct *current_pos, struct Error *error)
                                 // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
     }
     // begin AoA Homing
-    int Thomecount = 160 * 8; // # nuber of possbile steps to make a half circle
+    
+    int aoat_encoderpos = amt21_get_pos(Serial3,aoa_t_node_addr);
+    int aoat_encoderturns = amt21_get_turns(Serial3,aoa_t_node_addr);
+
+    int aoab_encoderpos = amt21_get_pos(Serial3,aoa_b_node_addr);
+    int aoab_encoderturns = amt21_get_turns(Serial3,aoa_b_node_addr);
+
+
+
+    current_pos->xpos = Settings::X_POSITION_MAX; // Its at the top of its stoke
+    current_pos->ypos = Settings::Y_POSITION_MAX;
+    current_pos->aoatpos = Settings::AOA_T_HOME_OFFSET;
+    current_pos->aoabpos = Settings::AOA_B_HOME_OFFSET;
+
+    volatile bool xhome = false;
+    volatile bool yhome = false;
+    volatile bool aoathome = false; // second it leaves this function we assume its not home
+    volatile bool aoabhome = false;
+
+    struct PositionStruct *input_data_ptr, input_data;
+    initialize_Movement_Struct_NC(input_data_ptr); // set the input data to zeros
+
+    MOVE_FUNCTION(current_pos,input_data_ptr,error,aoa_t_node_addr,aoa_b_node_addr); // Bring them to the defined "O" position 
+
+}
+
+
+#endif // endif has encoders installed 
+
+
+#ifndef Has_rs485_ecoders
+void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error)
+{
+    struct PositionStruct *next_pos_ptr,next_pos;
+    next_pos=REL_MOVEMENT_CALC(current_pos,input_data,error);
+
+
+    x0_Stepper.setupRelativeMoveInSteps(next_pos.xpos / 5 * 200 * 8);  // Future: Make these iun terms of MM
+    x1_Stepper.setupRelativeMoveInSteps(next_pos.xpos / 5 * 200 * 8); // Future: Make these iun terms of MM
+
+    y0_Stepper.setupRelativeMoveInSteps(next_pos.ypos / 2 * 200 * 8);
+    y1_Stepper.setupRelativeMoveInSteps(next_pos.ypos / 2 * 200 * 8);
+    y2_Stepper.setupRelativeMoveInSteps(next_pos.ypos / 2 * 200 * 8);
+    y3_Stepper.setupRelativeMoveInSteps(next_pos.ypos / 2 * 200 * 8);
+
+    aoat_Stepper.setupRelativeMoveInSteps(next_pos.aoatpos / 1.8 * 5.18 * 8);
+    aoab_Stepper.setupRelativeMoveInSteps(next_pos.aoabpos / 1.8 * 5.18 * 8);
+
+    // Call A Blocking Function that Stops the Machine from doing anything else while the stepper is moving  This is desired since we aren not updating mid move.
+    Serial.println("Entering while loop");
+    while ((!x0_Stepper.motionComplete()) || (!y0_Stepper.motionComplete()) || (!y1_Stepper.motionComplete()) || (!y2_Stepper.motionComplete()) || (!y3_Stepper.motionComplete()) || (!aoat_Stepper.motionComplete()) || (!aoab_Stepper.motionComplete()))
+    {
+        if (DEV_constants::Endstop_bypass_enable == true)
+        {
+            break;
+        }
+        x0_Stepper.processMovement();
+        x1_Stepper.processMovement();
+        y0_Stepper.processMovement();
+        y1_Stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do speical system intrrupts
+        y2_Stepper.processMovement();
+        y3_Stepper.processMovement();
+        aoat_Stepper.processMovement();
+        aoab_Stepper.processMovement();
+    }
+    Serial.println("Exited While Loop");
+    current_pos->xpos=current_pos->xpos+next_pos.xpos;
+    current_pos->ypos=current_pos->ypos+next_pos.ypos;
+    current_pos->aoatpos=current_pos->aoatpos+next_pos.aoatpos;
+    current_pos->aoabpos=current_pos->aoabpos+next_pos.aoabpos;
+
+}
+
+void HomeAll(struct PositionStruct *current_pos, struct Error *error)
+{
+    //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
+    //// This ensures that all the axis are not allready on their limit swtiches
+    if (digitalRead(PG6) == HIGH)
+    {
+        x0_Stepper.setupRelativeMoveInSteps(10 / 5 * 200 * 8); // Future: Make these iun terms of MM
+        x1_Stepper.setupRelativeMoveInSteps(10 / 5 * 200 * 8); // Future: Make these iun terms of MM
+    }
+    if (digitalRead(PG12) == HIGH || digitalRead(PG9) == HIGH || digitalRead(PG13) == HIGH || digitalRead(PG10) == HIGH) // make sure the end stop isnt allready pressed
+    {
+        y0_Stepper.setupRelativeMoveInSteps(15 / 2 * 200 * 8);
+        y1_Stepper.setupRelativeMoveInSteps(15 / 2 * 200 * 8);
+        y2_Stepper.setupRelativeMoveInSteps(15 / 2 * 200 * 8);
+        y3_Stepper.setupRelativeMoveInSteps(15 / 2 * 200 * 8);
+    }
+    // AOAT_Stepper.setupRelativeMoveInSteps(20/.36*8); // handle this later due to them not being able to roatate 360 degrees
+    // AOAB_Stepper.setupRelativeMoveInSteps(20/.36*8);
+    while ((!x0_Stepper.motionComplete()) || (!y0_Stepper.motionComplete()) || (!y1_Stepper.motionComplete()) || (!y2_Stepper.motionComplete()) || (!y3_Stepper.motionComplete()) || (!aoat_Stepper.motionComplete()) || (!aoab_Stepper.motionComplete()))
+    {
+        if (DEV_constants::Endstop_bypass_enable == true)
+        {
+            break;
+        }
+        x0_Stepper.processMovement();
+        x1_Stepper.processMovement();
+        y0_Stepper.processMovement();
+        y1_Stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do speical system intrrupts
+        y2_Stepper.processMovement();
+        y3_Stepper.processMovement();
+        // aoat_Stepper.processMovement(); // moved to a seperate homing secq
+        // aoab_Stepper.processMovement();
+    }
+    Serial.print("got through the firt part of home all");
+    x0home = false; // we are now garenteed to be at least 5 off the axis
+    // x1home= false;
+    y0home = false;
+    y2home = false;
+    y2home = false;
+    y3home = false;
+    aoathome = false;
+    aoabhome = false;
+    // Refrencing the block diagram of the stm32f446 on page 16 of the pfd to understand the ports refrenced below
+    // a quick guide can be found here: https://gist.github.com/iwalpola/6c36c9573fd322a268ce890a118571ca#brr---bit-reset-register
+    /*
+    PinPrefix -> Port Name -
+    PA -> GPIO port A
+    PB -> GPIO port B
+    PC -> GPIO port C
+    PD -> GPIO port D
+    PE -> GPIO port E
+    */
+    LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_12);
+    LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_1);
+    LL_GPIO_SetOutputPin(GPIOG, LL_GPIO_PIN_3);
+    LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_1);
+    LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_10);
+    LL_GPIO_SetOutputPin(GPIOF, LL_GPIO_PIN_0); // reset pins to default state
+    LL_GPIO_SetOutputPin(GPIOE, LL_GPIO_PIN_3); // reset pins to default state
+    LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_14);
+
+    LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
+    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
+    LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
+    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
+    LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
+    LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
+    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
+    LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
+    delay(10);
+    while (x0home == false || y0home == false || y1home == false || y2home == false || y3home == false) // || aoathome == false) || aoabhome == false||
+    {                                                                                                   // While they arent hit the end stop we move the motors
+        if (DEV_constants::Endstop_bypass_enable == true)
+        {
+            break;
+        }
+        if (x0home == false)
+        {
+            // The X axis is not home
+            LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
+            LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_2);
+        }
+        // if (xhome == false) // changed so the x axis only uses on enstop
+        // {
+        //   // The X axis is home
+        //   // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
+        // }
+        if (y0home == false)
+        {
+            // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
+            // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
+            LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
+        }
+        if (y1home == false)
+        {
+            LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_0);
+        }
+        if (y2home == false)
+        {
+            // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
+            // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
+            LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
+        }
+        if (y3home == false)
+        {
+            // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
+            // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
+            LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_6);
+        }
+        // if (aoathome == false)
+        // {
+        //   // motorgpiog=motorgpiog-0b0000000000010000;
+        //   LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
+        // }
+        // if (aoabhome == false)
+        // {
+        //   // motorgpiof=motorgpiof-0b0000001000000000;
+        //   LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+        // }
+        delayMicroseconds(10); // delay between high and low (Aka how long the pin is high)
+        // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
+        // LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
+        LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_13);
+        LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_0);
+        LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_11);
+        LL_GPIO_ResetOutputPin(GPIOG, LL_GPIO_PIN_4);
+        // LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
+        LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
+        LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
+        delayMicroseconds(280); // delay between high states, how long between step signals
+                                // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
+    }
+    // begin AoA Homing
+    int Thomecount = 160 * 8; // # number of possbile steps to make a half circle
     int Bhomecount = 160 * 8;
     LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_10);
     LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_0);
@@ -337,10 +545,10 @@ void HomeAll(struct PositionStruct *current_pos, struct Error *error)
     volatile bool aoabhome = false;
 
     struct PositionStruct *input_data_ptr, input_data;
-    initialize_Movement_Struct_NC(input_data_ptr);
+    initialize_Movement_Struct_NC(input_data_ptr); // set the input data to zeros
 
-    MOVE_FUNCTION(current_pos,input_data_ptr,error);
-    
-
-    // TODO: Call the move function here and bring the wings back to level and stacked against eachtoher
+    MOVE_FUNCTION(current_pos,input_data_ptr,error); // Bring them to the home position 
 }
+
+
+#endif // end if without encoders
