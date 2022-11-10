@@ -1,52 +1,21 @@
-/*******************************************************************************
-*
-* CUI AMT21XX-V Encoder driver for PSoC
-* Copyright (C) 2020, Alexandre Bernier
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*
-* 1. Redistributions of source code must retain the above copyright notice,
-* this list of conditions and the following disclaimer.
-*
-* 2. Redistributions in binary form must reproduce the above copyright
-* notice, this list of conditions and the following disclaimer in the
-* documentation and/or other materials provided with the distribution.
-*
-* 3. Neither the name of the copyright holder nor the names of its contributors
-* may be used to endorse or promote products derived from this software without
-* specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-*******************************************************************************/
 // Ported to ardunio 
 
 
 #include <Arduino.h>
+//#include <cstdint>
+#include <bitset>
+//#include <iostream>
 #include "amt21_driver.hpp"
+using namespace std;
 
 // Delays
 #define AMT21_START_UP_TIME_MS (200u)
 #define AMT21_TURNAROUND_TIME_US (30u)
 
 // Commands
-#define AMT21_RESPONSE_LENGTH ((uint8_t)2u)
-#define AMT21_CMD_LENGTH ((uint8_t)1u)
-#define AMT21_EXT_CMD_LENGTH ((uint8_t)2u)
-#define AMT21_READ_POS ((uint8_t)(AMT21_NODE_ADDR + 0x00u))
-#define AMT21_READ_TURNS ((uint8_t)(AMT21_NODE_ADDR + 0x01u))
-#define AMT21_EXT_CMD ((uint8_t)(AMT21_NODE_ADDR + 0x02u))
+#define AMT21_RESPONSE_LENGTH ((uint8_t)2u) // number of bits
+#define AMT21_CMD_LENGTH ((uint8_t)1u)      // number of bytes to send
+#define AMT21_EXT_CMD_LENGTH ((uint8_t)2u) // number of bytes to send
 #define AMT21_RESET_ENC ((uint8_t)(0x75u))
 
 #ifdef AMT21_SINGLE_TURN
@@ -57,9 +26,9 @@
 /*******************************************************************************
 * PRIVATE PROTOTYPES
 *******************************************************************************/
-//void _uart_read(uint8_t *data, uint8_t length);   // replaced by arduino built in
-//void _uart_write(uint8_t *data, uint8_t length); // replaced by ardunio built in
 bool _check_parity(uint16_t *response);
+unsigned int reverseBits(unsigned int n, unsigned int byte_size, unsigned int num_to_truncate);
+int getSign(unsigned int n);
 
 
 /*******************************************************************************
@@ -70,10 +39,9 @@ bool _check_parity(uint16_t *response);
 ********************************************************************************
 * Summary:
 *  Start UART component and wait until the encoder as started.
-*  Should be called once before the infinite loop in your main.
 *   
 * Parameters:
-*  None.
+*  Stream &port -> The serial instace the device is connected to
 *
 * Return:
 *  None.
@@ -94,8 +62,8 @@ void amt21_init(Stream &port)
 *  Read the absolute position from the encoder.
 *   
 * Parameters:
-*  None.
-*
+*   Stream &port -> The serial instace the device is connected to
+*   NODE_ADDR    -> The node address of the rs485 device 
 * Return:
 *  uint16_t: Absolute position of the encoder.
 *
@@ -114,22 +82,33 @@ uint16_t amt21_get_pos(Stream &port,int NODE_ADDR)
     uint8_t response_raw[AMT21_RESPONSE_LENGTH];
     port.readBytes(response_raw, AMT21_RESPONSE_LENGTH);
     
-    uint16_t pos = (response_raw[1] << 8u) | response_raw[0];
+    //uint16_t pos = (response_raw[1] << 8u) | response_raw[0];
+
+    unsigned int low_byte = reverseBits(response_raw[0],8,0);
+    unsigned int high_byte_no_parity = reverseBits(response_raw[1],8,2);
+    unsigned int high_byte_with_parity = reverseBits(response_raw[1],8,2);
+
+    uint16_t pos_unsigned_with_parity =(((unsigned int) ((unsigned char) high_byte_with_parity)&255 )<< 8u) | (((unsigned char) low_byte)&255); // with parity
+    uint16_t pos_unsigned_without_parity =(((unsigned int) ((unsigned char) high_byte_no_parity)&255 )<< 8u) | (((unsigned char) low_byte)&255); 
     
     // Check parity and extract value
-    if(!_check_parity(&pos))
+    if(!_check_parity(&pos_unsigned_with_parity))
+    {
         return 0;
-    
+    }
     // Remove the parity check bits
-    pos = (pos & 0x3FFFu);
+    uint16_t pos = pos_unsigned_without_parity;
     
     // Convert value to match encoder's resolution (see AMT21_RESOLUTION)
     if(AMT21_RESOLUTION == 12u)
+    {
         pos = pos >> 2u;
-
+    }
     // Return the position
     return pos;
 }
+
+
 
 /*******************************************************************************
 * Function Name: amt21_get_turns
@@ -138,7 +117,8 @@ uint16_t amt21_get_pos(Stream &port,int NODE_ADDR)
 *  Read the turn counter's value from the encoder.
 *   
 * Parameters:
-*  None.
+*   Stream &port -> The serial instace the device is connected to
+*   NODE_ADDR    -> The node address of the rs485 device 
 *
 * Return:
 *  int16: Turn counter value of the encoder.
@@ -157,22 +137,32 @@ int16_t amt21_get_turns(Stream &port,int NODE_ADDR)
     uint8_t response_raw[AMT21_RESPONSE_LENGTH];
     port.readBytes(response_raw, AMT21_RESPONSE_LENGTH);
     
-    uint16_t turns_unsigned = (response_raw[1] << 8u) | response_raw[0];
-    
+   // uint16_t turns_unsigned = (response_raw[1] << 8u) | response_raw[0]; // bit shift it ledt 
+
+    unsigned int low_byte = reverseBits(response_raw[0],8,0);
+    unsigned int high_byte_no_parity = reverseBits(response_raw[1],8,2);// remove the msb since its the sign bit
+    unsigned int high_byte_no_parity_no_sign = reverseBits(response_raw[1],8,2);// remove the msb since its the sign bit
+    unsigned int high_byte_with_parity = reverseBits(response_raw[1],8,0);
+    int sign = getSign(high_byte_no_parity);
+
+    uint16_t turns_unsigned_with_parity =(((unsigned int) ((unsigned char) high_byte_with_parity)&255 )<< 8u) | (((unsigned char) low_byte)&255); // with parity
+    uint16_t turns_unsigned_without_parity_and_sign =(((unsigned int) ((unsigned char) high_byte_no_parity_no_sign)&255 )<< 8u) | (((unsigned char) low_byte)&255); 
     // Check parity and extract value
-    if(!_check_parity(&turns_unsigned))
+    if(!_check_parity(&turns_unsigned_with_parity))
+    {
         return 0;
-    
+    }
     // Remove the parity check bits (k0 and k1)
-    turns_unsigned = (turns_unsigned & 0x3FFFu);
+    int16_t turns = sign*turns_unsigned_without_parity_and_sign;
     
     // Replace k0 and k1 with the MSB of the 14-bit int)
-    bool negative = (turns_unsigned >> 13) & 0x01u;
-    if(negative) 
-        turns_unsigned = turns_unsigned | 0xC000;
-
+    // bool negative = (turns_unsigned >> 13) & 0x01u;
+    // if(negative)
+    // {
+    //     turns_unsigned = turns_unsigned | 0xC000;
+    // }
     // Return the number of turns
-    return (int16_t)turns_unsigned;
+    return (int16_t)turns;
 }
 
 /*******************************************************************************
@@ -182,7 +172,8 @@ int16_t amt21_get_turns(Stream &port,int NODE_ADDR)
 *  Reset the encoder.
 *   
 * Parameters:
-*  None.
+*   Stream &port -> The serial instace the device is connected to
+*   NODE_ADDR    -> The node address of the rs485 device 
 *
 * Return:
 *  None.
@@ -206,7 +197,8 @@ void amt21_reset_enc(Stream &port,int NODE_ADDR)
 *  Set zero to the actual position.
 *   
 * Parameters:
-*  None.
+*   Stream &port -> The serial instace the device is connected to
+*   NODE_ADDR    -> The node address of the rs485 device 
 *
 * Return:
 *  None.
@@ -224,56 +216,6 @@ void amt21_set_zero_pos(Stream &port,int NODE_ADDR)
 /*******************************************************************************
 * PRIVATE FUNCTIONS
 *******************************************************************************/
-/*******************************************************************************
-* Function Name: _uart_read
-********************************************************************************
-* Summary:
-*  Read all available bytes from UART.
-*   
-* Parameters:
-*  [out] data: Array containing the read bytes.
-*  [in] length: Number of bytes to read.
-*
-* Return:
-*  uint8_t: Number of bytes read.
-*
-*******************************************************************************/
-// void _uart_read(uint8_t *data, uint8_t length)
-// {
-//     // Verify parameters
-//     if(!data || length <= 0)
-//         return;
-    
-//     // Read bytes
-//     for(int i=0; i<length; i++) {
-//         data[i] = UART_AMT21_GetChar(); // i replaced this with the ardunio built in
-//     }
-// }
-
-/*******************************************************************************
-* Function Name: _uart_write
-********************************************************************************
-* Summary:
-*  Write bytes to UART.
-*   
-* Parameters:
-*  data: Array containing the bytes to write.
-*  length: Number of bytes to write.
-*
-* Return:
-*  None.
-*
-*******************************************************************************/
-// void _uart_write(uint8_t *data, uint8_t length)
-// {
-//     // Verify parameters
-//     if(!data || length <= 0)
-//         return;
-    
-//     // Write bytes
-//     UART_AMT21_PutArray(data, length); // replaced with the ardunio built in
-// }
-
 /*******************************************************************************
 * Function Name: _check_parity
 ********************************************************************************
@@ -313,7 +255,9 @@ bool _check_parity(uint16_t *response)
 {
     // Verify parameters
     if(!response)
+    {
         return false;
+    }
     
     // Check odd bits parity (odd parity)
     bool k1 = (*response >> 15u) & 0x01u;
@@ -325,8 +269,9 @@ bool _check_parity(uint16_t *response)
                           ((*response >> 11u) & 0x01u) ^
                           ((*response >> 13u) & 0x01u));
     if(odd_checkbit != k1)
+    {
         return false;
-    
+    }
     // Check even bits parity (odd parity)
     bool k0 = (*response >> 14u) & 0x01u;
     uint8_t even_checkbit = !(((*response >> 0u) & 0x01u)  ^
@@ -337,9 +282,152 @@ bool _check_parity(uint16_t *response)
                             ((*response >> 10u) & 0x01u) ^
                             ((*response >> 12u) & 0x01u));
     if(even_checkbit != k0)
+    {
         return false;
-        
+    }
     return true;
 }
 
-/* [] END OF FILE */
+
+unsigned int reverseBits(unsigned int n, unsigned int byte_size, unsigned int num_to_truncate)
+{
+   unsigned int rev = 0;
+   for(unsigned int i =0; i<num_to_truncate;i++)
+   {
+       n >>= 1; // skip over this one
+   }
+ 
+    // traversing bits of 'n' from the right
+    for(unsigned int i = 0; i<(byte_size-num_to_truncate);i++)
+    {
+        // bitwise left shift
+        // 'rev' by 1
+        //std::cout << std::bitset<8>(n);
+        //printf("\n");
+        rev <<= 1;
+ 
+        // if current bit is '1'
+        if (n & 1 == 1)
+            rev ^= 1;
+        // bitwise right shift
+        // 'n' by 1
+        n >>= 1;
+    }
+        // required number
+    //std::cout << std::bitset<8>(rev);
+    //printf("\n");
+    return rev;
+}
+
+int getSign(unsigned int n){
+    for(unsigned int i =0; i<2;i++) // get past the parity bits
+   {
+       n >>= 1; // skip over this one
+   }
+   if (n & 1 == 1){ // if the current value is 1 then it is negitive
+        return -1;
+   }
+   else{
+    return 1;
+   }
+}
+
+
+
+/*
+
+
+#include <cstdint>
+#include <bitset>
+#include <iostream>
+using namespace std;
+
+#define bytes_to_u16(MSB,LSB) (((unsigned int) ((unsigned char) MSB)) & 255)<<8 | (((unsigned char) LSB)&255)
+
+#include <stdio.h>
+
+
+unsigned int reverseBits(unsigned int n, unsigned int byte_size, unsigned int num_to_truncate)
+{
+   unsigned int rev = 0;
+   for(unsigned int i =0; i<num_to_truncate;i++)
+   {
+       n >>= 1; // skip over this one
+   }
+ 
+    // traversing bits of 'n' from the right
+    for(unsigned int i = 0; i<(byte_size-num_to_truncate);i++)
+    {
+        // bitwise left shift
+        // 'rev' by 1
+        //std::cout << std::bitset<8>(n);
+        //printf("\n");
+        rev <<= 1;
+ 
+        // if current bit is '1'
+        if (n & 1 == 1)
+            rev ^= 1;
+        // bitwise right shift
+        // 'n' by 1
+        n >>= 1;
+    }
+ 
+    // required number
+    //std::cout << std::bitset<8>(rev);
+    //printf("\n");
+    return rev;
+}
+
+
+int main()
+{
+  char buf[2];
+  char bufa[2];
+  bufa[0]=0b00100111;
+  bufa[1]=0b10011111;
+
+    unsigned int a = reverseBits(bufa[0],8,0);
+    unsigned int b = reverseBits(bufa[1],8,2);
+  std::cout << std::bitset<8>(a);
+  printf("\n");
+  std::cout << std::bitset<8>(b);
+
+    buf[0]=0b11100100;
+    buf[1]=0b111001;   // These are the desired forms
+
+
+
+
+  // Fill buf with example numbers
+  //buf[0]=2; // (Least significant byte)
+  //buf[1]=2; // (Most significant byte)
+  // If endian is other way around swap bytes!
+
+  unsigned int port=bytes_to_u16(buf[1],buf[0]);
+
+  printf("port = %u \n",port);
+
+  uint16_t turns_unsigned =(((unsigned int) ((unsigned char) buf[1])&255 )<< 8u) | (((unsigned char) buf[0])&255);
+
+    printf("%u \n", turns_unsigned);
+
+    uint16_t turns_unsigned2 =(((unsigned int) ((unsigned char) b)&255 )<< 8u) | (((unsigned char) a)&255);
+
+    printf("%u \n", turns_unsigned2);
+    
+    turns_unsigned = (turns_unsigned & 0x3FFFu);
+
+    bool negative = (turns_unsigned >> 13) & 0x01u;
+    
+    if(negative) 
+        turns_unsigned = turns_unsigned | 0xC000;
+
+    printf("%u \n", turns_unsigned);
+
+  
+
+  return 0;
+}
+
+
+*/

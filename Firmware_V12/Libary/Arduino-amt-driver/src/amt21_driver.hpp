@@ -1,15 +1,11 @@
 // Amt 21 driver
+// ported to ardunio
 /***********************************************************/
 
 #ifndef _AMT21_DRIVER_H
 #define _AMT21_DRIVER_H
 
-
-//#include <sys/param.h>
-//#include <stdbool.h>
 #include <Arduino.h>
-//#include <HardwareSerial.h>
-//#include <SoftwareSerial.h>
 
 /*******************************************************************************
 * MACROS
@@ -39,4 +35,3 @@ void amt21_set_zero_pos(Stream &port,int NODE_ADDR);
 #endif
 
 #endif // _AMT21_DRIVER_H
-/* [] END OF FILE */
