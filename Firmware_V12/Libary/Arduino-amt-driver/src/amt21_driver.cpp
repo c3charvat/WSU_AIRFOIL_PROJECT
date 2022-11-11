@@ -23,7 +23,7 @@ using namespace std;
 #endif
 
 
-bool _check_parity(uint16_t *response);
+bool check_parity(uint16_t *response);
 unsigned int reverseBits(unsigned int n, unsigned int byte_size, unsigned int num_to_truncate);
 int getSign(unsigned int n);
 
@@ -99,7 +99,7 @@ int16_t amt_get_turns(Stream &port,int NODE_ADDR)
     uint16_t turns_unsigned_with_parity =(((unsigned int) ((unsigned char) high_byte_with_parity)&255 )<< 8u) | (((unsigned char) low_byte)&255); // with parity
     uint16_t turns_unsigned_without_parity_and_sign =(((unsigned int) ((unsigned char) high_byte_no_parity_no_sign)&255 )<< 8u) | (((unsigned char) low_byte)&255); 
     // Check parity and extract value
-    if(!_check_parity(&turns_unsigned_with_parity))
+    if(!check_parity(&turns_unsigned_with_parity))
     {
         return 0;
     }
