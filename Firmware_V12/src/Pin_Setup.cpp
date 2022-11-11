@@ -10,10 +10,16 @@ The SwD interface will not work untill a full power off and the SwD pins have be
  https://www.st.com/resource/en/application_note/cd00167594-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf
  Page 54 for more information
 */
+// LCD SETUP
 const int BUTTON = PE7;      // encoder click on Creality Melzi screen
 const int BEEPER = PE8;      // factory beeper on Creality Melzi screen
-const int ENCODER_RT = PE9;  // left turn on the encoder
+const int ENCODER_RT = PE9;  // left turn on the encoder //lcd encoder
 const int ENCODER_LT = PE12; // Right trun on the encoder
+
+// RS485 is going to use the exp2 headder 
+const int RS485_READ_ENABLE = PE9;
+const int RS485_WRITE_ENABLE = PE12;
+
 
 // Fan setup
 const int Fan0 = PA8;
@@ -80,6 +86,10 @@ void PIN_SETUP()
     // RESET
     // pinMode(Reset,OUTPUT);
     // digitalWrite(Reset,HIGH);
+
+    // RS485
+    pinMode(RS485_READ_ENABLE, OUTPUT);
+    pinMode(RS485_WRITE_ENABLE, OUTPUT);
 
     // X Stepper
     pinMode(MOTOR0_STEP_PIN, OUTPUT);

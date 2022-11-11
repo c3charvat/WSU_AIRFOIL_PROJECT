@@ -17,6 +17,13 @@ extern const int BUTTON; // encoder click on Creality Melzi screen
 extern const int BEEPER; // factory beeper on Creality Melzi screen
 extern const int ENCODER_RT; // left turn on the encoder 
 extern const int ENCODER_LT; // Right trun on the encoder
+
+// RS485 Pin setup
+
+extern const int RS485_READ_ENABLE;
+extern const int RS485_WRITE_ENABLE;
+
+
 // Fan setup
 extern const int Fan0;
 extern const int Fan1;
@@ -56,7 +63,7 @@ extern const int MOTOR7_STEP_PIN;  // z axis
 extern const int MOTOR7_DIRECTION_PIN;  // z axis  // disabled for SWD programming 
 extern const int MOTOR7_ENABLE; // z axis;
 
-
+// limit switches
 extern const int Motor0LimitSw;
 extern const int Motor1LimitSw;
 extern const int Motor2LimitSw;
