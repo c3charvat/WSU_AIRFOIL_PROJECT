@@ -6,7 +6,7 @@
 #include "TMCStepper.h"
 #include "TMCStepper_UTILITY.h"
 #include "stm32yyxx_ll_gpio.h"
-// Include custom functions written after this
+// Include custom functions after this
 #include "Pin_Setup.h"
 #include "Settings.hpp"
 #include "Data_structures.h"
@@ -30,7 +30,7 @@ using namespace TMC2208_n;       // Allows the TMC2209 to use functions out of t
 using namespace std;
 // Dev Settings
 //bool Swd_programming_mode = true;
-//bool Endstop_bypass_enable = true; // moved into a namespace 
+//bool Endstop_bypass_enable = true; // moved into a SETTINGS.HPP
 //bool Verbose_mode = true;
 // Jump to bootloader stuff:
 extern int _estack;
@@ -39,7 +39,7 @@ pFunction JumpToApplication;
 uint32_t JumpAddress;
 //
 HardwareSerial Serial2(PD9,PD8); // Second serial instance for the wifi
-HardwareSerial Serial3(PA10,PA9); // Third serial instance for the rs484 encoders. This can be treated as a simplex, the only time we write out is to initilize.
+HardwareSerial Serial3(PE14,PE8); // Third serial instance for the rs484 encoders. This can be treated as a simplex, the only time we write out is to initilize.
 
 
 
@@ -147,10 +147,11 @@ int main()
   /// run setup
   setup();
   // initilise External Coms
-  //Serial.begin(115200); // ESP32 COMS
-  //esp32COM.begin(Serial); // hand off the serial instance to serial transfer
-  Serial2.begin(115200); // usb C coms
-  usbCOM.begin(Serial2);
+  Serial2.begin(9600); // usb C coms 
+  usbCOM.begin(Serial2); // hand off the serial instance to serial transfer
+  Serial.begin(9600); // ESP32 COMS
+  esp32COM.begin(Serial); // hand off the serial instance to serial transfer
+  Serial3.begin(9600); // rs485 encoders start serial
   // check connection status - if there is somthing connected or trying to connect.
   // Send packet on both usb and wifi
   // wait some time
