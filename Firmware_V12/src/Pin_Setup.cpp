@@ -192,6 +192,7 @@ void DRIVER_SETUP()
   driverX.pwm_ofs_auto ();
   driverX.pwm_autograd(1);
   driverX.pwm_autoscale(1);
+  driverX.toff(5);
 
   driverX2.beginSerial(115200);
   Serial.println("Driver X2 Enabled\n");
@@ -201,16 +202,19 @@ void DRIVER_SETUP()
   driverX2.pwm_ofs_auto ();
   driverX2.pwm_autograd(1);
   driverX2.pwm_autoscale(1);
+  driverX2.toff(5);
 
   driverY0.beginSerial(115200);
   Serial.println("Driver Y0 Enabled\n");
   driverY0.begin();
-  driverY0.rms_current(1100); // mA
+  driverY0.rms_current(900); // mA
   driverY0.microsteps(64);
   //driverY0.en_spreadCycle(0);
   driverY0.pwm_ofs_auto ();
   driverY0.pwm_autoscale(1);
   driverY0.pwm_autograd(1);
+  driverY0.toff(5);
+  
 
   driverY1.beginSerial(115200);
   Serial.println("Driver Y12 Enabled\n");
@@ -218,6 +222,9 @@ void DRIVER_SETUP()
   driverY1.rms_current(900); // mA
   driverY1.microsteps(64);
   driverY1.pwm_ofs_auto ();
+  driverY1.pwm_autograd(1);
+  driverY1.pwm_autoscale(1);
+  driverY1.toff(5);
 
   driverY2.beginSerial(115200);
   Serial.println("Driver Y12 Enabled\n");
@@ -225,6 +232,9 @@ void DRIVER_SETUP()
   driverY2.rms_current(900); // mA
   driverY2.microsteps(64);
   driverY2.pwm_ofs_auto ();
+  driverY2.pwm_autograd(1);
+  driverY2.pwm_autoscale(1);
+  driverY2.toff(5);
 
   driverY3.beginSerial(115200);
   Serial.println("Driver Y3 Enabled\n");
@@ -232,6 +242,9 @@ void DRIVER_SETUP()
   driverY3.rms_current(850); // mA
   driverY3.microsteps(64);
   driverY3.pwm_ofs_auto ();
+  driverY3.pwm_autograd(1);
+  driverY3.pwm_autoscale(1);
+  driverY3.toff(5);
 
   driverAOAT.beginSerial(115200);
   Serial.println("driver e1 enabled\n");
@@ -239,6 +252,9 @@ void DRIVER_SETUP()
   driverAOAT.rms_current(900); // ma
   driverAOAT.microsteps(64);
   driverAOAT.pwm_ofs_auto ();
+  driverAOAT.pwm_autograd(1);
+  driverAOAT.pwm_autoscale(1);
+  driverAOAT.toff(5);
 
   driverAOAB.beginSerial(115200);
   Serial.println("Driver E2 Enabled\n");
@@ -246,6 +262,9 @@ void DRIVER_SETUP()
   driverAOAB.rms_current(900); // mA
   driverAOAB.microsteps(64);
   driverAOAB.pwm_ofs_auto ();
+  driverAOAB.pwm_autograd(1);
+  driverAOAB.pwm_autoscale(1);
+  driverAOAB.toff(5);
 
 }
 
