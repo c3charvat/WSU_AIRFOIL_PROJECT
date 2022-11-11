@@ -23,30 +23,11 @@ using namespace std;
 #endif
 
 
-/*******************************************************************************
-* PRIVATE PROTOTYPES
-*******************************************************************************/
 bool _check_parity(uint16_t *response);
 unsigned int reverseBits(unsigned int n, unsigned int byte_size, unsigned int num_to_truncate);
 int getSign(unsigned int n);
 
 
-/*******************************************************************************
-* PUBLIC FUNCTIONS
-*******************************************************************************/
-/*******************************************************************************
-* Function Name: amt21_driver_init
-********************************************************************************
-* Summary:
-*  Start UART component and wait until the encoder as started.
-*   
-* Parameters:
-*  Stream &port -> The serial instace the device is connected to
-*
-* Return:
-*  None.
-*
-*******************************************************************************/
 void amt21_init(Stream &port)
 {    
     delay(AMT21_START_UP_TIME_MS);
@@ -55,24 +36,10 @@ void amt21_init(Stream &port)
     }
 }
 
-/*******************************************************************************
-* Function Name: amt21_get_pos
-********************************************************************************
-* Summary:
-*  Read the absolute position from the encoder.
-*   
-* Parameters:
-*   Stream &port -> The serial instace the device is connected to
-*   NODE_ADDR    -> The node address of the rs485 device 
-* Return:
-*  uint16_t: Absolute position of the encoder.
-*
-*******************************************************************************/
-uint16_t amt21_get_pos(Stream &port,int NODE_ADDR)
+uint16_t amt_get_pos(Stream &port,int NODE_ADDR)
 {
     // Send READ_POS command
     uint8_t cmd = ((uint8_t)(NODE_ADDR + 0x00u));
-    //_uart_write(&cmd, AMT21_CMD_LENGTH);
     port.write(&cmd, AMT21_CMD_LENGTH);
 
     // Wait for encoder to reply
@@ -92,7 +59,7 @@ uint16_t amt21_get_pos(Stream &port,int NODE_ADDR)
     uint16_t pos_unsigned_without_parity =(((unsigned int) ((unsigned char) high_byte_no_parity)&255 )<< 8u) | (((unsigned char) low_byte)&255); 
     
     // Check parity and extract value
-    if(!_check_parity(&pos_unsigned_with_parity))
+    if(!check_parity(&pos_unsigned_with_parity))
     {
         return 0;
     }
@@ -108,23 +75,7 @@ uint16_t amt21_get_pos(Stream &port,int NODE_ADDR)
     return pos;
 }
 
-
-
-/*******************************************************************************
-* Function Name: amt21_get_turns
-********************************************************************************
-* Summary:
-*  Read the turn counter's value from the encoder.
-*   
-* Parameters:
-*   Stream &port -> The serial instace the device is connected to
-*   NODE_ADDR    -> The node address of the rs485 device 
-*
-* Return:
-*  int16: Turn counter value of the encoder.
-*
-*******************************************************************************/
-int16_t amt21_get_turns(Stream &port,int NODE_ADDR)
+int16_t amt_get_turns(Stream &port,int NODE_ADDR)
 {
     // Send READ_TURNS command
     uint8_t cmd = ((uint8_t)(NODE_ADDR + 0x01u));
@@ -165,21 +116,7 @@ int16_t amt21_get_turns(Stream &port,int NODE_ADDR)
     return (int16_t)turns;
 }
 
-/*******************************************************************************
-* Function Name: amt21_reset_enc
-********************************************************************************
-* Summary:
-*  Reset the encoder.
-*   
-* Parameters:
-*   Stream &port -> The serial instace the device is connected to
-*   NODE_ADDR    -> The node address of the rs485 device 
-*
-* Return:
-*  None.
-*
-*******************************************************************************/
-void amt21_reset_enc(Stream &port,int NODE_ADDR)
+void amt_reset_enc(Stream &port,int NODE_ADDR)
 {
     // Send RESET_ENC command
     uint8_t cmd[AMT21_EXT_CMD_LENGTH] = {((uint8_t)(NODE_ADDR + 0x02u)), AMT21_RESET_ENC};
@@ -193,9 +130,6 @@ void amt21_reset_enc(Stream &port,int NODE_ADDR)
 /*******************************************************************************
 * Function Name: amt21_set_zero_pos
 ********************************************************************************
-* Summary:
-*  Set zero to the actual position.
-*   
 * Parameters:
 *   Stream &port -> The serial instace the device is connected to
 *   NODE_ADDR    -> The node address of the rs485 device 
@@ -204,7 +138,7 @@ void amt21_reset_enc(Stream &port,int NODE_ADDR)
 *  None.
 *
 *******************************************************************************/
-void amt21_set_zero_pos(Stream &port,int NODE_ADDR)
+void amt_set_zero_pos(Stream &port,int NODE_ADDR)
 {
     // Send AMT21_SET_ZERO_POS command
     uint8_t cmd[AMT21_EXT_CMD_LENGTH] = {((uint8_t)(NODE_ADDR + 0x02u)), AMT21_SET_ZERO_POS};
@@ -213,25 +147,7 @@ void amt21_set_zero_pos(Stream &port,int NODE_ADDR)
 #endif
 
 
-/*******************************************************************************
-* PRIVATE FUNCTIONS
-*******************************************************************************/
-/*******************************************************************************
-* Function Name: _check_parity
-********************************************************************************
-* Summary:
-*  Check parity and return the value embedded in the response.
-*
-* Details:
-*  Checksum
-*  The AMT21 encoder uses a checksum calculation for detecting transmission
-*  errors. The upper two bits of every response from the encoder are check bits.
-*  Those values are shown in the examples below as K1 and K0. The check bits are
-*  odd parity; K1 for the odd bits in the response, and K0 for the even bits in
-*  the response. These check bits are not part of the position, but are used to
-*  verify its validity. The remaining lower 14 bits are the useful data. Here is
-*  an example of how to calculate the checkbits for a 16-bit response, from a
-*  14-bit encoder.
+/*
 * 
 *  Full response: 0x61AB
 *  14-bit position: 0x21AB (8619 decimal)
@@ -250,8 +166,8 @@ void amt21_set_zero_pos(Stream &port,int NODE_ADDR)
 * Return:
 *  bool: True if checksum is valid.
 *
-*******************************************************************************/
-bool _check_parity(uint16_t *response)
+*/
+bool check_parity(uint16_t *response)
 {
     // Verify parameters
     if(!response)
