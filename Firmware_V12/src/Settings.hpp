@@ -43,6 +43,8 @@ namespace Settings
     // physical machine settings
     constexpr int X_Lead_p = 2; // lead screw pitch in mm/revolution
     constexpr int Y_Lead_p = 2;
+    constexpr int AOAT_NODE_ADDR = 0x54;
+    constexpr int AOAB_NODE_ADDR = 0x34;
 
 }
 
