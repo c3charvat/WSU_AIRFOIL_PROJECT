@@ -41,7 +41,8 @@ uint32_t JumpAddress;
 HardwareSerial Serial2(PD9,PD8); // Second serial instance for the wifi
 HardwareSerial Serial3(PE14,PE8); // Third serial instance for the rs484 encoders. This can be treated as a simplex, the only time we write out is to initilize.
 
-
+//u8g2 lcd 
+U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/PE13, /* data=*/PE15, /* CS=*/PE14, /* reset=*/PE10);
 
 //// Setpper Driver Initilization
 // TMC Stepper Class
@@ -73,6 +74,9 @@ SerialTransfer usbCOM;
 void setup()
 {
   // put the initlization code here.
+  PIN_SETUP();
+  DRIVER_SETUP();
+  
 
   /// Setup Innterupts
   x0_Stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
@@ -125,25 +129,23 @@ int main()
   ////////////////////////////////////////// Begin normal operation ///////
   
   // create the data strucures 
-  ConnectTestStruct *UsbTest_ptr, Usb;
-  ConnectTestStruct *WifiTest_ptr,Wifi;
+  ConnectStatusStruct *Connectionstatus_ptr, Connectionstatus; // initalise a pointer to a strcut of connect test and 
+  Connectionstatus_ptr=&Connectionstatus;
   ControlStruct *Source_ptr, Source;
+  Source_ptr = &Source;
   PositionStruct *RecievedData_ptr,RecievedData;
+  RecievedData_ptr=&RecievedData;
   PositionStruct *CurrentPostions_ptr, CurrentPostions;
+  CurrentPostions_ptr=&CurrentPostions;
 
   // Error Struct 
 
   Error *Error_ptr,Error_struct;
+  Error_ptr=&Error_struct;
 
   //initilize the structures
   initialize_Movement_Struct(CurrentPostions_ptr,Source_ptr);
   initialize_Movement_Struct(RecievedData_ptr,Source_ptr);
-
-  
-
-  
-  
-  /// Global Varibles
   /// run setup
   setup();
   // initilise External Coms
@@ -152,6 +154,10 @@ int main()
   Serial.begin(9600); // ESP32 COMS
   esp32COM.begin(Serial); // hand off the serial instance to serial transfer
   Serial3.begin(9600); // rs485 encoders start serial
+
+  // Initilize coms 
+
+  
   // check connection status - if there is somthing connected or trying to connect.
   // Send packet on both usb and wifi
   // wait some time
@@ -160,13 +166,20 @@ int main()
     //else set control to the one that responded.
   // set connection status
   // if there is somthing connected Auto change to that Com.
+  u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE12, /* menu_prev_pin= */ PE9, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
+  // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion.
+  // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
+  u8g2.setFont(u8g2_font_6x12_tr);
 
-  // jump into main application
+
+  HomeAll(CurrentPostions_ptr,Error_ptr,Settings::AOAT_NODE_ADDR,Settings::AOAB_NODE_ADDR); // home all call
+  //////Main Applications
   // infinite loop
   for (;;)
   { // run the main
-    if (esp32COM.available())
+    if (esp32COM.available() || usbCOM.available() )
     {
+      // parse the packet comming in
       // use this variable to keep track of how many
       // bytes we've processed from the receive buffer
       uint16_t recSize = 0;
