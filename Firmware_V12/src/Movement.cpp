@@ -51,7 +51,7 @@ bool bounds_check(float pos_max, float pos_min, float desired_pos)
     }
 }
 
-PositionStruct REL_MOVEMENT_CALC(struct PositionStruct *current_pos, struct PositionStruct *input_pos, struct Error *error)
+PositionStruct rel_movement_calc(struct PositionStruct *current_pos, struct PositionStruct *input_pos, struct Error *error)
 {
     struct PositionStruct next_pos;
     float current_position_data[4] = {current_pos->xpos, current_pos->ypos, current_pos->aoatpos, current_pos->aoabpos};
@@ -113,7 +113,7 @@ PositionStruct REL_MOVEMENT_CALC(struct PositionStruct *current_pos, struct Posi
 void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
 {
     struct PositionStruct *next_pos_ptr,next_pos;
-    next_pos=REL_MOVEMENT_CALC(current_pos,input_data,error);
+    next_pos=rel_movement_calc(current_pos,input_data,error);
 
 
     x0_Stepper.setupRelativeMoveInSteps(next_pos.xpos / 5 * 200 * 8);  // Future: Make these iun terms of MM
@@ -285,12 +285,17 @@ void HomeAll(struct PositionStruct *current_pos, struct Error *error,int aoa_t_n
                                 // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
     }
     // begin AoA Homing
-    
-    int aoat_encoderpos = amt21_get_pos(Serial3,aoa_t_node_addr);
-    int aoat_encoderturns = amt21_get_turns(Serial3,aoa_t_node_addr);
 
-    int aoab_encoderpos = amt21_get_pos(Serial3,aoa_b_node_addr);
-    int aoab_encoderturns = amt21_get_turns(Serial3,aoa_b_node_addr);
+    int aoat_encoderturns = amt_get_turns(Serial3,aoa_t_node_addr);
+    int aoab_encoderturns = amt_get_turns(Serial3,aoa_b_node_addr);
+    
+    // insert encoder homing here
+    // not sure how it outputs position right now
+
+
+    int aoat_encoderpos = amt_get_pos(Serial3,aoa_t_node_addr);
+    int aoab_encoderpos = amt_get_pos(Serial3,aoa_b_node_addr);
+
 
 
 
@@ -319,7 +324,7 @@ void HomeAll(struct PositionStruct *current_pos, struct Error *error,int aoa_t_n
 void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error)
 {
     struct PositionStruct *next_pos_ptr,next_pos;
-    next_pos=REL_MOVEMENT_CALC(current_pos,input_data,error);
+    next_pos=rel_movement_calc(current_pos,input_data,error);
 
 
     x0_Stepper.setupRelativeMoveInSteps(next_pos.xpos / 5 * 200 * 8);  // Future: Make these iun terms of MM

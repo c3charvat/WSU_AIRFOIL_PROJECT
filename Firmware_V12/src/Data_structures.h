@@ -4,9 +4,9 @@
 
 ///// structure definitions 
 /// Packet structs (To be sent)
-struct __attribute__((packed)) ConnectTestStruct{
-  char name;
-  bool connected;
+struct __attribute__((packed)) ConnectStatusStruct{
+  bool wifi;
+  bool usb;
 };
 
 struct __attribute__((packed)) ControlStruct{ // store which com method has control
@@ -37,4 +37,10 @@ struct Error {
   bool recoverable;
 };
 
+struct Driver_settings{
+  int xdirver_microstepping;
+  int ydirver_microstepping;
+  int aoatdirver_microstepping;
+  int aoabdirver_microstepping;
+};
 #endif

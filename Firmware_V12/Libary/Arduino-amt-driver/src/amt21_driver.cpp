@@ -19,7 +19,7 @@ using namespace std;
 #define AMT21_RESET_ENC ((uint8_t)(0x75u))
 
 #ifdef AMT21_SINGLE_TURN
-#define AMT21_SET_ZERO_POS ((uint8_t)(0x5Eu))  // Single turn encoders only
+#define AMT21_SET_ZERO_POS ((uint8_t)(0x5E))  // Single turn encoders only
 #endif
 
 
@@ -32,7 +32,7 @@ void amt21_init(Stream &port)
 {    
     delay(AMT21_START_UP_TIME_MS);
     while(port.available()){
-        char t = port.read(); // throw away anything thats in there
+        port.read(); // throw away anything thats in there
     }
 }
 
@@ -223,7 +223,7 @@ unsigned int reverseBits(unsigned int n, unsigned int byte_size, unsigned int nu
         rev <<= 1;
  
         // if current bit is '1'
-        if (n & 1 == 1)
+        if ((n & 1 )== 1)
             rev ^= 1;
         // bitwise right shift
         // 'n' by 1
@@ -240,7 +240,7 @@ int getSign(unsigned int n){
    {
        n >>= 1; // skip over this one
    }
-   if (n & 1 == 1){ // if the current value is 1 then it is negitive
+   if ((n & 1 )== 1){ // if the current value is 1 then it is negitive
         return -1;
    }
    else{
