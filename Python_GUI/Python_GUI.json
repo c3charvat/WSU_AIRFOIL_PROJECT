@@ -9,7 +9,5 @@
     "parity": "N",
     "stopbits": 1,
     "portindex": -1,
-    "portlist": {
-        "COM1": "Communications Port (COM1)"
-    }
+    "portlist": {}
 }

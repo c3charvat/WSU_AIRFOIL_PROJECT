@@ -1,0 +1,13 @@
+{
+    "autoscroll": false,
+    "showtimestamp": false,
+    "showsenttext": false,
+    "displayhex": false,
+    "lineending": 0,
+    "baudrateindex": 4,
+    "databits": 8,
+    "parity": "N",
+    "stopbits": 1,
+    "portindex": -1,
+    "portlist": {}
+}

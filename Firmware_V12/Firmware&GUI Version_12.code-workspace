@@ -11,6 +11,9 @@
         {
             "name": "Python_GUI",
             "path": "../Python_GUI"
+        },
+        {
+            "path": "../Python_GUI_V2"
         }
     ]
 }
