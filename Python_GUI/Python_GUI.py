@@ -199,6 +199,8 @@ def changePort(event):
         #msgbox.showerror(APP_TITLE, "Couldn't open the {} port.".format(portDesc))
         writeConsole('failed!!!\n', 2)
         currentPort.port = None
+        currentPort.is_open = False
+        root.update()
     if currentPort.is_open:
         root.title(APP_TITLE + ': ' + ports[currentPort.port])
         enableSending()
@@ -434,7 +436,7 @@ def rxPolling():  # Pull Data in
 
 def listPortsPolling():  # list the current Com Ports avalible
     global ports
-    ps = {p.name: p.description for p in list_ports.comports()}
+    ps = {p.device: p.description for p in list_ports.comports()}
     pn = sorted(ps)
     if pn != portCbo['values']:
         portCbo['values'] = pn
@@ -596,7 +598,7 @@ def change_theme():
     else:
         # Set dark theme
         root.tk.call("set_theme", "dark")
-        root.configure(bg='#222222')
+        root.configure(bg='#1c1c1c')
 
 def defaultSetting():
     dataBitsCbo.set(serial.EIGHTBITS)
@@ -937,7 +939,7 @@ if __name__ == '__main__':
     PARITY_VAL = ('Even', 'Odd', 'None', 'Mark', 'Space')
     STOPBITS = (serial.STOPBITS_ONE,
                 serial.STOPBITS_ONE_POINT_FIVE, serial.STOPBITS_TWO)
-    ports = {p.name: p.description for p in list_ports.comports()}
+    ports = {p.device: p.description for p in list_ports.comports()}
     currentPort = serial.Serial(
         port=None, baudrate=9600, timeout=0, write_timeout=0)
     portDesc = ''
@@ -960,7 +962,7 @@ if __name__ == '__main__':
 
     ### Root Function #######################################################################
     root = tk.Tk()
-    root.configure(bg='#222222')
+    root.configure(bg='#1c1c1c')
     style = ttk.Style(root)
     try:
         root.tk.call('source','C://Users//Hnwhite//Documents//WSU_AIRFOIL_PROJECT//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')

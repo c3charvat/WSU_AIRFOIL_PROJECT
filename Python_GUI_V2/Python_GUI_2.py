@@ -434,7 +434,7 @@ def rxPolling():  # Pull Data in
 
 def listPortsPolling():  # list the current Com Ports avalible
     global ports
-    ps = {p.name: p.description for p in list_ports.comports()}
+    ps = {p.device: p.description for p in list_ports.comports()}
     pn = sorted(ps)
     if pn != portCbo['values']:
         portCbo['values'] = pn
@@ -494,6 +494,7 @@ def exitRoot():
 def setting():  # settings Menu
     global settingDlg, dataBitsCbo, parityCbo, stopBitsCbo
     settingDlg = tk.Toplevel()
+    ttk.Style(settingDlg)
     settingDlg.title('Port Setting')
     if ico:
         settingDlg.iconphoto(False, ico)
@@ -504,7 +505,7 @@ def setting():  # settings Menu
     tk.Grid.columnconfigure(settingDlg, 0, weight=1)
     tk.Grid.columnconfigure(settingDlg, 1, weight=1)
     tk.Grid.columnconfigure(settingDlg, 2, weight=1)
-    ttk.Label(settingDlg, text='Data bits:').grid(
+    tk.Label(settingDlg, text='Data bits:').grid(
         row=0, column=1, padx=0, pady=12, sticky=tk.NE)
     ttk.Label(settingDlg, text='Parity:').grid(
         row=1, column=1, padx=0, pady=0, sticky=tk.NS+tk.E)
@@ -550,6 +551,7 @@ def filePathSettings():  # settings Menu
     #filePath = tk.StringVar()
     #filePath="C:\\Users\\Collin\\Documents\\WSU_AIRFOIL_GITHUB\\WSU_AIRFOIL_PROJECT"
     filePathDlg = tk.Toplevel()
+    ttk.Style(filePathDlg)
     filePathDlg.title('File Path Menu')
     if ico:
         filePathDlg.iconphoto(False, ico)
@@ -593,10 +595,12 @@ def change_theme():
         # Set light theme
         root.tk.call("set_theme", "light")
         root.configure(bg='white')
+        root.update()
     else:
         # Set dark theme
         root.tk.call("set_theme", "dark")
-        root.configure(bg='#222222')
+        root.configure(bg='#1c1c1c')
+        root.update()
 
 def defaultSetting():
     dataBitsCbo.set(serial.EIGHTBITS)
@@ -937,7 +941,7 @@ if __name__ == '__main__':
     PARITY_VAL = ('Even', 'Odd', 'None', 'Mark', 'Space')
     STOPBITS = (serial.STOPBITS_ONE,
                 serial.STOPBITS_ONE_POINT_FIVE, serial.STOPBITS_TWO)
-    ports = {p.name: p.description for p in list_ports.comports()}
+    ports = {p.device: p.description for p in list_ports.comports()}
     currentPort = serial.Serial(
         port=None, baudrate=9600, timeout=0, write_timeout=0)
     portDesc = ''
@@ -960,7 +964,7 @@ if __name__ == '__main__':
 
     ### Root Function #######################################################################
     root = tk.Tk()
-    root.configure(bg='#222222')
+    root.configure(bg='#1c1c1c')
     style = ttk.Style(root)
     try:
         root.tk.call('source','C://Users//Hnwhite//Documents//WSU_AIRFOIL_PROJECT//WSU_AIRFOIL_PROJECT//Python_GUI//Sun-Valley-ttk-theme-master//sun-valley.tcl')
