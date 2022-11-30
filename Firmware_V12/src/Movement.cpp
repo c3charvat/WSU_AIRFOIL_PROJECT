@@ -24,6 +24,10 @@ extern SpeedyStepper aoab_Stepper; // motor 5
 extern SpeedyStepper y2_Stepper;   // motor 6
 extern SpeedyStepper x1_Stepper;   // motor 7
 
+
+extern Amt21Encoder aoat_Encoder;
+extern Amt21Encoder aoab_Encoder;
+
 void initialize_movement_struct(struct PositionStruct *pos, struct ControlStruct *control)
 {
     pos->xpos = 0;
@@ -258,15 +262,15 @@ void home_all(struct PositionStruct *current_pos, struct Error *error,int aoa_t_
     }
     // begin AoA Homing
 
-    int aoat_encoderturns = amt_get_turns(Serial3,aoa_t_node_addr);
-    int aoab_encoderturns = amt_get_turns(Serial3,aoa_b_node_addr);
+    int aoat_encoderturns = aoat_Encoder.amt_get_turns();
+    int aoab_encoderturns = aoat_Encoder.amt_get_turns();
     
     // insert encoder homing here
     // not sure how it outputs position right now
 
 
-    int aoat_encoderpos = amt_get_pos(Serial3,aoa_t_node_addr);
-    int aoab_encoderpos = amt_get_pos(Serial3,aoa_b_node_addr);
+    //int aoat_encoderpos = amt_get_pos(Serial3,aoa_t_node_addr);
+    //int aoab_encoderpos = amt_get_pos(Serial3,aoa_b_node_addr);
 
 
 

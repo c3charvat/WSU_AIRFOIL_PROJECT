@@ -11,6 +11,7 @@
 #include "Settings.hpp"
 #include "Data_structures.h"
 #include "Movement.hpp"
+#include "amt21_driver.hpp"
 
 #ifdef U8X8_HAVE_HW_SPI
 #include "SPI.h"
@@ -41,14 +42,14 @@ U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/PE13, /* data=*/PE15, /* CS
 
 //// Setpper Driver Initilization
 // TMC Stepper Class
-TMC2209Stepper driverX(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverX2(PE1, PA6, .11f, DRIVER_ADDRESS);   
-TMC2209Stepper driverY0(PD11, PA6, .11f, DRIVER_ADDRESS);  
-TMC2209Stepper driverY1(PC6, PA6, .11f, DRIVER_ADDRESS);   
-TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);   
-TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   
-TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); 
-TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); 
+TMC2209Stepper driver_X(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
+TMC2209Stepper driver_X2(PE1, PA6, .11f, DRIVER_ADDRESS);   
+TMC2209Stepper driver_Y0(PD11, PA6, .11f, DRIVER_ADDRESS);  
+TMC2209Stepper driver_Y1(PC6, PA6, .11f, DRIVER_ADDRESS);   
+TMC2209Stepper driver_Y2(PD3, PA6, .11f, DRIVER_ADDRESS);   
+TMC2209Stepper driver_Y3(PC7, PA6, .11f, DRIVER_ADDRESS);   
+TMC2209Stepper driver_AOAT(PF2, PA6, .11f, DRIVER_ADDRESS); 
+TMC2209Stepper driver_AOAB(PE4, PA6, .11f, DRIVER_ADDRESS); 
 
 // Speedy Stepper Class     // Octopus board plug.
 SpeedyStepper x0_Stepper;   // motor 0
@@ -61,9 +62,12 @@ SpeedyStepper y2_Stepper;   // motor 6
 SpeedyStepper x1_Stepper;   // motor 7
 
 // Packetized Serial Trasfer
-SerialTransfer esp32COM;
-SerialTransfer usbCOM;
+SerialTransfer esp32_Com;
+SerialTransfer usb_Com;
 
+// encoder classes
+Amt21Encoder aoat_Encoder( Serial3, Amt21Encoder::i14BIT, Amt21Encoder::i54, RS485_READ_ENABLE, RS485_WRITE_ENABLE);
+Amt21Encoder aoab_Encoder( Serial3, Amt21Encoder::i14BIT, Amt21Encoder::i74, RS485_READ_ENABLE, RS485_WRITE_ENABLE);
 
 
 void setup()
@@ -71,6 +75,7 @@ void setup()
   // put the initlization code here.
   pin_setup();
   driver_setup();
+
 
   /// Setup Innterupts
   x0_Stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
