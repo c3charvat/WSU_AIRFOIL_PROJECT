@@ -2,7 +2,7 @@
 #include "Movement.hpp"
 #include "Settings.hpp"
 #include "SpeedyStepper.h"
-#include "Pin_Setup.h"
+#include "Pin_Setup.hpp"
 #include "Data_structures.h"
 #include "amt21_driver.hpp"
 using namespace std;

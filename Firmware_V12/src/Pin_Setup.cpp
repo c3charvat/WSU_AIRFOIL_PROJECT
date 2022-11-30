@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <SpeedyStepper.h>
 #include <Settings.hpp>
-#include <Pin_Setup.h>
+#include <Pin_Setup.hpp>
 /*
 This file sets up the Pin Modes
 It its important to note that Stepper driver 7 shares pins with the swd interface...
