@@ -8,12 +8,15 @@
 #include "amt21_driver.hpp"
 using namespace std;
 
+
+
+// To do make these into a class that we
 // Delays
-#define AMT21_START_UP_TIME_MS (200u)
-#define AMT21_TURNAROUND_TIME_US (30u)
+#define AMT21_START_UP_TIME_MS ((uint8_t)200u)
+#define AMT21_TURNAROUND_TIME_US ((uint8_t)30u)
 
 // Commands
-#define AMT21_RESPONSE_LENGTH ((uint8_t)2u) // number of bits
+#define AMT21_RESPONSE_LENGTH ((uint8_t)3u) // number of bytes we got
 #define AMT21_CMD_LENGTH ((uint8_t)1u)      // number of bytes to send
 #define AMT21_EXT_CMD_LENGTH ((uint8_t)2u) // number of bytes to send
 #define AMT21_RESET_ENC ((uint8_t)(0x75u))
@@ -49,22 +52,13 @@ uint16_t amt_get_pos(Stream &port,int NODE_ADDR)
     uint8_t response_raw[AMT21_RESPONSE_LENGTH];
     port.readBytes(response_raw, AMT21_RESPONSE_LENGTH);
     
-    //uint16_t pos = (response_raw[1] << 8u) | response_raw[0];
-
-    unsigned int low_byte = reverseBits(response_raw[0],8,0);
-    unsigned int high_byte_no_parity = reverseBits(response_raw[1],8,2);
-    unsigned int high_byte_with_parity = reverseBits(response_raw[1],8,2);
-
-    uint16_t pos_unsigned_with_parity =(((unsigned int) ((unsigned char) high_byte_with_parity)&255 )<< 8u) | (((unsigned char) low_byte)&255); // with parity
-    uint16_t pos_unsigned_without_parity =(((unsigned int) ((unsigned char) high_byte_no_parity)&255 )<< 8u) | (((unsigned char) low_byte)&255); 
+    uint16_t pos = (response_raw[1] << 8u) | response_raw[0];
     
     // Check parity and extract value
-    if(!check_parity(&pos_unsigned_with_parity))
+    if(!check_parity(&pos))
     {
         return 0;
     }
-    // Remove the parity check bits
-    uint16_t pos = pos_unsigned_without_parity;
     
     // Convert value to match encoder's resolution (see AMT21_RESOLUTION)
     if(AMT21_RESOLUTION == 12u)
@@ -75,7 +69,7 @@ uint16_t amt_get_pos(Stream &port,int NODE_ADDR)
     return pos;
 }
 
-int16_t amt_get_turns(Stream &port,int NODE_ADDR)
+int amt_get_turns(Stream &port,int NODE_ADDR)
 {
     // Send READ_TURNS command
     uint8_t cmd = ((uint8_t)(NODE_ADDR + 0x01u));
@@ -88,32 +82,24 @@ int16_t amt_get_turns(Stream &port,int NODE_ADDR)
     uint8_t response_raw[AMT21_RESPONSE_LENGTH];
     port.readBytes(response_raw, AMT21_RESPONSE_LENGTH);
     
-   // uint16_t turns_unsigned = (response_raw[1] << 8u) | response_raw[0]; // bit shift it ledt 
+    uint16_t turns = (response_raw[2] << 8u) | response_raw[1]; // bit shift it ledt 
 
-    unsigned int low_byte = reverseBits(response_raw[0],8,0);
-    unsigned int high_byte_no_parity = reverseBits(response_raw[1],8,2);// remove the msb since its the sign bit
-    unsigned int high_byte_no_parity_no_sign = reverseBits(response_raw[1],8,2);// remove the msb since its the sign bit
-    unsigned int high_byte_with_parity = reverseBits(response_raw[1],8,0);
-    int sign = getSign(high_byte_no_parity);
-
-    uint16_t turns_unsigned_with_parity =(((unsigned int) ((unsigned char) high_byte_with_parity)&255 )<< 8u) | (((unsigned char) low_byte)&255); // with parity
-    uint16_t turns_unsigned_without_parity_and_sign =(((unsigned int) ((unsigned char) high_byte_no_parity_no_sign)&255 )<< 8u) | (((unsigned char) low_byte)&255); 
     // Check parity and extract value
-    if(!check_parity(&turns_unsigned_with_parity))
+    if(!check_parity(&turns))
     {
         return 0;
     }
-    // Remove the parity check bits (k0 and k1)
-    int16_t turns = sign*turns_unsigned_without_parity_and_sign;
-    
+
+    turns = (turns & 0x3FFFu);
+
     // Replace k0 and k1 with the MSB of the 14-bit int)
-    // bool negative = (turns_unsigned >> 13) & 0x01u;
-    // if(negative)
-    // {
-    //     turns_unsigned = turns_unsigned | 0xC000;
-    // }
+    bool negative = (turns >> 13) & 0x01u;
+    if(negative)
+    {
+        turns = turns | 0xC000;
+    }
     // Return the number of turns
-    return (int16_t)turns;
+    return (int)turns;
 }
 
 void amt_reset_enc(Stream &port,int NODE_ADDR)
