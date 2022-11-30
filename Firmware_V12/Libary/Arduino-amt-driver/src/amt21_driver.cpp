@@ -6,9 +6,6 @@
 #include "amt21_driver.hpp"
 using namespace std;
 
-// Delays
-#define AMT21_START_UP_TIME_MS ((uint8_t)200u)
-#define AMT21_TURNAROUND_TIME_US ((uint8_t)30u)
 
 // Commands
 #define AMT21_RESPONSE_LENGTH ((uint8_t)3u) // number of bytes we got
@@ -22,22 +19,6 @@ using namespace std;
 
 // private defintions 
 bool check_parity(uint16_t *response);
-
-void Amt21Encoder::amt_init(Stream &port, Resolution resolution, NodeAddress nodeaddress, int rx, int tx)
-{
-    m_rx_enable_pin = rx;
-    m_tx_enable_pin = tx;
-    m_amt_resolution = resolution;
-    m_amt_node_address = nodeaddress;
-    m_port_ptr = port;
-
-    delay(AMT21_START_UP_TIME_MS);
-
-    while (port.available())
-    {
-        port.read(); // throw away anything thats in there
-    }
-}
 
 uint16_t Amt21Encoder::amt_get_pos()
 {
@@ -113,6 +94,7 @@ void Amt21Encoder::amt_reset_enc()
 }
 
 #ifdef AMT21_SINGLE_TURN
+
 void Amt21Encoder::amt_set_zero_pos()
 {
     // Send AMT21_SET_ZERO_POS command

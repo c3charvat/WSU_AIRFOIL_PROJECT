@@ -10,6 +10,9 @@
 // #define AMT21_RESOLUTION (12u)  // 12-bit or 14-bit (see datasheet, page 5)
 #define AMT21_RESOLUTION (14u) // 12-bit or 14-bit (see datasheet, page 5)
 // #define AMT21_SINGLE_TURN   // Uncomment if single-turn (see datasheet, page 5)
+// Delays
+#define AMT21_START_UP_TIME_MS ((uint8_t)200u)
+#define AMT21_TURNAROUND_TIME_US ((uint8_t)30u)
 
 /*******************************************************************************
  * PUBLIC PROTOTYPES
@@ -28,16 +31,28 @@ public:
         i74 = 74,
         // maybe expand the list?
     };
-private:
     int m_turn_around_time;
     int m_rx_enable_pin;
     int m_tx_enable_pin;
     Resolution m_amt_resolution;
     NodeAddress m_amt_node_address;
     Stream &m_port_ptr;
-public:
     // Init
-    void amt_init(Stream &port, Resolution resolution, NodeAddress nodeaddress, int rx, int tx);
+    Amt21Encoder(Stream &port, Resolution resolution, NodeAddress nodeaddress, int rx, int tx)
+        :  m_port_ptr(port)
+    {
+        m_rx_enable_pin = rx;
+        m_tx_enable_pin = tx;
+        m_amt_resolution = resolution;
+        m_amt_node_address = nodeaddress;
+
+        delay(AMT21_START_UP_TIME_MS);
+
+        while (port.available())
+        {
+            port.read(); // throw away anything thats in there
+        }
+    }
 
     // Read commands
     uint16_t amt_get_pos();
@@ -46,11 +61,9 @@ public:
     // Write commands
     void amt_reset_enc();
 
-    #ifdef AMT_SINGLE_TURN
-        void amt_set_zero_pos();
-    #endif
-
-
+#ifdef AMT_SINGLE_TURN
+    void amt_set_zero_pos();
+#endif
 };
 
 #endif // _AMT21_DRIVER_H
