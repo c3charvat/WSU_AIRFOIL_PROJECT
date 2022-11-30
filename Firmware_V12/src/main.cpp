@@ -7,7 +7,7 @@
 #include "TMCStepper_UTILITY.h"
 #include "stm32yyxx_ll_gpio.h"
 // Include custom functions after this
-#include "Pin_Setup.h"
+#include "Pin_Setup.hpp"
 #include "Settings.hpp"
 #include "Data_structures.h"
 #include "Movement.hpp"
