@@ -4,14 +4,13 @@
 
 
 
-void initialize_Movement_Struct(struct PositionStruct *pos, struct ControlStruct *control);
-void initialize_Movement_Struct_NC(struct PositionStruct *pos);
+void initialize_movement_struct(struct PositionStruct *pos, struct ControlStruct *control);
+void initialize_movement_struct_no_control(struct PositionStruct *pos);
 #ifndef Has_rs485_ecoders
-void HomeAll(struct PositionStruct *current_pos, struct Error *error);
+void HOME_All(struct PositionStruct *current_pos, struct Error *error);
 void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error);
-#endif
-#ifdef Has_rs485_ecoders
-void HomeAll(struct PositionStruct *current_pos, struct Error *error,int NODE_ADDR_1,int NODE_ADDR_2);
+#else
+void HOME_ALL(struct PositionStruct *current_pos, struct Error *error,int NODE_ADDR_1,int NODE_ADDR_2);
 void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error,int NODE_ADDR_1,int NODE_ADDR_2);
 #endif
 

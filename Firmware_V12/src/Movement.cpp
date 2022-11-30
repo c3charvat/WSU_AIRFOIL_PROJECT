@@ -2,10 +2,18 @@
 #include "Movement.hpp"
 #include "Settings.hpp"
 #include "SpeedyStepper.h"
-#include "Pin_Setup.h"
+#include "Pin_Setup.hpp"
 #include "Data_structures.h"
 #include "amt21_driver.hpp"
 using namespace std;
+
+/*
+Style Guide:
+Local functions are all lower case
+External functions are all capitals
+Anything global is all caps.
+Classes are camel case.
+*/
 
 extern SpeedyStepper x0_Stepper;   // motor 0
 extern SpeedyStepper y0_Stepper;   // motor 1
@@ -16,7 +24,7 @@ extern SpeedyStepper aoab_Stepper; // motor 5
 extern SpeedyStepper y2_Stepper;   // motor 6
 extern SpeedyStepper x1_Stepper;   // motor 7
 
-void initialize_Movement_Struct(struct PositionStruct *pos, struct ControlStruct *control)
+void initialize_movement_struct(struct PositionStruct *pos, struct ControlStruct *control)
 {
     pos->xpos = 0;
     pos->ypos = 0;
@@ -27,7 +35,7 @@ void initialize_Movement_Struct(struct PositionStruct *pos, struct ControlStruct
     pos->source = control; // goal here is to create a link to a single structre that will update with what interface has control
 }
 
-void initialize_Movement_Struct_NC(struct PositionStruct *pos)
+void initialize_movement_struct_no_control(struct PositionStruct *pos)
 {
     pos->xpos = 0;
     pos->ypos = 0;
@@ -152,7 +160,7 @@ void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *in
 
 }
 
-void HomeAll(struct PositionStruct *current_pos, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
+void HOME_ALL(struct PositionStruct *current_pos, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
 {
     //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
     //// This ensures that all the axis are not allready on their limit swtiches
@@ -310,17 +318,14 @@ void HomeAll(struct PositionStruct *current_pos, struct Error *error,int aoa_t_n
     volatile bool aoabhome = false;
 
     struct PositionStruct *input_data_ptr, input_data;
-    initialize_Movement_Struct_NC(input_data_ptr); // set the input data to zeros
+    initialize_movement_struct_no_control(input_data_ptr); // set the input data to zeros
 
     MOVE_FUNCTION(current_pos,input_data_ptr,error,aoa_t_node_addr,aoa_b_node_addr); // Bring them to the defined "O" position 
 
 }
 
 
-#endif // endif has encoders installed 
-
-
-#ifndef Has_rs485_ecoders
+#else
 void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error)
 {
     struct PositionStruct *next_pos_ptr,next_pos;
@@ -363,7 +368,7 @@ void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *in
 
 }
 
-void HomeAll(struct PositionStruct *current_pos, struct Error *error)
+void HOME_ALL(struct PositionStruct *current_pos, struct Error *error)
 {
     //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
     //// This ensures that all the axis are not allready on their limit swtiches

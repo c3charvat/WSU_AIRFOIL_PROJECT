@@ -7,11 +7,10 @@
 #include "TMCStepper_UTILITY.h"
 #include "stm32yyxx_ll_gpio.h"
 // Include custom functions after this
-#include "Pin_Setup.h"
+#include "Pin_Setup.hpp"
 #include "Settings.hpp"
 #include "Data_structures.h"
 #include "Movement.hpp"
-
 
 #ifdef U8X8_HAVE_HW_SPI
 #include "SPI.h"
@@ -29,19 +28,19 @@ using namespace TMC2208_n;       // Allows the TMC2209 to use functions out of t
 #define DOCTOPUS_BOARD_FROM_HSE
 using namespace std;
 // Dev Settings
-//bool Swd_programming_mode = true;
-//bool Endstop_bypass_enable = true; // moved into a SETTINGS.HPP
-//bool Verbose_mode = true;
+// bool Swd_programming_mode = true;
+// bool Endstop_bypass_enable = true; // moved into a SETTINGS.HPP
+// bool Verbose_mode = true;
 // Jump to bootloader stuff:
 extern int _estack;
 uint32_t *bootloader_flag;
 pFunction JumpToApplication;
 uint32_t JumpAddress;
 //
-HardwareSerial Serial2(PD9,PD8); // Second serial instance for the wifi
-HardwareSerial Serial3(PE14,PE8); // Third serial instance for the rs484 encoders. This can be treated as a simplex, the only time we write out is to initilize.
+HardwareSerial Serial2(PD9, PD8);  // Second serial instance for the wifi
+HardwareSerial Serial3(PE14, PE8); // Third serial instance for the rs484 encoders. This can be treated as a simplex, the only time we write out is to initilize.
 
-//u8g2 lcd 
+// u8g2 lcd
 U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/PE13, /* data=*/PE15, /* CS=*/PE14, /* reset=*/PE10);
 
 //// Setpper Driver Initilization
@@ -54,7 +53,6 @@ TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Dr
 TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver Address) Software serial X axis
 TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
 TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
-
 
 // Speedy Stepper Class     // Octopus board plug.
 SpeedyStepper x0_Stepper;   // motor 0
@@ -70,13 +68,11 @@ SpeedyStepper x1_Stepper;   // motor 7
 SerialTransfer esp32COM;
 SerialTransfer usbCOM;
 
-
 void setup()
 {
   // put the initlization code here.
   PIN_SETUP();
   DRIVER_SETUP();
-  
 
   /// Setup Innterupts
   x0_Stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
@@ -86,15 +82,16 @@ void setup()
   aoat_Stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
   aoab_Stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
   x1_Stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-  if(DEV_constants::Swd_programming_mode == false){
+  if (DEV_constants::Swd_programming_mode == false)
+  {
     y2_Stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
   }
 }
 
 int main()
 {
-  ////////////////////////////////////////// Begin normal operation ////////////////////////////////////////////////////////////////////////
-  // Do not edit above this line in main it will break the bootloader code 
+  ////////////////////////////////////////// Begin bootloder operation ////////////////////////////////////////////////////////////////////////
+  // Do not edit above this line in main it will break the bootloader code
   // Run bootloader code
   // This is hella dangerous messing with the stack here but hey gotta learn somehow
   bootloader_flag = (uint32_t *)(&_estack - BOOTLOADER_FLAG_OFFSET); // below top of stack ******* The bootloader offset will have to be checked after the first flash to make sure it doesnt get overwritten******
@@ -103,9 +100,9 @@ int main()
 
     *bootloader_flag = 1;
     /* Jump to system memory bootloader */
-    HAL_SuspendTick();    // Kill whats running (in a sense)
-    HAL_RCC_DeInit();     // Kill the the clocks 
-    HAL_DeInit();         // Kill the  HAL layer all together 
+    HAL_SuspendTick(); // Kill whats running (in a sense)
+    HAL_RCC_DeInit();  // Kill the the clocks
+    HAL_DeInit();      // Kill the  HAL layer all together
     JumpAddress = *(__IO uint32_t *)(BOOTLOADER_ADDRESS + 4);
     JumpToApplication = (pFunction)JumpAddress;
     //__ASM volatile ("movs r3, #0\nldr r3, [r3, #0]\nMSR msp, r3\n" : : : "r3", "sp");
@@ -113,57 +110,55 @@ int main()
   }
   if (*bootloader_flag = 1)
   {
-    //__memory_changed(void);
-    HAL_RCC_DeInit();               // Kill the clocks they are configured wrong. (HSI DEFAULTS NO PERIFIERIALS)
-    SystemClock_Config();           // Reconfigure the system clock to HSE
-    HAL_Init();                     // Reinit the HAL LAYER 
-    __HAL_RCC_GPIOC_CLK_ENABLE();   // Enable the clocks 
+    HAL_RCC_DeInit();                 // Kill the clocks they are configured wrong. (HSI DEFAULTS NO PERIFIERIALS)
+    SystemClock_Config();             // Reconfigure the system clock to HSE
+    HAL_Init();                       // Reinit the HAL LAYER
+    __HAL_RCC_GPIOC_CLK_ENABLE();     // Enable the clocks
     __HAL_RCC_GPIOH_CLK_ENABLE();
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOG_CLK_ENABLE();
     __HAL_RCC_GPIOF_CLK_ENABLE();
     __HAL_RCC_GPIOE_CLK_ENABLE();
   }
-  *bootloader_flag = 0; // So next boot won't be affecteed // Fall through the boot code section and set the boot flag to 0 if everything goes good.
+  *bootloader_flag = 0;                // So next boot won't be affecteed // Fall through the boot code section and set the boot flag to 0 if everything goes good.
 
-  ////////////////////////////////////////// Begin normal operation ///////
-  
-  // create the data strucures 
-  ConnectStatusStruct *Connectionstatus_ptr, Connectionstatus; // initalise a pointer to a strcut of connect test and 
-  Connectionstatus_ptr=&Connectionstatus;
+  ////////////////////////////////////////// Begin normal operation /////////////////////////////////////////////////
+
+  // create the data strucures
+  ConnectStatusStruct *Connectionstatus_ptr, Connectionstatus; // initalise a pointer to a strcut of connect test and
+  Connectionstatus_ptr = &Connectionstatus;
   ControlStruct *Source_ptr, Source;
   Source_ptr = &Source;
-  PositionStruct *RecievedData_ptr,RecievedData;
-  RecievedData_ptr=&RecievedData;
+  PositionStruct *RecievedData_ptr, RecievedData;
+  RecievedData_ptr = &RecievedData;
   PositionStruct *CurrentPostions_ptr, CurrentPostions;
-  CurrentPostions_ptr=&CurrentPostions;
+  CurrentPostions_ptr = &CurrentPostions;
 
-  // Error Struct 
+  // Error Struct
 
-  Error *Error_ptr,Error_struct;
-  Error_ptr=&Error_struct;
+  Error *Error_ptr, Error_struct;
+  Error_ptr = &Error_struct;
 
-  //initilize the structures
-  initialize_Movement_Struct(CurrentPostions_ptr,Source_ptr);
-  initialize_Movement_Struct(RecievedData_ptr,Source_ptr);
+  // initilize the structures
+  initialize_movement_struct(CurrentPostions_ptr, Source_ptr);
+  initialize_movement_struct(RecievedData_ptr, Source_ptr);
   /// run setup
   setup();
   // initilise External Coms
-  Serial2.begin(9600); // usb C coms 
-  usbCOM.begin(Serial2); // hand off the serial instance to serial transfer
-  Serial.begin(9600); // ESP32 COMS
+  Serial2.begin(9600);    // usb C coms
+  usbCOM.begin(Serial2);  // hand off the serial instance to serial transfer
+  Serial.begin(9600);     // ESP32 COMS
   esp32COM.begin(Serial); // hand off the serial instance to serial transfer
-  Serial3.begin(9600); // rs485 encoders start serial
+  Serial3.begin(9600);    // rs485 encoders start serial
 
-  // Initilize coms 
+  // Initilize coms
 
-  
   // check connection status - if there is somthing connected or trying to connect.
   // Send packet on both usb and wifi
   // wait some time
   // check for responce on both
-    // if there is a responce on both (send a prompt) to disconnect the usb cable 
-    //else set control to the one that responded.
+  // if there is a responce on both (send a prompt) to disconnect the usb cable
+  // else set control to the one that responded.
   // set connection status
   // if there is somthing connected Auto change to that Com.
   u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE12, /* menu_prev_pin= */ PE9, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
@@ -171,26 +166,23 @@ int main()
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
   u8g2.setFont(u8g2_font_6x12_tr);
 
-
-  HomeAll(CurrentPostions_ptr,Error_ptr,Settings::AOAT_NODE_ADDR,Settings::AOAB_NODE_ADDR); // home all call
+  HOME_ALL(CurrentPostions_ptr, Error_ptr, Settings::AOAT_NODE_ADDR, Settings::AOAB_NODE_ADDR); // home all call
   //////Main Applications
   // infinite loop
   for (;;)
   { // run the main
-    if (esp32COM.available() || usbCOM.available() )
+    if (esp32COM.available() || usbCOM.available())
     {
       // parse the packet comming in
       // use this variable to keep track of how many
       // bytes we've processed from the receive buffer
       uint16_t recSize = 0;
 
-      //recSize = esp32COM.rxObj(testStruct, recSize);
+      // recSize = esp32COM.rxObj(testStruct, recSize);
     }
     // statement(s)
   }
 }
-
-
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
 /*
