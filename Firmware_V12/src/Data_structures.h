@@ -9,7 +9,7 @@ struct __attribute__((packed)) ConnectStatusStruct{
   bool usb;
 };
 
-struct __attribute__((packed)) ControlStruct{ // store which com method has control
+struct __attribute__((packed)) ControlStruct{ // store which com method has control // make this an enum?
     bool usbconnected;
     bool wificonnected;
   //(wireless or usb)
@@ -37,7 +37,7 @@ struct Error {
   bool recoverable;
 };
 
-struct Driver_settings{
+struct DriverSettings{
   int xdirver_microstepping;
   int ydirver_microstepping;
   int aoatdirver_microstepping;

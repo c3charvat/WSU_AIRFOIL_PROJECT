@@ -1,13 +1,11 @@
 // Ported to ardunio
 
 #include <Arduino.h>
-//#include <cstdint>
 #include <bitset>
-//#include <iostream>
+
 #include "amt21_driver.hpp"
 using namespace std;
 
-// To do make these into a class that we
 // Delays
 #define AMT21_START_UP_TIME_MS ((uint8_t)200u)
 #define AMT21_TURNAROUND_TIME_US ((uint8_t)30u)
@@ -115,17 +113,6 @@ void Amt21Encoder::amt_reset_enc()
 }
 
 #ifdef AMT21_SINGLE_TURN
-/*******************************************************************************
- * Function Name: amt21_set_zero_pos
- ********************************************************************************
- * Parameters:
- *   Stream &port -> The serial instace the device is connected to
- *   NODE_ADDR    -> The node address of the rs485 device
- *
- * Return:
- *  None.
- *
- *******************************************************************************/
 void Amt21Encoder::amt_set_zero_pos()
 {
     // Send AMT21_SET_ZERO_POS command

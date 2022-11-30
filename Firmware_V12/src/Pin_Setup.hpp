@@ -25,9 +25,9 @@ extern const int RS485_WRITE_ENABLE;
 
 
 // Fan setup
-extern const int Fan0;
-extern const int Fan1;
-extern const int Fan2; 
+extern const int FAN0;
+extern const int FAN1;
+extern const int FAN2; 
 
 
 // Motor 0
@@ -98,8 +98,8 @@ extern TMC2209Stepper driverAOAB;
 
 // functions 
 
-void PIN_SETUP();
-void DRIVER_SETUP();
+void pin_setup();
+void driver_setup();
 void x0HomeIsr();
 void x1HomeIsr();
 void y0HomeIsr();

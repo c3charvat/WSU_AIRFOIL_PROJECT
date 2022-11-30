@@ -120,7 +120,7 @@ void PIN_SETUP()
     pinMode(MOTOR6_DIRECTION_PIN, OUTPUT);
     pinMode(MOTOR6_ENABLE, OUTPUT);
     // Y motor 4
-    if (DEV_constants::Swd_programming_mode == false)
+    if (DevConstants::SWD_PROGRAMING_MODE == false)
     {
         pinMode(MOTOR7_STEP_PIN, OUTPUT);
         pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
@@ -134,7 +134,7 @@ void PIN_SETUP()
     pinMode(Motor4LimitSw, INPUT);
     pinMode(Motor5LimitSw, INPUT);
     pinMode(Motor6LimitSw, INPUT);
-    if(DEV_constants::Swd_programming_mode == false){
+    if(DevConstants::SWD_PROGRAMING_MODE == false){
         pinMode(Motor7LimitSw, INPUT);
     }
     //  Extras
@@ -145,12 +145,12 @@ void PIN_SETUP()
     pinMode(ENCODER_LT, INPUT); // Encoder Move Direction
 
     // Fan Stuff
-    pinMode(Fan0, OUTPUT);
-    pinMode(Fan1, OUTPUT);
-    pinMode(Fan2, OUTPUT);
-    digitalWrite(Fan0, HIGH);
-    digitalWrite(Fan1, HIGH);
-    digitalWrite(Fan2, HIGH);
+    pinMode(FAN0, OUTPUT);
+    pinMode(FAN1, OUTPUT);
+    pinMode(FAN2, OUTPUT);
+    digitalWrite(FAN0, HIGH);
+    digitalWrite(FAN1, HIGH);
+    digitalWrite(FAN2, HIGH);
     /*
     Fan 6 and 7 are on by default.
     The remaining fan pins can be reused the top pin is hot as defined by the jumpers see pin diagram.
@@ -163,7 +163,7 @@ void PIN_SETUP()
     digitalWrite(MOTOR4_ENABLE, LOW);
     digitalWrite(MOTOR5_ENABLE, LOW);
     digitalWrite(MOTOR6_ENABLE, LOW); // Extras disabled for now
-    if(DEV_constants::Swd_programming_mode == false){
+    if(DevConstants::SWD_PROGRAMING_MODE == false){
         digitalWrite(MOTOR7_ENABLE , LOW);
     }
     // digitalWrite(BEEPER, HIGH); // test if board is running code without lcd

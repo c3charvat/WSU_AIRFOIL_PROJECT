@@ -35,16 +35,6 @@ void initialize_movement_struct(struct PositionStruct *pos, struct ControlStruct
     pos->source = control; // goal here is to create a link to a single structre that will update with what interface has control
 }
 
-void initialize_movement_struct_no_control(struct PositionStruct *pos)
-{
-    pos->xpos = 0;
-    pos->ypos = 0;
-    pos->aoatpos = 0;
-    pos->aoabpos = 0;
-    //control->wificonnected = false;
-    //control->usbconnected = false;
-    pos->source = NULL; // goal here is to create a link to a single structre that will update with what interface has control
-}
 
 bool bounds_check(float pos_max, float pos_min, float desired_pos)
 {
@@ -69,13 +59,13 @@ PositionStruct rel_movement_calc(struct PositionStruct *current_pos, struct Posi
     bool bounds_check_flag = false;
     for (size_t i = 0; i < 3; i++)
     {
-        bounds_check_flag = bounds_check(Settings::MinMaxArray[i * 2], Settings::MinMaxArray[(i * 2) + 1], input_position_data[i]);
+        bounds_check_flag = bounds_check(Settings::MIN_MAX_ARRAY[i * 2], Settings::MIN_MAX_ARRAY[(i * 2) + 1], input_position_data[i]);
         if (bounds_check_flag == false)
         {
             // Display Bounds Error
             error->error_name = "Bounds Check Failed";
-            error->error_information_1 = String(Settings::MinMaxArray[i * 2]);
-            error->error_information_2 = String(Settings::MinMaxArray[(i * 2) + 1]);
+            error->error_information_1 = String(Settings::MIN_MAX_ARRAY[i * 2]);
+            error->error_information_2 = String(Settings::MIN_MAX_ARRAY[(i * 2) + 1]);
             error->error_information_3 = String(input_position_data[i]);
             next_pos.xpos=0;
             next_pos.ypos=0;
@@ -105,7 +95,6 @@ PositionStruct rel_movement_calc(struct PositionStruct *current_pos, struct Posi
         }
         else
         {
-            // next_position_data[i]==current_position_data[i]
             ammount_to_move[i] = 0; // your at where they requested // or somthin funky happend still dont move
         }
     }
@@ -118,7 +107,7 @@ PositionStruct rel_movement_calc(struct PositionStruct *current_pos, struct Posi
 
 #ifdef Has_rs485_ecoders
 
-void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
+void move_function(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
 {
     struct PositionStruct *next_pos_ptr,next_pos;
     next_pos=rel_movement_calc(current_pos,input_data,error);
@@ -139,7 +128,7 @@ void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *in
     Serial.println("Entering while loop");
     while ((!x0_Stepper.motionComplete()) || (!y0_Stepper.motionComplete()) || (!y1_Stepper.motionComplete()) || (!y2_Stepper.motionComplete()) || (!y3_Stepper.motionComplete()) || (!aoat_Stepper.motionComplete()) || (!aoab_Stepper.motionComplete()))
     {
-        if (DEV_constants::Endstop_bypass_enable == true)
+        if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)
         {
             break;
         }
@@ -160,7 +149,7 @@ void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *in
 
 }
 
-void HOME_ALL(struct PositionStruct *current_pos, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
+void home_all(struct PositionStruct *current_pos, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
 {
     //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
     //// This ensures that all the axis are not allready on their limit swtiches
@@ -176,11 +165,9 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error,int aoa_t_
         y2_Stepper.setupRelativeMoveInSteps(15 / 2 * 200 * 8);
         y3_Stepper.setupRelativeMoveInSteps(15 / 2 * 200 * 8);
     }
-    // AOAT_Stepper.setupRelativeMoveInSteps(20/.36*8); // handle this later due to them not being able to roatate 360 degrees
-    // AOAB_Stepper.setupRelativeMoveInSteps(20/.36*8);
     while ((!x0_Stepper.motionComplete()) || (!y0_Stepper.motionComplete()) || (!y1_Stepper.motionComplete()) || (!y2_Stepper.motionComplete()) || (!y3_Stepper.motionComplete()) || (!aoat_Stepper.motionComplete()) || (!aoab_Stepper.motionComplete()))
     {
-        if (DEV_constants::Endstop_bypass_enable == true)
+        if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)
         {
             break;
         }
@@ -190,8 +177,6 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error,int aoa_t_
         y1_Stepper.processMovement(); // moving the Steppers here was a simple soltuion to having to do speical system intrrupts
         y2_Stepper.processMovement();
         y3_Stepper.processMovement();
-        // aoat_Stepper.processMovement(); // moved to a seperate homing secq
-        // aoab_Stepper.processMovement();
     }
     Serial.print("got through the firt part of home all");
     x0home = false; // we are now garenteed to be at least 5 off the axis
@@ -232,7 +217,7 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error,int aoa_t_
     delay(10);
     while (x0home == false || y0home == false || y1home == false || y2home == false || y3home == false) // || aoathome == false) || aoabhome == false||
     {                                                                                                   // While they arent hit the end stop we move the motors
-        if (DEV_constants::Endstop_bypass_enable == true)
+        if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)
         {
             break;
         }
@@ -242,15 +227,8 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error,int aoa_t_
             LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
             LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_2);
         }
-        // if (xhome == false) // changed so the x axis only uses on enstop
-        // {
-        //   // The X axis is home
-        //   // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
-        // }
         if (y0home == false)
         {
-            // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
-            // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
             LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
         }
         if (y1home == false)
@@ -259,26 +237,12 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error,int aoa_t_
         }
         if (y2home == false)
         {
-            // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
-            // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
             LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
         }
         if (y3home == false)
         {
-            // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
-            // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
             LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_6);
         }
-        // if (aoathome == false)
-        // {
-        //   // motorgpiog=motorgpiog-0b0000000000010000;
-        //   LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
-        // }
-        // if (aoabhome == false)
-        // {
-        //   // motorgpiof=motorgpiof-0b0000001000000000;
-        //   LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
-        // }
         delayMicroseconds(10); // delay between high and low (Aka how long the pin is high)
         // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
         // LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
@@ -320,13 +284,13 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error,int aoa_t_
     struct PositionStruct *input_data_ptr, input_data;
     initialize_movement_struct_no_control(input_data_ptr); // set the input data to zeros
 
-    MOVE_FUNCTION(current_pos,input_data_ptr,error,aoa_t_node_addr,aoa_b_node_addr); // Bring them to the defined "O" position 
+    move_function(current_pos,input_data_ptr,error,aoa_t_node_addr,aoa_b_node_addr); // Bring them to the defined "O" position 
 
 }
 
 
 #else
-void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error)
+void move_function(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error)
 {
     struct PositionStruct *next_pos_ptr,next_pos;
     next_pos=rel_movement_calc(current_pos,input_data,error);
@@ -347,7 +311,7 @@ void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *in
     Serial.println("Entering while loop");
     while ((!x0_Stepper.motionComplete()) || (!y0_Stepper.motionComplete()) || (!y1_Stepper.motionComplete()) || (!y2_Stepper.motionComplete()) || (!y3_Stepper.motionComplete()) || (!aoat_Stepper.motionComplete()) || (!aoab_Stepper.motionComplete()))
     {
-        if (DEV_constants::Endstop_bypass_enable == true)
+        if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)
         {
             break;
         }
@@ -368,7 +332,7 @@ void MOVE_FUNCTION(struct PositionStruct *current_pos, struct PositionStruct *in
 
 }
 
-void HOME_ALL(struct PositionStruct *current_pos, struct Error *error)
+void home_all(struct PositionStruct *current_pos, struct Error *error)
 {
     //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
     //// This ensures that all the axis are not allready on their limit swtiches
@@ -388,7 +352,7 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error)
     // AOAB_Stepper.setupRelativeMoveInSteps(20/.36*8);
     while ((!x0_Stepper.motionComplete()) || (!y0_Stepper.motionComplete()) || (!y1_Stepper.motionComplete()) || (!y2_Stepper.motionComplete()) || (!y3_Stepper.motionComplete()) || (!aoat_Stepper.motionComplete()) || (!aoab_Stepper.motionComplete()))
     {
-        if (DEV_constants::Endstop_bypass_enable == true)
+        if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)
         {
             break;
         }
@@ -440,7 +404,7 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error)
     delay(10);
     while (x0home == false || y0home == false || y1home == false || y2home == false || y3home == false) // || aoathome == false) || aoabhome == false||
     {                                                                                                   // While they arent hit the end stop we move the motors
-        if (DEV_constants::Endstop_bypass_enable == true)
+        if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)
         {
             break;
         }
@@ -450,15 +414,8 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error)
             LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_13);
             LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_2);
         }
-        // if (xhome == false) // changed so the x axis only uses on enstop
-        // {
-        //   // The X axis is home
-        //   // motorgpiof=motorgpiof-0b0010000000000000; // remove the 13th digit
-        // }
         if (y0home == false)
         {
-            // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
-            // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
             LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_11);
         }
         if (y1home == false)
@@ -467,26 +424,12 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error)
         }
         if (y2home == false)
         {
-            // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
-            // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
             LL_GPIO_TogglePin(GPIOG, LL_GPIO_PIN_4);
         }
         if (y3home == false)
         {
-            // motorgpiog=motorgpiog-0b0000000000000001; // remove pg0
-            // motorgpiof=motorgpiof-0b0000100000000000; // remove pf11
             LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_6);
         }
-        // if (aoathome == false)
-        // {
-        //   // motorgpiog=motorgpiog-0b0000000000010000;
-        //   LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
-        // }
-        // if (aoabhome == false)
-        // {
-        //   // motorgpiof=motorgpiof-0b0000001000000000;
-        //   LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
-        // }
         delayMicroseconds(10); // delay between high and low (Aka how long the pin is high)
         // reset pins to default state (Low), if it wastn triggered to high above it will remain at low
         // LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13);
@@ -507,13 +450,12 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error)
     LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_0);
     while (aoathome == false || aoabhome == false)
     { // While they arent hit the end stop we move the motors
-        if (DEV_constants::Endstop_bypass_enable == true)
+        if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)
         {
             break;
         }
         if (aoathome == false && Thomecount > 0)
         {
-            // motorgpiog=motorgpiog-0b0000000000010000;
             LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
             Thomecount = Thomecount - 1;
         }
@@ -526,7 +468,6 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error)
         }
         if (aoabhome == false && Bhomecount > 0)
         {
-            // motorgpiof=motorgpiof-0b0000001000000000;
             LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
             Bhomecount = Bhomecount - 1;
         }
@@ -555,9 +496,9 @@ void HOME_ALL(struct PositionStruct *current_pos, struct Error *error)
     volatile bool aoabhome = false;
 
     struct PositionStruct *input_data_ptr, input_data;
-    initialize_Movement_Struct_NC(input_data_ptr); // set the input data to zeros
+    initialize_movement_struct_no_control(input_data_ptr); // set the input data to zeros
 
-    MOVE_FUNCTION(current_pos,input_data_ptr,error); // Bring them to the home position 
+    move_function(current_pos,input_data_ptr,error); // Bring them to the home position 
 }
 
 

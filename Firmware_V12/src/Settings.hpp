@@ -2,20 +2,28 @@
 #define Settings_Hpp
 
 
+/*
+Style Guide:
+All functions are lower case
+All Classes/Name Spaces/Enums first letter of each word is capitalized no _
+Naming scheme:
+    const expressions are in CAPS
+*/
+
 #define Has_rs485_ecoders
 
+
 // define your own namespace to hold constants
-namespace DEV_constants
+namespace DevConstants
 {
     // constants have internal linkage by default
-    constexpr bool Swd_programming_mode = true;
-    constexpr bool Endstop_bypass_enable = true;
-    constexpr bool Verbose_mode = true;
+    constexpr bool SWD_PROGRAMING_MODE = true;
+    constexpr bool ENDSTOP_BYPASS_ENABLE = true;
+    constexpr bool VERBOSE_MODE = true;
     #ifdef Has_rs485_ecoders
-    constexpr bool rs485_ecoders = true;
-    #endif
-    #ifndef Has_rs485_ecoders
-    constexpr bool rs485_ecoders =false;
+    constexpr bool RS485_ENCODER = true;
+    #else
+    constexpr bool RS485_ENCODER =false;
     #endif
     constexpr bool Usb_only = false;
     // constexpr bool
@@ -38,13 +46,13 @@ namespace Settings
     constexpr float AOA_T_HOME_OFFSET = -20;
     constexpr float AOA_B_HOME_OFFSET = -20;
 
-    constexpr float MinMaxArray[8] = {X_POSITION_MAX, X_POSITION_MIN, Y_POSITION_MAX, 
+    constexpr float MIN_MAX_ARRAY[8] = {X_POSITION_MAX, X_POSITION_MIN, Y_POSITION_MAX, 
     Y_POSITION_MIN, AOA_T_POSITION_MAX, AOA_T_POSITION_MIN, AOA_B_POSITION_MAX, AOA_B_POSITION_MIN};
     // physical machine settings
-    constexpr int X_Lead_p = 2; // lead screw pitch in mm/revolution
-    constexpr int Y_Lead_p = 2;
-    constexpr int AOAT_NODE_ADDR = 0x54;
-    constexpr int AOAB_NODE_ADDR = 0x34;
+    constexpr int X_LEAD_SCREW_PITCH = 2; // lead screw pitch in mm/revolution
+    constexpr int Y_LEAD_SCREW_PITCH = 2;
+    constexpr int AOA_T_NODE_ADDR = 0x54;
+    constexpr int AOA_B_NODE_ADDR = 0x34;
 
 }
 

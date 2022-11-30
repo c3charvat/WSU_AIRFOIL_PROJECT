@@ -27,11 +27,7 @@ using namespace TMC2208_n;       // Allows the TMC2209 to use functions out of t
 #define DOCTOPUS_BOARD
 #define DOCTOPUS_BOARD_FROM_HSE
 using namespace std;
-// Dev Settings
-// bool Swd_programming_mode = true;
-// bool Endstop_bypass_enable = true; // moved into a SETTINGS.HPP
-// bool Verbose_mode = true;
-// Jump to bootloader stuff:
+
 extern int _estack;
 uint32_t *bootloader_flag;
 pFunction JumpToApplication;
@@ -46,13 +42,13 @@ U8G2_ST7920_128X64_F_SW_SPI u8g2(U8G2_R0, /* clock=*/PE13, /* data=*/PE15, /* CS
 //// Setpper Driver Initilization
 // TMC Stepper Class
 TMC2209Stepper driverX(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverX2(PE1, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverY0(PD11, PA6, .11f, DRIVER_ADDRESS);  // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverY1(PC6, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   // (RX, TX,RSENSE, Driver Address) Software serial X axis
-TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
-TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RESENSE, Driver address) Software serial X axis
+TMC2209Stepper driverX2(PE1, PA6, .11f, DRIVER_ADDRESS);   
+TMC2209Stepper driverY0(PD11, PA6, .11f, DRIVER_ADDRESS);  
+TMC2209Stepper driverY1(PC6, PA6, .11f, DRIVER_ADDRESS);   
+TMC2209Stepper driverY2(PD3, PA6, .11f, DRIVER_ADDRESS);   
+TMC2209Stepper driverY3(PC7, PA6, .11f, DRIVER_ADDRESS);   
+TMC2209Stepper driverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS); 
+TMC2209Stepper driverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS); 
 
 // Speedy Stepper Class     // Octopus board plug.
 SpeedyStepper x0_Stepper;   // motor 0
@@ -68,11 +64,13 @@ SpeedyStepper x1_Stepper;   // motor 7
 SerialTransfer esp32COM;
 SerialTransfer usbCOM;
 
+
+
 void setup()
 {
   // put the initlization code here.
-  PIN_SETUP();
-  DRIVER_SETUP();
+  pin_setup();
+  driver_setup();
 
   /// Setup Innterupts
   x0_Stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
@@ -82,7 +80,7 @@ void setup()
   aoat_Stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
   aoab_Stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
   x1_Stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-  if (DEV_constants::Swd_programming_mode == false)
+  if (DevConstants::SWD_PROGRAMING_MODE == false)
   {
     y2_Stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
   }
@@ -151,22 +149,13 @@ int main()
   esp32COM.begin(Serial); // hand off the serial instance to serial transfer
   Serial3.begin(9600);    // rs485 encoders start serial
 
-  // Initilize coms
-
-  // check connection status - if there is somthing connected or trying to connect.
-  // Send packet on both usb and wifi
-  // wait some time
-  // check for responce on both
-  // if there is a responce on both (send a prompt) to disconnect the usb cable
-  // else set control to the one that responded.
-  // set connection status
-  // if there is somthing connected Auto change to that Com.
+ 
   u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE12, /* menu_prev_pin= */ PE9, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
   // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion.
   // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
   u8g2.setFont(u8g2_font_6x12_tr);
 
-  HOME_ALL(CurrentPostions_ptr, Error_ptr, Settings::AOAT_NODE_ADDR, Settings::AOAB_NODE_ADDR); // home all call
+  home_all(CurrentPostions_ptr, Error_ptr, Settings::AOA_T_NODE_ADDR, Settings::AOA_B_NODE_ADDR); // home all call
   //////Main Applications
   // infinite loop
   for (;;)
