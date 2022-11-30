@@ -1,7 +1,7 @@
 // Ported to ardunio
 
 #include <Arduino.h>
-#include <bitset>
+//#include <bitset>
 
 #include "amt21_driver.hpp"
 using namespace std;

@@ -154,14 +154,8 @@ int main()
   esp32_Com.begin(Serial); // hand off the serial instance to serial transfer
   Serial3.begin(9600);    // rs485 encoders start serial
 
- 
-  u8g2.begin(/* menu_select_pin= */ PE7, /* menu_next_pin= */ PE12, /* menu_prev_pin= */ PE9, /* menu_home_pin= */ PC15); // pc 15 was selected at random to be an un used pin
-  // Leave this outside the Pin Define and in the main dir. As it also serves as a class defintion.
-  // Define the System Font see https://github.com/olikraus/u8g2/wiki/u8g2reference for more information about the commands
-  u8g2.setFont(u8g2_font_6x12_tr);
-
   home_all(CurrentPostions_ptr, Error_ptr, Settings::AOA_T_NODE_ADDR, Settings::AOA_B_NODE_ADDR); // home all call
-  //////Main Applications
+  //////Main LOOP
   // infinite loop
   for (;;)
   { // run the main
