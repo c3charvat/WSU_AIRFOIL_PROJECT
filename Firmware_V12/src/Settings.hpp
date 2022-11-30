@@ -20,6 +20,7 @@ namespace DevConstants
     constexpr bool SWD_PROGRAMING_MODE = true;
     constexpr bool ENDSTOP_BYPASS_ENABLE = true;
     constexpr bool VERBOSE_MODE = true;
+    constexpr bool INVERT_ENCODERS = true;
     #ifdef Has_rs485_ecoders
     constexpr bool RS485_ENCODER = true;
     #else

@@ -24,7 +24,6 @@ extern SpeedyStepper aoab_Stepper; // motor 5
 extern SpeedyStepper y2_Stepper;   // motor 6
 extern SpeedyStepper x1_Stepper;   // motor 7
 
-
 extern Amt21Encoder aoat_Encoder;
 extern Amt21Encoder aoab_Encoder;
 
@@ -71,10 +70,10 @@ PositionStruct rel_movement_calc(struct PositionStruct *current_pos, struct Posi
             error->error_information_1 = String(Settings::MIN_MAX_ARRAY[i * 2]);
             error->error_information_2 = String(Settings::MIN_MAX_ARRAY[(i * 2) + 1]);
             error->error_information_3 = String(input_position_data[i]);
-            next_pos.xpos=0;
-            next_pos.ypos=0;
-            next_pos.aoatpos=0;
-            next_pos.aoatpos=0;
+            next_pos.xpos = 0;
+            next_pos.ypos = 0;
+            next_pos.aoatpos = 0;
+            next_pos.aoatpos = 0;
             return next_pos;
         }
     }
@@ -102,22 +101,21 @@ PositionStruct rel_movement_calc(struct PositionStruct *current_pos, struct Posi
             ammount_to_move[i] = 0; // your at where they requested // or somthin funky happend still dont move
         }
     }
-    next_pos.xpos=ammount_to_move[0];
-    next_pos.ypos=ammount_to_move[1];
-    next_pos.aoatpos=ammount_to_move[2];
-    next_pos.aoatpos=ammount_to_move[3];
+    next_pos.xpos = ammount_to_move[0];
+    next_pos.ypos = ammount_to_move[1];
+    next_pos.aoatpos = ammount_to_move[2];
+    next_pos.aoatpos = ammount_to_move[3];
     return next_pos;
 }
 
 #ifdef Has_rs485_ecoders
 
-void move_function(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
+void move_function(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error, int aoa_t_node_addr, int aoa_b_node_addr)
 {
-    struct PositionStruct *next_pos_ptr,next_pos;
-    next_pos=rel_movement_calc(current_pos,input_data,error);
+    struct PositionStruct *next_pos_ptr, next_pos;
+    next_pos = rel_movement_calc(current_pos, input_data, error);
 
-
-    x0_Stepper.setupRelativeMoveInSteps(next_pos.xpos / 5 * 200 * 8);  // Future: Make these iun terms of MM
+    x0_Stepper.setupRelativeMoveInSteps(next_pos.xpos / 5 * 200 * 8); // Future: Make these iun terms of MM
     x1_Stepper.setupRelativeMoveInSteps(next_pos.xpos / 5 * 200 * 8); // Future: Make these iun terms of MM
 
     y0_Stepper.setupRelativeMoveInSteps(next_pos.ypos / 2 * 200 * 8);
@@ -146,14 +144,13 @@ void move_function(struct PositionStruct *current_pos, struct PositionStruct *in
         aoab_Stepper.processMovement();
     }
     Serial.println("Exited While Loop");
-    current_pos->xpos=current_pos->xpos+next_pos.xpos;
-    current_pos->ypos=current_pos->ypos+next_pos.ypos;
-    current_pos->aoatpos=current_pos->aoatpos+next_pos.aoatpos;
-    current_pos->aoabpos=current_pos->aoabpos+next_pos.aoabpos;
-
+    current_pos->xpos = current_pos->xpos + next_pos.xpos;
+    current_pos->ypos = current_pos->ypos + next_pos.ypos;
+    current_pos->aoatpos = current_pos->aoatpos + next_pos.aoatpos;
+    current_pos->aoabpos = current_pos->aoabpos + next_pos.aoabpos;
 }
 
-void home_all(struct PositionStruct *current_pos, struct Error *error,int aoa_t_node_addr,int aoa_b_node_addr)
+void home_all(struct PositionStruct *current_pos, struct Error *error, int aoa_t_node_addr, int aoa_b_node_addr)
 {
     //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
     //// This ensures that all the axis are not allready on their limit swtiches
@@ -261,19 +258,35 @@ void home_all(struct PositionStruct *current_pos, struct Error *error,int aoa_t_
                                 // Serial.print("Hl");// debug to make sure it got here // kept short to minimize time
     }
     // begin AoA Homing
+    while (aoat_Encoder.amt_get_turns() != 0)
+    {
+        if (aoat_Encoder.amt_get_turns() < 0)
+        {
+            LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_10);
+            if(!DevConstants::INVERT_ENCODERS){
+            LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_10);
+            }
+            delayMicroseconds(5);
+        }
+        LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);            // make a step
+        delayMicroseconds(5);
+        LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_9);
+    }
 
-    int aoat_encoderturns = aoat_Encoder.amt_get_turns();
-    int aoab_encoderturns = aoat_Encoder.amt_get_turns();
-    
-    // insert encoder homing here
-    // not sure how it outputs position right now
-
-
-    //int aoat_encoderpos = amt_get_pos(Serial3,aoa_t_node_addr);
-    //int aoab_encoderpos = amt_get_pos(Serial3,aoa_b_node_addr);
-
-
-
+    while (aoab_Encoder.amt_get_turns() != 0)
+    {
+        if (aoab_Encoder.amt_get_turns() < 0)               // set the correct direction to go
+        {
+            LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_0);   // set to low state 
+            if(!DevConstants::INVERT_ENCODERS){
+            LL_GPIO_TogglePin(GPIOF, LL_GPIO_PIN_0);        // high state
+            }
+            delayMicroseconds(5);
+        }
+        LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);           // make a step
+        delayMicroseconds(5);
+        LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+    }
 
     current_pos->xpos = Settings::X_POSITION_MAX; // Its at the top of its stoke
     current_pos->ypos = Settings::Y_POSITION_MAX;
@@ -286,21 +299,18 @@ void home_all(struct PositionStruct *current_pos, struct Error *error,int aoa_t_
     volatile bool aoabhome = false;
 
     struct PositionStruct *input_data_ptr, input_data;
-    initialize_movement_struct_no_control(input_data_ptr); // set the input data to zeros
+    initialize_movement_struct(input_data_ptr, NULL); // set the input data to zeros
 
-    move_function(current_pos,input_data_ptr,error,aoa_t_node_addr,aoa_b_node_addr); // Bring them to the defined "O" position 
-
+    move_function(current_pos, input_data_ptr, error, aoa_t_node_addr, aoa_b_node_addr); // Bring them to the defined "O" position
 }
-
 
 #else
 void move_function(struct PositionStruct *current_pos, struct PositionStruct *input_data, struct Error *error)
 {
-    struct PositionStruct *next_pos_ptr,next_pos;
-    next_pos=rel_movement_calc(current_pos,input_data,error);
+    struct PositionStruct *next_pos_ptr, next_pos;
+    next_pos = rel_movement_calc(current_pos, input_data, error);
 
-
-    x0_Stepper.setupRelativeMoveInSteps(next_pos.xpos / 5 * 200 * 8);  // Future: Make these iun terms of MM
+    x0_Stepper.setupRelativeMoveInSteps(next_pos.xpos / 5 * 200 * 8); // Future: Make these iun terms of MM
     x1_Stepper.setupRelativeMoveInSteps(next_pos.xpos / 5 * 200 * 8); // Future: Make these iun terms of MM
 
     y0_Stepper.setupRelativeMoveInSteps(next_pos.ypos / 2 * 200 * 8);
@@ -329,11 +339,10 @@ void move_function(struct PositionStruct *current_pos, struct PositionStruct *in
         aoab_Stepper.processMovement();
     }
     Serial.println("Exited While Loop");
-    current_pos->xpos=current_pos->xpos+next_pos.xpos;
-    current_pos->ypos=current_pos->ypos+next_pos.ypos;
-    current_pos->aoatpos=current_pos->aoatpos+next_pos.aoatpos;
-    current_pos->aoabpos=current_pos->aoabpos+next_pos.aoabpos;
-
+    current_pos->xpos = current_pos->xpos + next_pos.xpos;
+    current_pos->ypos = current_pos->ypos + next_pos.ypos;
+    current_pos->aoatpos = current_pos->aoatpos + next_pos.aoatpos;
+    current_pos->aoabpos = current_pos->aoabpos + next_pos.aoabpos;
 }
 
 void home_all(struct PositionStruct *current_pos, struct Error *error)
@@ -500,10 +509,9 @@ void home_all(struct PositionStruct *current_pos, struct Error *error)
     volatile bool aoabhome = false;
 
     struct PositionStruct *input_data_ptr, input_data;
-    initialize_movement_struct_no_control(input_data_ptr); // set the input data to zeros
+    initialize_movement_struct(input_data_ptr, NULL); // set the input data to zeros
 
-    move_function(current_pos,input_data_ptr,error); // Bring them to the home position 
+    move_function(current_pos, input_data_ptr, error); // Bring them to the home position
 }
-
 
 #endif // end if without encoders
