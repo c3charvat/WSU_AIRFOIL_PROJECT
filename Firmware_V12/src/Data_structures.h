@@ -24,7 +24,6 @@ struct __attribute__((packed)) PositionStruct {
   struct ControlStruct* source; // pointer to the control source struct
 };
 
-//typedef struct PositionStruct positionstruct; // if i decide to make it a tyoe later
 
 /// Internal Structs
 

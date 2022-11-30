@@ -149,9 +149,9 @@ int main()
   setup();
   // initilise External Coms
   Serial2.begin(9600);    // usb C coms
-  usbCOM.begin(Serial2);  // hand off the serial instance to serial transfer
+  usb_Com.begin(Serial2);  // hand off the serial instance to serial transfer
   Serial.begin(9600);     // ESP32 COMS
-  esp32COM.begin(Serial); // hand off the serial instance to serial transfer
+  esp32_Com.begin(Serial); // hand off the serial instance to serial transfer
   Serial3.begin(9600);    // rs485 encoders start serial
 
  
@@ -165,7 +165,7 @@ int main()
   // infinite loop
   for (;;)
   { // run the main
-    if (esp32COM.available() || usbCOM.available())
+    if (esp32_Com.available() || usb_Com.available())
     {
       // parse the packet comming in
       // use this variable to keep track of how many
