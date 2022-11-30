@@ -20,36 +20,37 @@ public:
     enum Resolution
     {
         i14BIT = 14,
-        i12BIT = 12
+        i12BIT = 12,
     };
     enum NodeAddress
     {
         i54 = 54,
-        i74 = 74
+        i74 = 74,
         // maybe expand the list?
     };
-    int rx_pin;
-    int tx_enable_pin;
-    Resolution amt_resolution;
-    NodeAddress amt_node_address;
-    Stream * port;
-
+private:
+    int m_turn_around_time;
+    int m_rx_enable_pin;
+    int m_tx_enable_pin;
+    Resolution m_amt_resolution;
+    NodeAddress m_amt_node_address;
+    Stream &m_port_ptr;
+public:
     // Init
-    void amt_init(Amt21Encoder::Resolution,Amt21Encoder::NodeAddress);
-        // make setters here 
+    void amt_init(Stream &port, Resolution resolution, NodeAddress nodeaddress, int rx, int tx);
+
+    // Read commands
+    uint16_t amt_get_pos();
+    int amt_get_turns();
+
+    // Write commands
+    void amt_reset_enc();
+
+    #ifdef AMT_SINGLE_TURN
+        void amt_set_zero_pos();
+    #endif
+
 
 };
-
-
-// Read commands
-uint16_t amt_get_pos(Stream &port, int NODE_ADDR);
-int amt_get_turns(Stream &port, int NODE_ADDR);
-
-// Write commands
-void amt_reset_enc(Stream &port, int NODE_ADDR);
-
-#ifdef AMT_SINGLE_TURN
-void amt_set_zero_pos(Stream &port, int NODE_ADDR);
-#endif
 
 #endif // _AMT21_DRIVER_H
