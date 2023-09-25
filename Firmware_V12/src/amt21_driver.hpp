@@ -65,8 +65,8 @@ public:
         void amt_set_zero_pos();
     #endif
 private:
-    void state_rs485_state(uint8_t state);
-    void bool check_parity(uint16_t message);
+    void state_rs485_state(uint8_t);
+    bool check_parity(uint16_t);
 };
 
 #endif // _AMT21_DRIVER_H

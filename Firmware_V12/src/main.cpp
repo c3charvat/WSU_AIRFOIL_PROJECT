@@ -34,7 +34,7 @@ uint32_t *bootloader_flag;
 pFunction JumpToApplication;
 uint32_t JumpAddress;
 //
-HardwareSerial Serial2(PD9, PD8);  // Second serial instance for the wifi
+//HardwareSerial Serial2(PD9, PD8);  // Second serial instance for the wifi
 HardwareSerial Serial3(PE14, PE8); // Third serial instance for the rs484 encoders. This can be treated as a simplex, the only time we write out is to initilize.
 
 // u8g2 lcd

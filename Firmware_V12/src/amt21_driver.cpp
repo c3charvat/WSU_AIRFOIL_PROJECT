@@ -12,13 +12,13 @@ using namespace std;
 #define AMT21_RESPONSE_LENGTH ((uint8_t)3u) // number of bytes we got
 #define AMT21_CMD_LENGTH ((uint8_t)1u)      // number of bytes to send
 #define AMT21_EXT_CMD_LENGTH ((uint8_t)2u)  // number of bytes to send
-#define RS485_RESET ((uint8_t)0x75)
-#define RS485_ZERO ((uint8_t)0x5E)
-#define RS485_ENC0 ((uint8_t)0x54)
-#define RS485_ENC1 ((uint8_t)0x58)
-#define RS485_POS ((uint8_t)0x00) // this is unnecessary to use but it helps visualize the process for using the other modifiers
-#define RS485_TURNS ((uint8_t)0x01)
-#define RS485_EXT ((uint8_t)0x02)
+#define AMT21_RESET ((uint8_t)0x75)
+#define AMT21_ZERO ((uint8_t)0x5E)
+#define AMT21_ENC0 ((uint8_t)0x54)
+#define AMT21_ENC1 ((uint8_t)0x58)
+#define AMT21_POS ((uint8_t)0x00) // this is unnecessary to use but it helps visualize the process for using the other modifiers
+#define AMT21_TURNS ((uint8_t)0x01)
+#define AMT21_EXT ((uint8_t)0x02)
 
 #ifdef AMT21_SINGLE_TURN
 #define AMT21_SET_ZERO_POS ((uint8_t)(0x5E)) // Single turn encoders only
@@ -36,7 +36,7 @@ uint16_t Amt21Encoder::amt_get_pos()
     uint8_t cmd = ((uint8_t)(m_amt_node_address | 0x00));
     m_port_ptr.write(&cmd, AMT21_CMD_LENGTH);
 
-    m_port_ptr.flush() // wait for the command to complete
+    m_port_ptr.flush();// wait for the command to complete
     state_rs485_state(RS485_T_RX); // switch back to read
 
     // Wait for encoder to reply
@@ -44,11 +44,11 @@ uint16_t Amt21Encoder::amt_get_pos()
 
     // Read response
     uint8_t bytes_received = m_port_ptr.available();
-    uint i=0
+    uint i=0;
     while(bytes_received<2 || i<10){ // wait for the complete message to come in
       delayMicroseconds(5);
       bytes_received = m_port_ptr.available();
-      i=i+1
+      i=i+1;
       if (i==10){
         return 0; //Error
       }
@@ -56,8 +56,10 @@ uint16_t Amt21Encoder::amt_get_pos()
     uint8_t response_raw[AMT21_RESPONSE_LENGTH];
     m_port_ptr.readBytes(response_raw, AMT21_RESPONSE_LENGTH);
 
+    uint16_t pos = response_raw[1] | (response_raw[2] << 8u); // bit shift it together
+
     // Check parity and extract value
-    if (!check_parity(&pos))
+    if (!check_parity(pos))
     {
         return 0;
     }
@@ -80,7 +82,7 @@ int Amt21Encoder::amt_get_turns()
     uint8_t cmd = ((uint8_t)(m_amt_node_address | 0x01u));
     m_port_ptr.write(&cmd, AMT21_CMD_LENGTH);
 
-    m_port_ptr.flush() // wait for the command to complete
+    m_port_ptr.flush(); // wait for the command to complete
     state_rs485_state(RS485_T_RX); // switch back to read
 
     // Wait for encoder to reply
@@ -88,22 +90,22 @@ int Amt21Encoder::amt_get_turns()
 
     // Read response
     uint8_t bytes_received = m_port_ptr.available();
-    uint i=0
+    uint i=0;
     while(bytes_received<2 || i<10){ // wait for the complete message to come in
       delayMicroseconds(5);
       bytes_received = m_port_ptr.available();
-      i=i+1
+      i=i+1;
       if (i==10){
         return 0; //Error
       }
-    }
+    };
     uint8_t response_raw[AMT21_RESPONSE_LENGTH];
     m_port_ptr.readBytes(response_raw, AMT21_RESPONSE_LENGTH);
 
     uint16_t turns = response_raw[1] | (response_raw[2] << 8u); // bit shift it together
 
     // Check parity and extract value
-    if (!check_parity(&turns))
+    if (!check_parity(turns))
     {
         return 0;
     }
@@ -123,7 +125,7 @@ int Amt21Encoder::amt_get_turns()
 void Amt21Encoder::amt_reset_enc()
 {
     // Send RESET_ENC command
-    uint8_t cmd[AMT21_EXT_CMD_LENGTH] = {((uint8_t)(m_amt_node_address + 0x02u)), AMT21_RESET_ENC};
+    uint8_t cmd[AMT21_EXT_CMD_LENGTH] = {((uint8_t)(m_amt_node_address + 0x02u)), AMT21_RESET};
     m_port_ptr.write(cmd, AMT21_EXT_CMD_LENGTH);
 
     // Wait for encoder to reset
@@ -161,7 +163,7 @@ void Amt21Encoder::amt_set_zero_pos()
  *
  */
 
-bool check_parity(uint16_t message)
+bool Amt21Encoder::check_parity(uint16_t message)
 {
     // using the equation on the datasheet we can calculate the checksums and then make sure they match what the encoder sent
     // checksum is invert of XOR of bits, so start with 0b11, so things end up inverted
@@ -173,22 +175,22 @@ bool check_parity(uint16_t message)
     return checksum == (message >> 14);
 }
 
-void state_rs485_state(uint8_t state)
+void Amt21Encoder::state_rs485_state(uint8_t state)
 {
     // switch case to find the mode we want
     switch (state)
     {
     case RS485_T_TX:
         digitalWrite(m_rx_enable_pin, HIGH);
-        digitalWrite(m_tx_enable_pin;);
+        digitalWrite(m_tx_enable_pin, HIGH);
         break;
     case RS485_T_RX:
         digitalWrite(m_rx_enable_pin, LOW);
-        digitalWrite(m_tx_enable_pin;, LOW);
+        digitalWrite(m_tx_enable_pin, LOW);
         break;
     default:
         digitalWrite(m_rx_enable_pin, HIGH);
-        digitalWrite(m_tx_enable_pin;, LOW);
+        digitalWrite(m_tx_enable_pin, LOW);
         break;
     }
 }
