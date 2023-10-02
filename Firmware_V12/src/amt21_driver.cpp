@@ -44,7 +44,7 @@ uint16_t Amt21Encoder::amt_get_pos()
 
     // Read response
     uint8_t bytes_received = m_port_ptr.available();
-    uint i=0;
+    uint8_t i=0;
     while(bytes_received<2 || i<10){ // wait for the complete message to come in
       delayMicroseconds(5);
       bytes_received = m_port_ptr.available();
@@ -90,7 +90,7 @@ int Amt21Encoder::amt_get_turns()
 
     // Read response
     uint8_t bytes_received = m_port_ptr.available();
-    uint i=0;
+    uint8_t i=0;
     while(bytes_received<2 || i<10){ // wait for the complete message to come in
       delayMicroseconds(5);
       bytes_received = m_port_ptr.available();
