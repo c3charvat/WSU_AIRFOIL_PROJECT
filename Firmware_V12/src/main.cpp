@@ -75,6 +75,32 @@ LuaHelper lua;
 
 void setup()
 {
+  // put the initlization code here.
+  pin_setup();
+  driver_setup();
+
+
+  /// Setup Innterupts
+  x0_Stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
+  y0_Stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
+  y1_Stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
+  y3_Stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
+  aoat_Stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
+  aoab_Stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
+  x1_Stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
+  if (DevConstants::SWD_PROGRAMING_MODE == false)
+  {
+    y2_Stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+  }
+
+}
+
+int main()
+{
+  ////////////////////////////////////////// Begin bootloder operation ////////////////////////////////////////////////////////////////////////
+  // Do not edit above this line in main it will break the bootloader code
+  // Run bootloader code
+  // This is hella dangerous messing with the stack here but hey gotta learn somehow
   bootloader_flag = (uint32_t *)(&_estack - BOOTLOADER_FLAG_OFFSET); // below top of stack ******* The bootloader offset will have to be checked after the first flash to make sure it doesnt get overwritten******
   if (*bootloader_flag == BOOTLOADER_FLAG_VALUE)
   {
@@ -104,7 +130,7 @@ void setup()
   *bootloader_flag = 0;                // So next boot won't be affecteed // Fall through the boot code section and set the boot flag to 0 if everything goes good.
 
   ////////////////////////////////////////// Begin normal operation /////////////////////////////////////////////////
-
+  setup();
   // create the data strucures
   ConnectStatusStruct *Connectionstatus_ptr, Connectionstatus; // initalise a pointer to a strcut of connect test and
   Connectionstatus_ptr = &Connectionstatus;
@@ -124,23 +150,6 @@ void setup()
   initialize_movement_struct(CurrentPostions_ptr, Source_ptr);
   initialize_movement_struct(RecievedData_ptr, Source_ptr);
   /// run setup
-   // put the initlization code here.
-  pin_setup();
-  driver_setup();
-
-
-  /// Setup Innterupts
-  x0_Stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
-  y0_Stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
-  y1_Stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
-  y3_Stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
-  aoat_Stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
-  aoab_Stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
-  x1_Stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-  if (DevConstants::SWD_PROGRAMING_MODE == false)
-  {
-    y2_Stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
-  }
   // initilise External Coms
   Serial2.begin(9600);    // usb C coms
   //usb_Com.begin(Serial2);  // hand off the serial instance to serial transfer
@@ -149,18 +158,10 @@ void setup()
   //Serial3.begin(9600);    // rs485 encoders start serial
 
   home_all(CurrentPostions_ptr, Error_ptr, Settings::AOA_T_NODE_ADDR, Settings::AOA_B_NODE_ADDR); // home all call
-  //////Main LOOP
-  // infinite loop
   String script = String("print('Hello world!')");
   Serial2.println(lua.lua_runstring(&script));
-}
 
-void loop()
-{
-  ////////////////////////////////////////// Begin bootloder operation ////////////////////////////////////////////////////////////////////////
-  // Do not edit above this line in main it will break the bootloader code
-  // Run bootloader code
-  // This is hella dangerous messing with the stack here but hey gotta learn somehow
+  
   for (;;)
   { // run the main
     // if (esp32_Com.available() || usb_Com.available())
