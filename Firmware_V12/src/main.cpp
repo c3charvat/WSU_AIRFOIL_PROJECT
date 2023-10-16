@@ -12,7 +12,11 @@
 #include "Data_structures.h"
 #include "Movement.hpp"
 #include "amt21_driver.hpp"
-#include <Lua_helpers.h>
+#define LUA_USE_C89
+#include "luapatch.h"
+#include "lua\lua.hpp"
+#include "lua\lualib.h"
+#include "lua\lauxlib.h"
 
 #ifdef U8X8_HAVE_HW_SPI
 #include "SPI.h"
@@ -47,7 +51,7 @@ TMC2209Stepper driver_X(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, D
 TMC2209Stepper driver_X2(PE1, PA6, .11f, DRIVER_ADDRESS);   
 TMC2209Stepper driver_Y0(PD11, PA6, .11f, DRIVER_ADDRESS);  
 TMC2209Stepper driver_Y1(PC6, PA6, .11f, DRIVER_ADDRESS);   
-TMC2209Stepper driver_Y2(PD3, PA6, .11f, DRIVER_ADDRESS);   
+//TMC2209Stepper driver_Y2(PD3, PA6, .11f, DRIVER_ADDRESS);   
 TMC2209Stepper driver_Y3(PC7, PA6, .11f, DRIVER_ADDRESS);   
 TMC2209Stepper driver_AOAT(PF2, PA6, .11f, DRIVER_ADDRESS); 
 TMC2209Stepper driver_AOAB(PE4, PA6, .11f, DRIVER_ADDRESS); 
@@ -59,7 +63,7 @@ SpeedyStepper y1_Stepper;   // motor 2_1 2_2 os mirriored of this axis but doesn
 SpeedyStepper y3_Stepper;   // motor 3
 SpeedyStepper aoat_Stepper; // motor 4
 SpeedyStepper aoab_Stepper; // motor 5
-SpeedyStepper y2_Stepper;   // motor 6
+//SpeedyStepper y2_Stepper;   // motor 6
 SpeedyStepper x1_Stepper;   // motor 7
 
 // Packetized Serial Trasfer
@@ -71,99 +75,125 @@ Amt21Encoder aoat_Encoder( Serial3, Amt21Encoder::i14BIT, Amt21Encoder::i54, RS4
 Amt21Encoder aoab_Encoder( Serial3, Amt21Encoder::i14BIT, Amt21Encoder::i74, RS485_READ_ENABLE, RS485_WRITE_ENABLE);
 
 // init lua
-LuaHelper lua;
+lua_State *L = luaL_newstate();
 
-void setup()
-{
-  // put the initlization code here.
-  pin_setup();
-  driver_setup();
-
-
-  /// Setup Innterupts
-  x0_Stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
-  y0_Stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
-  y1_Stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
-  y3_Stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
-  aoat_Stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
-  aoab_Stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
-  x1_Stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-  if (DevConstants::SWD_PROGRAMING_MODE == false)
-  {
-    y2_Stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
-  }
-
+void Lua_output(const char *s) {
+  Serial.print(s);
 }
 
-int main()
+void setup()
 {
   ////////////////////////////////////////// Begin bootloder operation ////////////////////////////////////////////////////////////////////////
   // Do not edit above this line in main it will break the bootloader code
   // Run bootloader code
   // This is hella dangerous messing with the stack here but hey gotta learn somehow
-  bootloader_flag = (uint32_t *)(&_estack - BOOTLOADER_FLAG_OFFSET); // below top of stack ******* The bootloader offset will have to be checked after the first flash to make sure it doesnt get overwritten******
-  if (*bootloader_flag == BOOTLOADER_FLAG_VALUE)
-  {
+  // bootloader_flag = (uint32_t *)(&_estack - BOOTLOADER_FLAG_OFFSET); // below top of stack ******* The bootloader offset will have to be checked after the first flash to make sure it doesnt get overwritten******
+  // if (*bootloader_flag == BOOTLOADER_FLAG_VALUE)
+  // {
 
-    *bootloader_flag = 1;
-    /* Jump to system memory bootloader */
-    HAL_SuspendTick(); // Kill whats running (in a sense)
-    HAL_RCC_DeInit();  // Kill the the clocks
-    HAL_DeInit();      // Kill the  HAL layer all together
-    JumpAddress = *(__IO uint32_t *)(BOOTLOADER_ADDRESS + 4);
-    JumpToApplication = (pFunction)JumpAddress;
-    //__ASM volatile ("movs r3, #0\nldr r3, [r3, #0]\nMSR msp, r3\n" : : : "r3", "sp");
-    JumpToApplication();
-  }
-  if (*bootloader_flag = 1)
-  {
-    HAL_RCC_DeInit();                 // Kill the clocks they are configured wrong. (HSI DEFAULTS NO PERIFIERIALS)
-    SystemClock_Config();             // Reconfigure the system clock to HSE
-    HAL_Init();                       // Reinit the HAL LAYER
-    __HAL_RCC_GPIOC_CLK_ENABLE();     // Enable the clocks
-    __HAL_RCC_GPIOH_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_GPIOG_CLK_ENABLE();
-    __HAL_RCC_GPIOF_CLK_ENABLE();
-    __HAL_RCC_GPIOE_CLK_ENABLE();
-  }
-  *bootloader_flag = 0;                // So next boot won't be affecteed // Fall through the boot code section and set the boot flag to 0 if everything goes good.
+  //   *bootloader_flag = 1;
+  //   /* Jump to system memory bootloader */
+  //   HAL_SuspendTick(); // Kill whats running (in a sense)
+  //   HAL_RCC_DeInit();  // Kill the the clocks
+  //   HAL_DeInit();      // Kill the  HAL layer all together
+  //   JumpAddress = *(__IO uint32_t *)(BOOTLOADER_ADDRESS + 4);
+  //   JumpToApplication = (pFunction)JumpAddress;
+  //   //__ASM volatile ("movs r3, #0\nldr r3, [r3, #0]\nMSR msp, r3\n" : : : "r3", "sp");
+  //   JumpToApplication();
+  // }
+  // if (*bootloader_flag = 1)
+  // {
+  //   HAL_RCC_DeInit();                 // Kill the clocks they are configured wrong. (HSI DEFAULTS NO PERIFIERIALS)
+  //   SystemClock_Config();             // Reconfigure the system clock to HSE
+  //   HAL_Init();                       // Reinit the HAL LAYER
+  //   __HAL_RCC_GPIOC_CLK_ENABLE();     // Enable the clocks
+  //   __HAL_RCC_GPIOH_CLK_ENABLE();
+  //   __HAL_RCC_GPIOA_CLK_ENABLE();
+  //   __HAL_RCC_GPIOG_CLK_ENABLE();
+  //   __HAL_RCC_GPIOF_CLK_ENABLE();
+  //   __HAL_RCC_GPIOE_CLK_ENABLE();
+  // }
+  // *bootloader_flag = 0;                // So next boot won't be affecteed // Fall through the boot code section and set the boot flag to 0 if everything goes good.
+  // put the initlization code here.
+  pin_setup();
+  //driver_setup();
 
+
+  /// Setup Innterupts
+  // x0_Stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
+  // y0_Stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
+  // y1_Stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
+  // y3_Stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
+  // aoat_Stepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
+  // aoab_Stepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
+  // x1_Stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
+  // if (DevConstants::SWD_PROGRAMING_MODE == false)
+  // {
+  //   y2_Stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
+  // }
   ////////////////////////////////////////// Begin normal operation /////////////////////////////////////////////////
-  setup();
   // create the data strucures
-  ConnectStatusStruct *Connectionstatus_ptr, Connectionstatus; // initalise a pointer to a strcut of connect test and
-  Connectionstatus_ptr = &Connectionstatus;
-  ControlStruct *Source_ptr, Source;
-  Source_ptr = &Source;
-  PositionStruct *RecievedData_ptr, RecievedData;
-  RecievedData_ptr = &RecievedData;
-  PositionStruct *CurrentPostions_ptr, CurrentPostions;
-  CurrentPostions_ptr = &CurrentPostions;
+  // ConnectStatusStruct *Connectionstatus_ptr, Connectionstatus; // initalise a pointer to a strcut of connect test and
+  // Connectionstatus_ptr = &Connectionstatus;
+  // ControlStruct *Source_ptr, Source;
+  // Source_ptr = &Source;
+  // PositionStruct *RecievedData_ptr, RecievedData;
+  // RecievedData_ptr = &RecievedData;
+  // PositionStruct *CurrentPostions_ptr, CurrentPostions;
+  // CurrentPostions_ptr = &CurrentPostions;
 
-  // Error Struct
+  // // Error Struct
 
-  Error *Error_ptr, Error_struct;
-  Error_ptr = &Error_struct;
+  // Error *Error_ptr, Error_struct;
+  // Error_ptr = &Error_struct;
 
-  // initilize the structures
-  initialize_movement_struct(CurrentPostions_ptr, Source_ptr);
-  initialize_movement_struct(RecievedData_ptr, Source_ptr);
+  // // initilize the structures
+  // initialize_movement_struct(CurrentPostions_ptr, Source_ptr);
+  // initialize_movement_struct(RecievedData_ptr, Source_ptr);
   /// run setup
   // initilise External Coms
-  Serial2.begin(9600);    // usb C coms
+  Serial.begin(9600);    // usb C coms
   //usb_Com.begin(Serial2);  // hand off the serial instance to serial transfer
   //Serial.begin(9600);     // ESP32 COMS
   //esp32_Com.begin(Serial); // hand off the serial instance to serial transfer
   //Serial3.begin(9600);    // rs485 encoders start serial
+  Serial.print("before lua");
+  digitalWrite(FAN2, LOW);
+  delay(5);
+  digitalWrite(FAN2, HIGH);
+  delay(5);
+  digitalWrite(FAN2, LOW);
+  delay(5);
+  digitalWrite(FAN2, HIGH);
+  delay(5);
+  digitalWrite(FAN2, LOW);
+  delay(5);
+  digitalWrite(FAN2, HIGH);
+  delay(5);
+  digitalWrite(FAN2, LOW);
+  delay(5);
+  digitalWrite(FAN2, HIGH);
+  delay(5);
+  digitalWrite(FAN2, LOW);
+  delay(5);
+  digitalWrite(FAN2, HIGH);
+  delay(5);
+  //home_all(CurrentPostions_ptr, Error_ptr, Settings::AOA_T_NODE_ADDR, Settings::AOA_B_NODE_ADDR); // home all call
+  luaopen_base(L);
+  luaopen_table(L);
+  luaopen_string(L);
+  luaopen_math(L);
 
-  home_all(CurrentPostions_ptr, Error_ptr, Settings::AOA_T_NODE_ADDR, Settings::AOA_B_NODE_ADDR); // home all call
-  String script = String("print('Hello world!')");
-  Serial2.println(lua.lua_runstring(&script));
+}
 
+void loop()
+{   
   
-  for (;;)
-  { // run the main
+  	luaL_dostring(L,"print(\"> Version:\",_VERSION)");
+    // Serial.println(micros());
+    Serial.flush();
+  // run the main
+    //Serial.print("in for loop");
     // if (esp32_Com.available() || usb_Com.available())
     // {
     //   // parse the packet comming in
@@ -174,7 +204,6 @@ int main()
     //   // recSize = esp32COM.rxObj(testStruct, recSize);
     // }
     // statement(s)
-  }
 }
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
