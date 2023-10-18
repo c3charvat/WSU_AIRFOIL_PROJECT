@@ -15,7 +15,7 @@ extern "C" {
     int _gettimeofday(struct timeval *tv, struct timezone *tz);
     int _open(const char* pathname, int flags, mode_t mode);
     clock_t _times(struct tms* tms);
+    int _unlink_r(const char *pathname);
+    int _link_r(const char *pathname);
 }
-
-
 #endif
