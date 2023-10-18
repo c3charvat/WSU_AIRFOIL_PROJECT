@@ -14,6 +14,8 @@
 #include "amt21_driver.hpp"
 #include "luapatch.h"
 #include "lua\lua.hpp"
+#include "lua\lualib.h"
+#include "lua\lauxlib.h"
 
 #ifdef U8X8_HAVE_HW_SPI
 #include "SPI.h"
@@ -149,7 +151,7 @@ void setup()
   // initialize_movement_struct(RecievedData_ptr, Source_ptr);
   /// run setup
   // initilise External Coms
-  Serial.begin(9600);    // usb C coms
+  Serial.begin(115200);    // usb C coms
   //usb_Com.begin(Serial2);  // hand off the serial instance to serial transfer
   //Serial.begin(9600);     // ESP32 COMS
   //esp32_Com.begin(Serial); // hand off the serial instance to serial transfer
@@ -158,16 +160,13 @@ void setup()
   //home_all(CurrentPostions_ptr, Error_ptr, Settings::AOA_T_NODE_ADDR, Settings::AOA_B_NODE_ADDR); // home all call
   luaopen_base(L);
   luaL_openlibs(L);
-  //luaopen_table(L);
-  //luaopen_string(L);
-  //luaopen_math(L);
   luaL_dostring(L,"print(\"> Version:\",_VERSION)");
 
 }
 
 void loop()
 {   
-  
+    //luaL_dostring(L,"print(math.pi)");
     // Serial.println(micros());
     Serial.flush();
     int error=0;
@@ -188,7 +187,7 @@ void loop()
 		{
 			Serial.println(lua_tostring(L, -1));
 			error = 0;
-			lua_pop(L, -1);
+			//lua_pop(L, -1);
 		}
 }
 
