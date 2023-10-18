@@ -12,11 +12,8 @@
 #include "Data_structures.h"
 #include "Movement.hpp"
 #include "amt21_driver.hpp"
-#define LUA_USE_C89
 #include "luapatch.h"
 #include "lua\lua.hpp"
-#include "lua\lualib.h"
-#include "lua\lauxlib.h"
 
 #ifdef U8X8_HAVE_HW_SPI
 #include "SPI.h"
@@ -51,7 +48,7 @@ TMC2209Stepper driver_X(PC4, PA6, .11f, DRIVER_ADDRESS);    // (RX, TX,RSENSE, D
 TMC2209Stepper driver_X2(PE1, PA6, .11f, DRIVER_ADDRESS);   
 TMC2209Stepper driver_Y0(PD11, PA6, .11f, DRIVER_ADDRESS);  
 TMC2209Stepper driver_Y1(PC6, PA6, .11f, DRIVER_ADDRESS);   
-//TMC2209Stepper driver_Y2(PD3, PA6, .11f, DRIVER_ADDRESS);   
+TMC2209Stepper driver_Y2(PD3, PA6, .11f, DRIVER_ADDRESS);   
 TMC2209Stepper driver_Y3(PC7, PA6, .11f, DRIVER_ADDRESS);   
 TMC2209Stepper driver_AOAT(PF2, PA6, .11f, DRIVER_ADDRESS); 
 TMC2209Stepper driver_AOAB(PE4, PA6, .11f, DRIVER_ADDRESS); 
@@ -63,7 +60,7 @@ SpeedyStepper y1_Stepper;   // motor 2_1 2_2 os mirriored of this axis but doesn
 SpeedyStepper y3_Stepper;   // motor 3
 SpeedyStepper aoat_Stepper; // motor 4
 SpeedyStepper aoab_Stepper; // motor 5
-//SpeedyStepper y2_Stepper;   // motor 6
+SpeedyStepper y2_Stepper;   // motor 6
 SpeedyStepper x1_Stepper;   // motor 7
 
 // Packetized Serial Trasfer
@@ -116,7 +113,7 @@ void setup()
   // *bootloader_flag = 0;                // So next boot won't be affecteed // Fall through the boot code section and set the boot flag to 0 if everything goes good.
   // put the initlization code here.
   pin_setup();
-  //driver_setup();
+  driver_setup();
 
 
   /// Setup Innterupts
@@ -157,53 +154,42 @@ void setup()
   //Serial.begin(9600);     // ESP32 COMS
   //esp32_Com.begin(Serial); // hand off the serial instance to serial transfer
   //Serial3.begin(9600);    // rs485 encoders start serial
-  Serial.print("before lua");
-  digitalWrite(FAN2, LOW);
-  delay(5);
-  digitalWrite(FAN2, HIGH);
-  delay(5);
-  digitalWrite(FAN2, LOW);
-  delay(5);
-  digitalWrite(FAN2, HIGH);
-  delay(5);
-  digitalWrite(FAN2, LOW);
-  delay(5);
-  digitalWrite(FAN2, HIGH);
-  delay(5);
-  digitalWrite(FAN2, LOW);
-  delay(5);
-  digitalWrite(FAN2, HIGH);
-  delay(5);
-  digitalWrite(FAN2, LOW);
-  delay(5);
-  digitalWrite(FAN2, HIGH);
-  delay(5);
+  
   //home_all(CurrentPostions_ptr, Error_ptr, Settings::AOA_T_NODE_ADDR, Settings::AOA_B_NODE_ADDR); // home all call
   luaopen_base(L);
-  luaopen_table(L);
-  luaopen_string(L);
-  luaopen_math(L);
+  luaL_openlibs(L);
+  //luaopen_table(L);
+  //luaopen_string(L);
+  //luaopen_math(L);
+  luaL_dostring(L,"print(\"> Version:\",_VERSION)");
 
 }
 
 void loop()
 {   
   
-  	luaL_dostring(L,"print(\"> Version:\",_VERSION)");
     // Serial.println(micros());
     Serial.flush();
-  // run the main
-    //Serial.print("in for loop");
-    // if (esp32_Com.available() || usb_Com.available())
-    // {
-    //   // parse the packet comming in
-    //   // use this variable to keep track of how many
-    //   // bytes we've processed from the receive buffer
-    //   uint16_t recSize = 0;
-
-    //   // recSize = esp32COM.rxObj(testStruct, recSize);
-    // }
-    // statement(s)
+    int error=0;
+    if(Serial.available())
+		{
+			String LuaCode = Serial.readString();
+			char *LuaCode_buffer = new char[LuaCode.length()+10];
+      Serial.println("\r\nCode:\r\n");
+			Serial.println(LuaCode);
+			Serial.printf("\r\n(Size: %d )\r\n",LuaCode.length());		
+			LuaCode.toCharArray(LuaCode_buffer,LuaCode.length()+10);
+      Serial.print("\r\nRunning\r\n");
+      error = luaL_loadbuffer(L, LuaCode_buffer, strlen(LuaCode_buffer), "line") || lua_pcall(L, 0, 0, 0);
+			delete []LuaCode_buffer;
+			Serial.print("\r\nReady> ");
+    }
+    if (error)
+		{
+			Serial.println(lua_tostring(L, -1));
+			error = 0;
+			lua_pop(L, -1);
+		}
 }
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
