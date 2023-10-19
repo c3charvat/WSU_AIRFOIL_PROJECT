@@ -115,7 +115,7 @@ void setup()
   // *bootloader_flag = 0;                // So next boot won't be affecteed // Fall through the boot code section and set the boot flag to 0 if everything goes good.
   // put the initlization code here.
   pin_setup();
-  driver_setup();
+  //driver_setup();
 
 
   /// Setup Innterupts
