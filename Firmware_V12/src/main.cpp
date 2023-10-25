@@ -16,6 +16,7 @@
 #include "lua\lua.hpp"
 #include "lua\lualib.h"
 #include "lua\lauxlib.h"
+#include <STM32FreeRTOS.h>
 
 #ifdef U8X8_HAVE_HW_SPI
 #include "SPI.h"
@@ -33,7 +34,7 @@ using namespace TMC2208_n;       // Allows the TMC2209 to use functions out of t
 #define DOCTOPUS_BOARD_FROM_HSE
 using namespace std;
 
-extern int _estack;
+extern char _estack;
 uint32_t *bootloader_flag;
 pFunction JumpToApplication;
 uint32_t JumpAddress;
@@ -115,7 +116,7 @@ void setup()
   // *bootloader_flag = 0;                // So next boot won't be affecteed // Fall through the boot code section and set the boot flag to 0 if everything goes good.
   // put the initlization code here.
   pin_setup();
-  //driver_setup();
+  driver_setup();
 
 
   /// Setup Innterupts
