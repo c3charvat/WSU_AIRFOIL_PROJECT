@@ -1,1 +1,1 @@
-#define configUSE_CMSIS_RTOS_V2 1
+#define configUSE_CMSIS_RTOS_V2 0
