@@ -85,14 +85,14 @@ extern volatile bool aoabhome;
 
 
 // driver classes
-extern TMC2209Stepper driver_X;
-extern TMC2209Stepper driver_X2;
-extern TMC2209Stepper driver_Y0;
-extern TMC2209Stepper driver_Y1;
-extern TMC2209Stepper driver_Y2;
-extern TMC2209Stepper driver_Y3;
-extern TMC2209Stepper driver_AOAT;
-extern TMC2209Stepper driver_AOAB;
+extern TMC2209Stepper gDriverX;
+extern TMC2209Stepper gDriverX2;
+extern TMC2209Stepper gDriverY0;
+extern TMC2209Stepper gDriverY1;
+extern TMC2209Stepper gDriverY2;
+extern TMC2209Stepper gDriverY3;
+extern TMC2209Stepper gDriverAOAT;
+extern TMC2209Stepper gDriverAOAB;
 
 
 

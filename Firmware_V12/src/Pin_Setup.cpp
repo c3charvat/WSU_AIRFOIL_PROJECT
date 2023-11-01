@@ -183,88 +183,88 @@ void pin_setup()
 
 void driver_setup()
 {
-  driver_X.beginSerial(115200); // X driver Coms begin
+  gDriverX.beginSerial(115200); // X driver Coms begin
   Serial.println("Driver X Enabled\n");
-  driver_X.begin();
-  driver_X.rms_current(1100); // mA
-  driver_X.microsteps(64);
-  //driver_X.en_spreadCycle(0); // Page 44 use stealth chop
-  driver_X.pwm_ofs_auto ();
-  driver_X.pwm_autograd(1);
-  driver_X.pwm_autoscale(1);
-  driver_X.toff(5);
+  gDriverX.begin();
+  gDriverX.rms_current(1100); // mA
+  gDriverX.microsteps(64);
+  //gDriverX.en_spreadCycle(0); // Page 44 use stealth chop
+  gDriverX.pwm_ofs_auto ();
+  gDriverX.pwm_autograd(1);
+  gDriverX.pwm_autoscale(1);
+  gDriverX.toff(5);
 
-  driver_X2.beginSerial(115200);
+  gDriverX2.beginSerial(115200);
   Serial.println("Driver X2 Enabled\n");
-  driver_X2.begin();
-  driver_X2.rms_current(1100); // mA
-  driver_X2.microsteps(64);
-  driver_X2.pwm_ofs_auto ();
-  driver_X2.pwm_autograd(1);
-  driver_X2.pwm_autoscale(1);
-  driver_X2.toff(5);
+  gDriverX2.begin();
+  gDriverX2.rms_current(1100); // mA
+  gDriverX2.microsteps(64);
+  gDriverX2.pwm_ofs_auto ();
+  gDriverX2.pwm_autograd(1);
+  gDriverX2.pwm_autoscale(1);
+  gDriverX2.toff(5);
 
-  driver_Y0.beginSerial(115200);
+  gDriverY0.beginSerial(115200);
   Serial.println("Driver Y0 Enabled\n");
-  driver_Y0.begin();
-  driver_Y0.rms_current(900); // mA
-  driver_Y0.microsteps(64);
-  //driver_Y0.en_spreadCycle(0);
-  driver_Y0.pwm_ofs_auto ();
-  driver_Y0.pwm_autoscale(1);
-  driver_Y0.pwm_autograd(1);
-  driver_Y0.toff(5);
+  gDriverY0.begin();
+  gDriverY0.rms_current(900); // mA
+  gDriverY0.microsteps(64);
+  //gDriverY0.en_spreadCycle(0);
+  gDriverY0.pwm_ofs_auto ();
+  gDriverY0.pwm_autoscale(1);
+  gDriverY0.pwm_autograd(1);
+  gDriverY0.toff(5);
   
 
-  driver_Y1.beginSerial(115200);
+  gDriverY1.beginSerial(115200);
   Serial.println("Driver Y12 Enabled\n");
-  driver_Y1.begin();
-  driver_Y1.rms_current(900); // mA
-  driver_Y1.microsteps(64);
-  driver_Y1.pwm_ofs_auto ();
-  driver_Y1.pwm_autograd(1);
-  driver_Y1.pwm_autoscale(1);
-  driver_Y1.toff(5);
+  gDriverY1.begin();
+  gDriverY1.rms_current(900); // mA
+  gDriverY1.microsteps(64);
+  gDriverY1.pwm_ofs_auto ();
+  gDriverY1.pwm_autograd(1);
+  gDriverY1.pwm_autoscale(1);
+  gDriverY1.toff(5);
 
-  driver_Y2.beginSerial(115200);
+  gDriverY2.beginSerial(115200);
   Serial.println("Driver Y12 Enabled\n");
-  driver_Y2.begin();
-  driver_Y2.rms_current(900); // mA
-  driver_Y2.microsteps(64);
-  driver_Y2.pwm_ofs_auto ();
-  driver_Y2.pwm_autograd(1);
-  driver_Y2.pwm_autoscale(1);
-  driver_Y2.toff(5);
+  gDriverY2.begin();
+  gDriverY2.rms_current(900); // mA
+  gDriverY2.microsteps(64);
+  gDriverY2.pwm_ofs_auto ();
+  gDriverY2.pwm_autograd(1);
+  gDriverY2.pwm_autoscale(1);
+  gDriverY2.toff(5);
 
-  driver_Y3.beginSerial(115200);
+  gDriverY3.beginSerial(115200);
   Serial.println("Driver Y3 Enabled\n");
-  driver_Y3.begin();
-  driver_Y3.rms_current(850); // mA
-  driver_Y3.microsteps(64);
-  driver_Y3.pwm_ofs_auto ();
-  driver_Y3.pwm_autograd(1);
-  driver_Y3.pwm_autoscale(1);
-  driver_Y3.toff(5);
+  gDriverY3.begin();
+  gDriverY3.rms_current(850); // mA
+  gDriverY3.microsteps(64);
+  gDriverY3.pwm_ofs_auto ();
+  gDriverY3.pwm_autograd(1);
+  gDriverY3.pwm_autoscale(1);
+  gDriverY3.toff(5);
 
-  driver_AOAT.beginSerial(115200);
+  gDriverAOAT.beginSerial(115200);
   Serial.println("driver e1 enabled\n");
-  driver_AOAT.begin();
-  driver_AOAT.rms_current(900); // ma
-  driver_AOAT.microsteps(64);
-  driver_AOAT.pwm_ofs_auto ();
-  driver_AOAT.pwm_autograd(1);
-  driver_AOAT.pwm_autoscale(1);
-  driver_AOAT.toff(5);
+  gDriverAOAT.begin();
+  gDriverAOAT.rms_current(900); // ma
+  gDriverAOAT.microsteps(64);
+  gDriverAOAT.pwm_ofs_auto ();
+  gDriverAOAT.pwm_autograd(1);
+  gDriverAOAT.pwm_autoscale(1);
+  gDriverAOAT.toff(5);
 
-  driver_AOAB.beginSerial(115200);
+  gDriverAOAB.beginSerial(115200);
   Serial.println("Driver E2 Enabled\n");
-  driver_AOAB.begin();
-  driver_AOAB.rms_current(900); // mA
-  driver_AOAB.microsteps(64);
-  driver_AOAB.pwm_ofs_auto ();
-  driver_AOAB.pwm_autograd(1);
-  driver_AOAB.pwm_autoscale(1);
-  driver_AOAB.toff(5);
+  gDriverAOAB.begin();
+  gDriverAOAB.rms_current(900); // mA
+  gDriverAOAB.microsteps(64);
+  gDriverAOAB.pwm_ofs_auto ();
+  gDriverAOAB.pwm_autograd(1);
+  gDriverAOAB.pwm_autoscale(1);
+  gDriverAOAB.toff(5);
 
 }
 
