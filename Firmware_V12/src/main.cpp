@@ -1,263 +1,190 @@
+// #include <STM32FreeRTOS.h>
+// #include <Arduino.h> 
 
-#include <Arduino.h> // Include Github links here
-#include "U8g2lib.h"
-#include "SpeedyStepper.h"
-// #include "SerialTransfer.h"
-#include "TMCStepper.h"
-#include "TMCStepper_UTILITY.h"
-#include "stm32yyxx_ll_gpio.h"
-#include "stm32yyxx_ll_gpio.h"
-// Include custom functions after this
-#include "Pin_Setup.hpp"
-#include "Settings.hpp"
-#include "Data_structures.h"
-#include "Movement.hpp"
-#include "amt21_driver.hpp"
-#include "luapatch.h"
-#include "lua\lua.hpp"
-#include "lua\lualib.h"
-#include "lua\lauxlib.h"
+// TaskHandle_t Handle_aTask;
+// TaskHandle_t Handle_bTask;
+
+// static void ThreadA(void* pvParameters) {
+//   Serial.println("Thread A: Started");
+
+//   while (1) {
+//       Serial.println("Hello World!");
+//       delay(1000);
+//   }
+// }
+
+// static void ThreadB(void* pvParameters) {
+//   Serial.println("Thread B: Started");
+//   while(1){
+//     for (int i = 0; i < 10; i++) {
+//         Serial.println("---This is Thread B---");
+//         delay(2000);
+//     }
+//   }
+// }
+
+// void setup() {
+
+//   Serial.begin(115200);
+//   delay(1000);
+
+//   while (!Serial) {
+//   delay(.5); // wait for serial port to connect. Needed for native USB, on LEONARDO, MICRO, YUN, and other 32u4 based boards.
+//   }
+
+//   Serial.println("");
+//   Serial.println("******************************");
+//   Serial.println("        Program start         ");
+//   Serial.println("******************************");
+
+//   // Create the threads that will be managed by the rtos
+//   // Sets the stack size and priority of each task
+//   // Also initializes a handler pointer to each task, which are important to communicate with and retrieve info from tasks
+//   xTaskCreate(ThreadA,     "Task A",       256, NULL, tskIDLE_PRIORITY + 1, &Handle_aTask);
+//   xTaskCreate(ThreadB,     "Task B",       256, NULL, tskIDLE_PRIORITY + 1, &Handle_bTask);
+
+//   // Start the RTOS, this function will never return and will schedule the tasks.
+//   vTaskStartScheduler();
+// }
+
+// void loop() {
+//     // NOTHING
+//}
+#include <Arduino.h> 
 #include <STM32FreeRTOS.h>
+#include <Seeed_Arduino_ooFreeRTOS.h>
+#include "task.h"
+#include "thread.hpp"
+#include "ticks.hpp"
+#include "message.hpp"
 
-#ifdef U8X8_HAVE_HW_SPI
-#include "SPI.h"
-#endif
-#ifdef U8X8_HAVE_HW_I2C
-#include "Wire.h"
-#endif
-typedef void (*pFunction)(void); // bootloader jump function
-// using namespace TMC2208_n;       // Allows the TMC2209 to use functions out of tmc2208 required
-#define DRIVER_ADDRESS 0b00
-#define BOOTLOADER_FLAG_VALUE 0xDEADBEEF
-#define BOOTLOADER_FLAG_OFFSET 100
-#define BOOTLOADER_ADDRESS 0x1FFF0000
-#define DOCTOPUS_BOARD
-#define DOCTOPUS_BOARD_FROM_HSE
+//#include "freertos-addons.h"
 
-extern char _estack;
-uint32_t *bootloader_flag;
-pFunction JumpToApplication;
-uint32_t JumpAddress;
+using namespace cpp_freertos;
 
-// HardwareSerial Serial2(PD9, PD8);  // Second serial instance for the wifi
-HardwareSerial Serial3(PE14, PE8); // Third serial instance for the rs484 encoders. This can be treated as a simplex, the only time we write out is to initilize.
-
-// u8g2 lcd
-U8G2_ST7920_128X64_F_SW_SPI gU8G2(U8G2_R0, /* clock=*/PE13, /* data=*/PE15, /* CS=*/PE14, /* reset=*/PE10);
-
-//// Setpper Driver Initilization
-// TMC Stepper Class
-TMC2209Stepper gDriverX(PC4, PA6, .11f, DRIVER_ADDRESS); // (RX, TX,RSENSE, Driver address) Software serial X axis
-TMC2209Stepper gDriverX2(PE1, PA6, .11f, DRIVER_ADDRESS);
-TMC2209Stepper gDriverY0(PD11, PA6, .11f, DRIVER_ADDRESS);
-TMC2209Stepper gDriverY1(PC6, PA6, .11f, DRIVER_ADDRESS);
-TMC2209Stepper gDriverY2(PD3, PA6, .11f, DRIVER_ADDRESS);
-TMC2209Stepper gDriverY3(PC7, PA6, .11f, DRIVER_ADDRESS);
-TMC2209Stepper gDriverAOAT(PF2, PA6, .11f, DRIVER_ADDRESS);
-TMC2209Stepper gDriverAOAB(PE4, PA6, .11f, DRIVER_ADDRESS);
-
-// Speedy Stepper Class     // Octopus board plug.
-SpeedyStepper gX0Stepper;   // motor 0
-SpeedyStepper gY0Stepper;   // motor 1
-SpeedyStepper gY1Stepper;   // motor 2_1 2_2 is mirriored of this axis but doesnt work?
-SpeedyStepper gY3Stepper;   // motor 3
-SpeedyStepper gAoaTStepper; // motor 4
-SpeedyStepper gAoaBStepper; // motor 5
-SpeedyStepper gY2Stepper;   // motor 6
-SpeedyStepper gX1Stepper;   // motor 7
-
-// Packetized Serial Trasfer
-// SerialTransfer esp32_Com;
-// SerialTransfer usb_Com;
-
-// encoder classes
-Amt21Encoder gAoaTEncoder(Serial3, Amt21Encoder::i14BIT, Amt21Encoder::i54, RS485_READ_ENABLE, RS485_WRITE_ENABLE);
-Amt21Encoder gAoaBEncoder(Serial3, Amt21Encoder::i14BIT, Amt21Encoder::i74, RS485_READ_ENABLE, RS485_WRITE_ENABLE);
-
-// init lua
-lua_State *gLUA_STATE = luaL_newstate();
-
-void Lua_output(const char *s)
-{
-  Serial.print(s);
-}
-
-// void  vStringSendingTask(void *pvParameters){
-//   char *pcStringToSend;
-//   const size_t xMaxStringLength = 50;
-//   BaseType_t xStringNumber = 0;
-//   for (;;){
-//     /* Obtain a buffer that is at least xMaxStringLength characters big. The implementation
-//     of prvGetBuffer() is not shown – it might obtain the buffer from a pool of pre-allocated
-//     buffers, or just allocate the buffer dynamically. */
-//     pcStringToSend = (char *)prvGetBuffer(xMaxStringLength);
-//     /* Write a string into the buffer. */
-//     snprintf(pcStringToSend, xMaxStringLength, "String number %d\r\n", xStringNumber);
-//     /* Increment the counter so the string is different on each iteration of this task. */
-//     xStringNumber++;
-//     /* Send the address of the buffer to the queue that was created in Listing 52. The
-//     address of the buffer is stored in the pcStringToSend variable.*/
-//     xQueueSend(xPointerQueue,   /* The handle of the queue. */
-//                 &pcStringToSend, /* The address of the pointer that points to the buffer. */
-//                 portMAX_DELAY);
-//   }
-// }
-// void vStringReceivingTask( void *pvParameters ){
-//   char *pcReceivedString;
-//   for( ;; ){
-//     /* Receive the address of a buffer. */
-//     xQueueReceive( xPointerQueue, /* The handle of the queue. */
-//     &pcReceivedString, /* Store the buffer’s address in pcReceivedString. */
-//     portMAX_DELAY );
-//     /* The buffer holds a string, print it out. */
-//     vPrintString( pcReceivedString );
-//     /* The buffer is not required any more - release it so it can be freed, or re-used. */
-//     prvReleaseBuffer( pcReceivedString );
-//   }
-// }
-
-
-// ~~~~~~~~~Serial Read Functions~~~~~~~~~~~~~~~~~~~
-bool recvWithStartEndMarkers(String *charInputBuffer)
-{
-  const int numChars = 256;
-  char receivedChars[numChars] = {};
-  bool newData = false;
-  static bool printedMsg = 0; // Debug
-  if (printedMsg == 0)        // Debug
-  {
-    Serial.println("Got to revrecvWithStartEndMarkers()\n"); // Debug output only print once
-    printedMsg = 1;                                          // Debug
-  }
-  // Serial.println("Got to revrecvWithStartEndMarkers()\n");
-  static bool recvInProgress = false;
-  static byte ndx = 0;
-  char startMarker = '<';
-  char endMarker = '>';
-  char rc;
-  while (Serial.available() > 0 && newData == false)
-  {
-    Serial.println("Not done?");
-    // Serial.println("Got to while (Serial.available() > 0 && newData == false) in recvWithStartEndMarkers()"); // Debug output
-    rc = Serial.read();         // Look at the next character
-    if (recvInProgress == true) // if we are recording
-    {
-      if (rc != endMarker) // And we are not at the end marker
-      {
-        receivedChars[ndx] = rc; // Throw the current char into the array
-        ndx++;                   // increment index forward.
-        if (ndx >= numChars)     // If we exceed the max continue to read and just throw the data into the last postition
-        {
-          ndx = numChars - 1;
-        }
-      }
-      else
-      {
-        receivedChars[ndx] = '\0'; // terminate the string
-        recvInProgress = false;    // stop recording
-        ndx = 0;                   // set index back to zero (formaility not truly required)
-        newData = true;            // Let the program know that there is data wating for the parser.
-      }
-    }
-    else if (rc == startMarker) // If Rc is the start marker we are getting good data
-    {
-      recvInProgress = true; // Start recording
-    }
-  }
-  Serial.println("done?");
-  Serial.println(*charInputBuffer);
-  Serial.println(receivedChars);
-  Serial.println(*receivedChars);
-  *charInputBuffer = String(receivedChars);
-  Serial.println(*charInputBuffer);
-  Serial.println(receivedChars);
-  Serial.println(*receivedChars);
-  return newData;
-}
-
-void setup()
-{
-  ////////////////////////////////////////// Begin bootloder operation ////////////////////////////////////////////////////////////////////////
-  // Do not edit above this line in main it will break the bootloader code
-  // Run bootloader code
-  // This is hella dangerous messing with the stack here but hey gotta learn somehow
-  bootloader_flag = (uint32_t *)(&_estack - BOOTLOADER_FLAG_OFFSET); // below top of stack ******* The bootloader offset will have to be checked after the first flash to make sure it doesnt get overwritten******
-  if (*bootloader_flag == BOOTLOADER_FLAG_VALUE)
-  {
-
-    *bootloader_flag = 1;
-    /* Jump to system memory bootloader */
-    HAL_SuspendTick(); // Kill whats running (in a sense)
-    HAL_RCC_DeInit();  // Kill the the clocks
-    HAL_DeInit();      // Kill the  HAL layer all together
-    JumpAddress = *(__IO uint32_t *)(BOOTLOADER_ADDRESS + 4);
-    JumpToApplication = (pFunction)JumpAddress;
-    //__ASM volatile ("movs r3, #0\nldr r3, [r3, #0]\nMSR msp, r3\n" : : : "r3", "sp");
-    JumpToApplication();
-  }
-  if (*bootloader_flag = 1)
-  {
-    HAL_RCC_DeInit();             // Kill the clocks they are configured wrong. (HSI DEFAULTS NO PERIFIERIALS)
-    SystemClock_Config();         // Reconfigure the system clock to HSE
-    HAL_Init();                   // Reinit the HAL LAYER
-    __HAL_RCC_GPIOC_CLK_ENABLE(); // Enable the clocks
-    __HAL_RCC_GPIOH_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_GPIOG_CLK_ENABLE();
-    __HAL_RCC_GPIOF_CLK_ENABLE();
-    __HAL_RCC_GPIOE_CLK_ENABLE();
-  }
-  *bootloader_flag = 0; // So next boot won't be affecteed // Fall through the boot code section and set the boot flag to 0 if everything goes good.
-  ////////////////////////////////////////// Begin normal setup operation /////////////////////////////////////////////////
-  // RTOS Stuff
-  portBASE_TYPE s1, s2;
+class ProducerThread : public Thread {
   
-  // put the initlization code here.
-  pin_setup();
-  driver_setup();
-  gX0Stepper.connectToPins(MOTOR0_STEP_PIN, MOTOR0_DIRECTION_PIN);
-  gY0Stepper.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
-  gY1Stepper.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
-  gY3Stepper.connectToPins(MOTOR3_STEP_PIN, MOTOR3_DIRECTION_PIN);
-  gAoaTStepper.connectToPins(MOTOR4_STEP_PIN, MOTOR4_DIRECTION_PIN);
-  gAoaBStepper.connectToPins(MOTOR5_STEP_PIN, MOTOR5_DIRECTION_PIN);
-  gX1Stepper.connectToPins(MOTOR6_STEP_PIN, MOTOR6_DIRECTION_PIN);
-  if (DevConstants::SWD_PROGRAMING_MODE == false) // Disable Motor 7 to enable SWD
+public:
+  
+  ProducerThread(int i, int delayInSeconds, Message &m, Mutex &lock)
+    : Thread("ProducerThread", 1024, 1), 
+      Id (i), 
+      DelayInSeconds(delayInSeconds),
+      Mail(m),
+      Lock(lock)
   {
-    gY2Stepper.connectToPins(MOTOR7_STEP_PIN, MOTOR7_DIRECTION_PIN);
-  }
-  /// setup Queues
-  QueueHandle_t qLuaScriptQueue;
-  qLuaScriptQueue = xQueueCreate(2, sizeof(String *)); // Max of 2 scripts.
-  QueueHandle_t qOutputQueue;
-  qOutputQueue = xQueueCreate(2, sizeof(String *));
-  //QueueHandle_t qErrorQueue;
-  //qErrorQueue = xQueueCreate(2, sizeof(String *));
+            Start();
+  };
+  
+protected:
 
-  // Define OS TASKS Here
-  // create sensor task at priority two
-  s1 = xTaskCreate(Task1, NULL, configMINIMAL_STACK_SIZE, NULL, 2, &sens);
+  virtual void Run() {
+    
+    Serial.print("Starting ProducerThread ");
+    Serial.println(Id);
+    uint8_t Message[] = "asdasd";
+    
+    while (true) {
+      Delay(Ticks::SecondsToTicks(DelayInSeconds));
+      Lock.Lock();
+      Serial.printf("Send: %s length: %d\n\r", Message, strlen((const char *)Message));
+      Lock.Unlock();
+      Mail.Send(Message, strlen((const char *)Message));
+      }
+  };
 
-  // create SD write task at priority one
-  s2 = xTaskCreate(Task2, NULL, configMINIMAL_STACK_SIZE + 200, NULL, 1, NULL);
+private:
+  int Id;
+  int DelayInSeconds;
+  Message &Mail;
+  Mutex& Lock;
+};
 
 
-  // initilise External Coms
-  Serial.begin(115200); // usb C coms
-  // usb_Com.begin(Serial2);  // hand off the serial instance to serial transfer
-  // Serial.begin(9600);     // ESP32 COMS
-  // esp32_Com.begin(Serial); // hand off the serial instance to serial transfer
-  // Serial3.begin(9600);    // rs485 encoders start serial
+class ConsumerThread : public Thread {
+  
+public:
 
-  luaopen_base(gLUA_STATE);
-  luaL_openlibs(gLUA_STATE);
-  luaL_dostring(gLUA_STATE, "print(\"> Version:\",_VERSION)");
-  // LUA Based Home all call here
+  ConsumerThread(int i,  Message &m, Mutex &lock)
+    : Thread("ConsumerThread", 1024, 2), 
+      Id (i), 
+      Mail(m),
+      Lock(lock)
+  {
+    
+    Start();
+  };
+  
+protected:
+  
+  virtual void Run() {
+    
+    Serial.print("Starting ConsumerThread ");
+    Serial.println(Id);
+    size_t nums;
+    while (true) {
+      nums = Mail.Receive(&buff, 256);
+      LockGuard guard(Lock);
+      Serial.printf("Receive: ");
+      for(int i = 0; i < nums; i++)
+      {
+        Serial.write(buff[i]);
+      }
+      Serial.printf(", length: %d\n\r", nums);
+      //guard.~LockGuard();   // automatic unlock, not needed
+    }
+  };
+  
+private:
+  int Id;
+  Message &Mail;
+  uint8_t buff[256];
+  Mutex& Lock;
+};
+
+
+void setup (void)
+{
+  
+  // start up the serial interface
+  Serial.begin(115200);
+  while(!Serial);
+  Serial.println("started");
+
+  Serial.println("Testing FreeRTOS C++ wrappers");
+  Serial.println("Queues Simple Producer / Consumer");
+
+  delay(1000);
+  
+  Message *Mail;
+  //
+  //  These parameters may be adjusted to explore queue 
+  //  behaviors.
+  //
+  Mail = new Message(256);
+
+  MutexStandard *SharedLock;
+  SharedLock = new MutexStandard();
+   
+  ProducerThread *p1;
+  ConsumerThread *p2;
+  p1 = new ProducerThread(1, 4, *Mail,*SharedLock);
+  p2 = new ConsumerThread(2, *Mail,*SharedLock);
+  
+  Thread::StartScheduler();
+  
+  //
+  //  We shouldn't ever get here unless someone calls 
+  //  Thread::EndScheduler()
+  //
+  
+  Serial.println("Scheduler ended!");
+
 }
 
 void loop()
 {
-  // Dont use
+  // Empty. Things are done in Tasks.
 }
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
