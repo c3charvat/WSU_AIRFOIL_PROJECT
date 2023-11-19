@@ -1,5 +1,5 @@
 // #include <STM32FreeRTOS.h>
-// #include <Arduino.h> 
+// #include <Arduino.h>
 
 // TaskHandle_t Handle_aTask;
 // TaskHandle_t Handle_bTask;
@@ -50,141 +50,168 @@
 // void loop() {
 //     // NOTHING
 //}
-#include <Arduino.h> 
+#include <Arduino.h>
 #include <STM32FreeRTOS.h>
 #include <Seeed_Arduino_ooFreeRTOS.h>
 #include "task.h"
 #include "thread.hpp"
 #include "ticks.hpp"
-#include "message.hpp"
+#include "queue.hpp"
 
-//#include "freertos-addons.h"
+// #include "freertos-addons.h"
 
 using namespace cpp_freertos;
 
-class ProducerThread : public Thread {
-  
-public:
-  
-  ProducerThread(int i, int delayInSeconds, Message &m, Mutex &lock)
-    : Thread("ProducerThread", 1024, 1), 
-      Id (i), 
-      DelayInSeconds(delayInSeconds),
-      Mail(m),
-      Lock(lock)
-  {
-            Start();
-  };
-  
-protected:
-
-  virtual void Run() {
-    
-    Serial.print("Starting ProducerThread ");
-    Serial.println(Id);
-    uint8_t Message[] = "asdasd";
-    
-    while (true) {
-      Delay(Ticks::SecondsToTicks(DelayInSeconds));
-      Lock.Lock();
-      Serial.printf("Send: %s length: %d\n\r", Message, strlen((const char *)Message));
-      Lock.Unlock();
-      Mail.Send(Message, strlen((const char *)Message));
-      }
-  };
-
-private:
-  int Id;
-  int DelayInSeconds;
-  Message &Mail;
-  Mutex& Lock;
-};
-
-
-class ConsumerThread : public Thread {
-  
-public:
-
-  ConsumerThread(int i,  Message &m, Mutex &lock)
-    : Thread("ConsumerThread", 1024, 2), 
-      Id (i), 
-      Mail(m),
-      Lock(lock)
-  {
-    
-    Start();
-  };
-  
-protected:
-  
-  virtual void Run() {
-    
-    Serial.print("Starting ConsumerThread ");
-    Serial.println(Id);
-    size_t nums;
-    while (true) {
-      nums = Mail.Receive(&buff, 256);
-      LockGuard guard(Lock);
-      Serial.printf("Receive: ");
-      for(int i = 0; i < nums; i++)
-      {
-        Serial.write(buff[i]);
-      }
-      Serial.printf(", length: %d\n\r", nums);
-      //guard.~LockGuard();   // automatic unlock, not needed
-    }
-  };
-  
-private:
-  int Id;
-  Message &Mail;
-  uint8_t buff[256];
-  Mutex& Lock;
-};
-
-
-void setup (void)
+class SerialInputThread : public Thread
 {
-  
-  // start up the serial interface
-  Serial.begin(115200);
-  while(!Serial);
-  Serial.println("started");
 
-  Serial.println("Testing FreeRTOS C++ wrappers");
-  Serial.println("Queues Simple Producer / Consumer");
+public:
+    SerialInputThread(int i, Queue &q, Mutex &lock)
+        : Thread("SerialInputThread", 256, 1),
+          Id(i),
+          MessageQueue(q),
+          Lock(lock)
+    {
+        Start();
+    };
 
-  delay(1000);
-  
-  Message *Mail;
-  //
-  //  These parameters may be adjusted to explore queue 
-  //  behaviors.
-  //
-  Mail = new Message(256);
+protected:
+    virtual void Run()
+    {
+        // Serial input thread setup
+        Serial.print("Starting SerialInputThread ");
+        Serial.println(Id);
+        int Message = 0;
+        // install shell
+        while (true)
+        {
+            Serial.print("producer DelayInSeconds: ");
+            Serial.println(DelayInSeconds);
+            Delay(Ticks::SecondsToTicks(DelayInSeconds));
+            for (int i = 0; i < BurstAmount; i++)
+            {
+                Lock.Lock();
+                Serial.print("[P ");
+                Serial.print(Id);
+                Serial.print("] Sending  Message: ");
+                Serial.println(Message);
+                Lock.Unlock();
 
-  MutexStandard *SharedLock;
-  SharedLock = new MutexStandard();
-   
-  ProducerThread *p1;
-  ConsumerThread *p2;
-  p1 = new ProducerThread(1, 4, *Mail,*SharedLock);
-  p2 = new ConsumerThread(2, *Mail,*SharedLock);
-  
-  Thread::StartScheduler();
-  
-  //
-  //  We shouldn't ever get here unless someone calls 
-  //  Thread::EndScheduler()
-  //
-  
-  Serial.println("Scheduler ended!");
+                MessageQueue.Enqueue(&Message);
+                Message++;
+            }
+        }
+    };
 
+private:
+    int Id;
+    Queue &MessageQueue;
+    Mutex &Lock;
+};
+
+class SerialOutputThread : public Thread
+{
+
+public:
+    SerialOutputThread(int i, int delayInSeconds, Queue &q, Mutex &lock)
+        : Thread("SerialOutputThread", 256, 2),
+          Id(i),
+          DelayInSeconds(delayInSeconds),
+          MessageQueue(q),
+          Lock(lock)
+    {
+        Start();
+    };
+
+protected:
+    virtual void Run()
+    {
+
+        Serial.print("Starting SerialOutputThread ");
+        Serial.println(Id);
+        int Message;
+
+        while (true)
+        {
+
+            Serial.print("consumer DelayInSeconds: ");
+            Serial.println(DelayInSeconds);
+            Delay(Ticks::SecondsToTicks(DelayInSeconds));
+
+            MessageQueue.Dequeue(&Message);
+            LockGuard guard(Lock);
+            Serial.print("[C ");
+            Serial.print(Id);
+            Serial.print("] Received Message: ");
+            Serial.println(Message);
+            // guard.~LockGuard();   // automatic unlock, not needed
+        }
+    };
+
+private:
+    int Id;
+    int DelayInSeconds;
+    Queue &MessageQueue;
+    Mutex &Lock;
+};
+
+// RTOS Ojects
+Queue *gLuaQueue; // Queue between shell and lua containing lua code to be ran
+Queue *gMessageQueue; // TODO break this out into Input/output queue
+MutexStandard *gSerialMutex;
+
+void setup(void)
+{
+
+    // start up the serial interface
+    Serial.begin(115200);
+    Serial.println("started");
+
+    Serial.println("");
+    Serial.println("******************************");
+    Serial.println("        Program init          ");
+    Serial.println("******************************");
+
+    // Queues
+    gMessageQueue = new Queue(5, sizeof(int));
+
+    //  Mutex / Semaphores
+    gSerialMutex = new MutexStandard();
+
+    // Global Class instances
+    SerialInputThread *p1;
+    SerialOutputThread *p2;
+
+    p1 = new SerialInputThread(1, *gMessageQueue, *gSerialMutex);
+    p2 = new SerialOutputThread(2, 1, *gMessageQueue, *gSerialMutex);
+
+    // TODO:
+    //  Shell Task
+    //  Lua Task
+    //  Lcd Task
+    //  Encoder Task?
+
+    //  static SerialInputThread p1(10, 1, 10, *gMessageQueue,*gSerialMutex);
+    //  static SerialOutputThread c1(20, 1, *gMessageQueue,*gSerialMutex);
+
+    Serial.println("");
+    Serial.println("******************************");
+    Serial.println("        Program Start         ");
+    Serial.println("******************************");
+    delay(1000); // make sure the dust has settled
+    Thread::StartScheduler();
+
+    //
+    //  We shouldn't ever get here unless someone calls
+    //  Thread::EndScheduler()
+    //
+
+    Serial.println("Fatal Eror: Scheduler ended - Restart");
 }
 
 void loop()
 {
-  // Empty. Things are done in Tasks.
+    // Empty. Things are done in Tasks.
 }
 
 /* For As long As the Octopus Board is used under no circustances should this ever be modified !!!*/
@@ -200,131 +227,131 @@ extern "C" void SystemClock_Config(void)
 {
 // #ifdef OCTOPUS_BOARD
 #ifdef OCTOPUS_BOARD_FROM_HSI
-  /* boot from HSI, internal 16MHz RC, to 168MHz. **NO USB POSSIBLE**, needs HSE! */
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    /* boot from HSI, internal 16MHz RC, to 168MHz. **NO USB POSSIBLE**, needs HSE! */
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-   */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 168;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 7;
-  RCC_OscInitStruct.PLL.PLLR = 3;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the CPU, AHB and APB buses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+    /** Configure the main internal regulator output voltage
+     */
+    __HAL_RCC_PWR_CLK_ENABLE();
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+    /** Initializes the RCC Oscillators according to the specified parameters
+     * in the RCC_OscInitTypeDef structure.
+     */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+    RCC_OscInitStruct.PLL.PLLM = 8;
+    RCC_OscInitStruct.PLL.PLLN = 168;
+    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLQ = 7;
+    RCC_OscInitStruct.PLL.PLLR = 3;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    /** Initializes the CPU, AHB and APB buses clocks
+     */
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+    {
+        Error_Handler();
+    }
 #else
-  /* boot from HSE, crystal oscillator (12MHz) */
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+    /* boot from HSE, crystal oscillator (12MHz) */
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-   */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 6;
-  RCC_OscInitStruct.PLL.PLLN = 168;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 7;
-  RCC_OscInitStruct.PLL.PLLR = 3;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the CPU, AHB and APB buses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+    /** Configure the main internal regulator output voltage
+     */
+    __HAL_RCC_PWR_CLK_ENABLE();
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+    /** Initializes the RCC Oscillators according to the specified parameters
+     * in the RCC_OscInitTypeDef structure.
+     */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLM = 6;
+    RCC_OscInitStruct.PLL.PLLN = 168;
+    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLQ = 7;
+    RCC_OscInitStruct.PLL.PLLR = 3;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    /** Initializes the CPU, AHB and APB buses clocks
+     */
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CLK48;
-  PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLQ;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CLK48;
+    PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLQ;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
 #endif
-  // #else
-  //   /* nucleo board, 8MHz external clock input, HSE in bypass mode */
-  //   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  //   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  //   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+    // #else
+    //   /* nucleo board, 8MHz external clock input, HSE in bypass mode */
+    //   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    //   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    //   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
-  //   /** Configure the main internal regulator output voltage
-  //    */
-  //   __HAL_RCC_PWR_CLK_ENABLE();
-  //   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  //   /** Initializes the RCC Oscillators according to the specified parameters
-  //    * in the RCC_OscInitTypeDef structure.
-  //    */
-  //   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  //   RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
-  //   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  //   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  //   RCC_OscInitStruct.PLL.PLLM = 4;
-  //   RCC_OscInitStruct.PLL.PLLN = 168;
-  //   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  //   RCC_OscInitStruct.PLL.PLLQ = 7;
-  //   RCC_OscInitStruct.PLL.PLLR = 2;
-  //   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  //   {
-  //     Error_Handler();
-  //   }
-  //   /** Initializes the CPU, AHB and APB buses clocks
-  //    */
-  //   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-  //   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  //   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  //   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  //   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+    //   /** Configure the main internal regulator output voltage
+    //    */
+    //   __HAL_RCC_PWR_CLK_ENABLE();
+    //   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+    //   /** Initializes the RCC Oscillators according to the specified parameters
+    //    * in the RCC_OscInitTypeDef structure.
+    //    */
+    //   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    //   RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+    //   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    //   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    //   RCC_OscInitStruct.PLL.PLLM = 4;
+    //   RCC_OscInitStruct.PLL.PLLN = 168;
+    //   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+    //   RCC_OscInitStruct.PLL.PLLQ = 7;
+    //   RCC_OscInitStruct.PLL.PLLR = 2;
+    //   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    //   {
+    //     Error_Handler();
+    //   }
+    //   /** Initializes the CPU, AHB and APB buses clocks
+    //    */
+    //   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    //   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    //   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    //   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+    //   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  //   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-  //   {
-  //     Error_Handler();
-  //   }
-  //   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CLK48;
-  //   PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLQ;
-  //   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-  //   {
-  //     Error_Handler();
-  //   }
-  // #endif
+    //   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+    //   {
+    //     Error_Handler();
+    //   }
+    //   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CLK48;
+    //   PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLQ;
+    //   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+    //   {
+    //     Error_Handler();
+    //   }
+    // #endif
 }
