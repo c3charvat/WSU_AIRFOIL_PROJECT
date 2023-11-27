@@ -82,24 +82,58 @@ protected:
         Serial.print("Starting SerialInputThread ");
         Serial.println(Id);
         int Message = 0;
+        const int numChars = 256;
+        char receivedChars[numChars]={};
+        bool newData = false;
+        char startMarker = '<';
+        char endMarker = '>';
         // install shell
         while (true)
         {
+            static bool recvInProgress = false;
+            static byte ndx = 0;
+            char rc;
+            char receivedChars[numChars]={};
+            int DelayInSeconds=0;
             Serial.print("producer DelayInSeconds: ");
             Serial.println(DelayInSeconds);
             Delay(Ticks::SecondsToTicks(DelayInSeconds));
-            for (int i = 0; i < BurstAmount; i++)
+            Lock.Lock();
+            while (Serial.available() > 0 && newData == false)
             {
-                Lock.Lock();
-                Serial.print("[P ");
-                Serial.print(Id);
-                Serial.print("] Sending  Message: ");
-                Serial.println(Message);
-                Lock.Unlock();
-
-                MessageQueue.Enqueue(&Message);
-                Message++;
+                Serial.println("Enter lock");
+                // Serial.println("Got to while (Serial.available() > 0 && newData == false) in recvWithStartEndMarkers()"); // Debug output
+                rc = Serial.read();         // Look at the next character
+                if (recvInProgress == true) // if we are recording
+                {
+                if (rc != endMarker) // And we are not at the end marker
+                {
+                    receivedChars[ndx] = rc; // Throw the current char into the array
+                    ndx++;                   // increment index forward.
+                    if (ndx >= numChars)     // If we exceed the max continue to read and just throw the data into the last postition
+                    {
+                    ndx = numChars - 1;
+                    }
+                }
+                else
+                {
+                    receivedChars[ndx] = '\0'; // terminate the string
+                    recvInProgress = false;    // stop recording
+                    ndx = 0;                   // set index back to zero (formaility not truly required)
+                    newData = true;            // Let the program know that there is data wating for the parser.
+                }
+                }
+                else if (rc == startMarker) // If Rc is the start marker we are getting good data
+                {
+                recvInProgress = true; // Start recording
+                }
             }
+            Lock.Unlock();
+            Serial.print("[P ");
+            Serial.print(Id);
+            Serial.print("] Sending  Message: ");
+            Serial.println(String(receivedChars));
+            MessageQueue.Enqueue(&receivedChars);
         }
     };
 
@@ -129,7 +163,7 @@ protected:
 
         Serial.print("Starting SerialOutputThread ");
         Serial.println(Id);
-        int Message;
+        char receivedChars[256];
 
         while (true)
         {
@@ -138,12 +172,12 @@ protected:
             Serial.println(DelayInSeconds);
             Delay(Ticks::SecondsToTicks(DelayInSeconds));
 
-            MessageQueue.Dequeue(&Message);
+            MessageQueue.Dequeue(&receivedChars);
             LockGuard guard(Lock);
             Serial.print("[C ");
             Serial.print(Id);
             Serial.print("] Received Message: ");
-            Serial.println(Message);
+            Serial.println(String(receivedChars));
             // guard.~LockGuard();   // automatic unlock, not needed
         }
     };
@@ -173,7 +207,7 @@ void setup(void)
     Serial.println("******************************");
 
     // Queues
-    gMessageQueue = new Queue(5, sizeof(int));
+    gMessageQueue = new Queue(5, sizeof(char [256]));
 
     //  Mutex / Semaphores
     gSerialMutex = new MutexStandard();
