@@ -1,4 +1,4 @@
-#include "Arduino.h"
+#include "HalGpio.hpp"  // For String type
 #ifndef DATASTRUCT_H
 #define DATASTRUCT_H
 

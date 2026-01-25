@@ -6,7 +6,7 @@
 #ifndef arm_h
 #define arm_h
 
-#include "Arduino.h"
+#include "stm32f4xx_hal.h"
 #include "sys/times.h"
 #include <sys/stat.h>
 #include <cerrno>

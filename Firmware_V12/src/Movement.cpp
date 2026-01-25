@@ -1,3 +1,6 @@
+#include "stm32f4xx_hal.h"
+#include "HalGpio.hpp"
+#include "HalSerial.hpp"
 #include <string>
 #include "Movement.hpp"
 #include "Settings.hpp"
@@ -5,6 +8,10 @@
 #include "Pin_Setup.hpp"
 #include "Data_structures.h"
 #include "amt21_driver.hpp"
+
+// External Serial object from main.cpp
+extern HalSerial Serial;
+
 using namespace std;
 
 /*
@@ -154,12 +161,12 @@ void home_all(struct PositionStruct *current_pos, struct Error *error, int aoa_t
 {
     //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
     //// This ensures that all the axis are not allready on their limit swtiches
-    if (digitalRead(PG6) == HIGH)
+    if (HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_6) == GPIO_PIN_SET)
     {
         x0_Stepper.setupRelativeMoveInSteps(10 / 5 * 200 * 8); // Future: Make these iun terms of MM
         x1_Stepper.setupRelativeMoveInSteps(10 / 5 * 200 * 8); // Future: Make these iun terms of MM
     }
-    if (digitalRead(PG12) == HIGH || digitalRead(PG9) == HIGH || digitalRead(PG13) == HIGH || digitalRead(PG10) == HIGH) // make sure the end stop isnt allready pressed
+    if (HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_12) == GPIO_PIN_SET || HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_9) == GPIO_PIN_SET || HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_13) == GPIO_PIN_SET || HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_10) == GPIO_PIN_SET) // make sure the end stop isnt allready pressed
     {
         y0_Stepper.setupRelativeMoveInSteps(15 / 2 * 200 * 8);
         y1_Stepper.setupRelativeMoveInSteps(15 / 2 * 200 * 8);
@@ -215,7 +222,7 @@ void home_all(struct PositionStruct *current_pos, struct Error *error, int aoa_t
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
-    delay(10);
+    HAL_Delay(10);
     while (x0home == false || y0home == false || y1home == false || y2home == false || y3home == false) // || aoathome == false) || aoabhome == false||
     {                                                                                                   // While they arent hit the end stop we move the motors
         if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)
@@ -349,12 +356,12 @@ void home_all(struct PositionStruct *current_pos, struct Error *error)
 {
     //// Move all the axis 3 mm forward (Yes This lends itself to the potential of the axis moving beyond what is specified )
     //// This ensures that all the axis are not allready on their limit swtiches
-    if (digitalRead(PG6) == HIGH)
+    if (HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_6) == GPIO_PIN_SET)
     {
         x0_Stepper.setupRelativeMoveInSteps(10 / 5 * 200 * 8); // Future: Make these iun terms of MM
         x1_Stepper.setupRelativeMoveInSteps(10 / 5 * 200 * 8); // Future: Make these iun terms of MM
     }
-    if (digitalRead(PG12) == HIGH || digitalRead(PG9) == HIGH || digitalRead(PG13) == HIGH || digitalRead(PG10) == HIGH) // make sure the end stop isnt allready pressed
+    if (HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_12) == GPIO_PIN_SET || HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_9) == GPIO_PIN_SET || HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_13) == GPIO_PIN_SET || HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_10) == GPIO_PIN_SET) // make sure the end stop isnt allready pressed
     {
         y0_Stepper.setupRelativeMoveInSteps(15 / 2 * 200 * 8);
         y1_Stepper.setupRelativeMoveInSteps(15 / 2 * 200 * 8);
@@ -414,7 +421,7 @@ void home_all(struct PositionStruct *current_pos, struct Error *error)
     LL_GPIO_ResetOutputPin(GPIOF, LL_GPIO_PIN_9); // reset pins to default state
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_2);
     LL_GPIO_ResetOutputPin(GPIOE, LL_GPIO_PIN_6);
-    delay(10);
+    HAL_Delay(10);
     while (x0home == false || y0home == false || y1home == false || y2home == false || y3home == false) // || aoathome == false) || aoabhome == false||
     {                                                                                                   // While they arent hit the end stop we move the motors
         if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)

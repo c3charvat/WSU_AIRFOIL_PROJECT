@@ -1,10 +1,12 @@
-// Amt 21 arduino driver
+// Amt 21 HAL driver
 /***********************************************************/
 
 #ifndef _AMT21_DRIVER_H
 #define _AMT21_DRIVER_H
 
-#include <Arduino.h>
+#include "stm32f4xx_hal.h"
+#include "HalGpio.hpp"
+#include "HalSerial.hpp"
 
 // Characteristics
 // #define AMT21_RESOLUTION (12u)  // 12-bit or 14-bit (see datasheet, page 5)
@@ -32,21 +34,27 @@ public:
         // maybe expand the list?
     };
     int m_turn_around_time;
-    int m_rx_enable_pin;
-    int m_tx_enable_pin;
+    GPIO_TypeDef* m_rx_enable_port;
+    uint16_t m_rx_enable_pin;
+    GPIO_TypeDef* m_tx_enable_port;
+    uint16_t m_tx_enable_pin;
     Resolution m_amt_resolution;
     NodeAddress m_amt_node_address;
-    Stream &m_port_ptr;
-    // Init
-    Amt21Encoder(Stream &port, Resolution resolution, NodeAddress nodeaddress, int rx, int tx)
+    HalSerial &m_port_ptr;
+    
+    // Init - now takes GPIO port/pin pairs
+    Amt21Encoder(HalSerial &port, Resolution resolution, NodeAddress nodeaddress, 
+                 GPIO_TypeDef* rx_port, uint16_t rx_pin,
+                 GPIO_TypeDef* tx_port, uint16_t tx_pin)
         :  m_port_ptr(port)
+        , m_rx_enable_port(rx_port)
+        , m_rx_enable_pin(rx_pin)
+        , m_tx_enable_port(tx_port)
+        , m_tx_enable_pin(tx_pin)
+        , m_amt_resolution(resolution)
+        , m_amt_node_address(nodeaddress)
     {
-        m_rx_enable_pin = rx;
-        m_tx_enable_pin = tx;
-        m_amt_resolution = resolution;
-        m_amt_node_address = nodeaddress;
-
-        delay(AMT21_START_UP_TIME_MS);
+        HAL_Delay(AMT21_START_UP_TIME_MS);
 
         while (port.available())
         {

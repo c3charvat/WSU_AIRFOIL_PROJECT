@@ -1,6 +1,7 @@
-// Ported to ardunio
+// Ported to HAL
 
-#include <Arduino.h>
+#include "stm32f4xx_hal.h"
+#include "HalGpio.hpp"
 // #include <bitset>
 
 #include "amt21_driver.hpp"
@@ -129,7 +130,7 @@ void Amt21Encoder::amt_reset_enc()
     m_port_ptr.write(cmd, AMT21_EXT_CMD_LENGTH);
 
     // Wait for encoder to reset
-    delay(AMT21_START_UP_TIME_MS);
+    HAL_Delay(AMT21_START_UP_TIME_MS);
 }
 
 #ifdef AMT21_SINGLE_TURN
@@ -181,16 +182,16 @@ void Amt21Encoder::state_rs485_state(uint8_t state)
     switch (state)
     {
     case RS485_T_TX:
-        digitalWrite(m_rx_enable_pin, HIGH);
-        digitalWrite(m_tx_enable_pin, HIGH);
+        HAL_GPIO_WritePin(m_rx_enable_port, m_rx_enable_pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(m_tx_enable_port, m_tx_enable_pin, GPIO_PIN_SET);
         break;
     case RS485_T_RX:
-        digitalWrite(m_rx_enable_pin, LOW);
-        digitalWrite(m_tx_enable_pin, LOW);
+        HAL_GPIO_WritePin(m_rx_enable_port, m_rx_enable_pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(m_tx_enable_port, m_tx_enable_pin, GPIO_PIN_RESET);
         break;
     default:
-        digitalWrite(m_rx_enable_pin, HIGH);
-        digitalWrite(m_tx_enable_pin, LOW);
+        HAL_GPIO_WritePin(m_rx_enable_port, m_rx_enable_pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(m_tx_enable_port, m_tx_enable_pin, GPIO_PIN_RESET);
         break;
     }
 }

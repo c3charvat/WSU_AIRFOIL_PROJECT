@@ -1,7 +1,13 @@
-#include <Arduino.h>
+#include "stm32f4xx_hal.h"
+#include "HalGpio.hpp"
+#include "HalSerial.hpp"
 #include <SpeedyStepper.h>
 #include <Settings.hpp>
 #include <Pin_Setup.hpp>
+
+// External Serial object from main.cpp
+extern HalSerial Serial;
+
 /*
 This file sets up the Pin Modes
 It its important to note that Stepper driver 7 shares pins with the swd interface...
@@ -10,68 +16,161 @@ The SwD interface will not work untill a full power off and the SwD pins have be
  https://www.st.com/resource/en/application_note/cd00167594-stm32-microcontroller-system-memory-boot-mode-stmicroelectronics.pdf
  Page 54 for more information
 */
+
+// ============================================================================
+// Pin Definitions - Using GPIO port and pin directly
+// ============================================================================
+
 // LCD SETUP
-const int BUTTON = PE7;      // encoder click on Creality Melzi screen
-const int BEEPER = PE8;      // factory beeper on Creality Melzi screen
-const int ENCODER_RT = PE9;  // left turn on the encoder //lcd encoder
-const int ENCODER_LT = PE12; // Right trun on the encoder
+#define BUTTON_PORT       GPIOE
+#define BUTTON_PIN        GPIO_PIN_7
+#define BEEPER_PORT       GPIOE
+#define BEEPER_PIN        GPIO_PIN_8
+#define ENCODER_RT_PORT   GPIOE
+#define ENCODER_RT_PIN    GPIO_PIN_9
+#define ENCODER_LT_PORT   GPIOE
+#define ENCODER_LT_PIN    GPIO_PIN_12
 
-// RS485 is going to use the exp2 headder 
-const int RS485_READ_ENABLE = PE9;
-const int RS485_WRITE_ENABLE = PE12;
+// RS485
+#define RS485_RE_PORT     GPIOE
+#define RS485_RE_PIN      GPIO_PIN_9
+#define RS485_WE_PORT     GPIOE
+#define RS485_WE_PIN      GPIO_PIN_12
 
+// Fans
+#define FAN0_PORT         GPIOA
+#define FAN0_PIN          GPIO_PIN_8
+#define FAN1_PORT         GPIOE
+#define FAN1_PIN          GPIO_PIN_5
+#define FAN2_PORT         GPIOD
+#define FAN2_PIN          GPIO_PIN_12
 
-// Fan setup
-const int FAN0 = PA8;
-const int FAN1 = PE5;
-const int FAN2 = PD12;
+// Motor 0 (X axis)
+#define M0_STEP_PORT      GPIOF
+#define M0_STEP_PIN       GPIO_PIN_13
+#define M0_DIR_PORT       GPIOF
+#define M0_DIR_PIN        GPIO_PIN_12
+#define M0_EN_PORT        GPIOF
+#define M0_EN_PIN         GPIO_PIN_14
 
-// Motor 0
-const int MOTOR0_STEP_PIN = PF13;      // X axis X motion
-const int MOTOR0_DIRECTION_PIN = PF12; // X axis
-const int MOTOR0_ENABLE = PF14;        // X axis
-// Motor 1
-const int MOTOR1_STEP_PIN = PG0;      // Y axis Y motion
-const int MOTOR1_DIRECTION_PIN = PG1; // Y axis
-const int MOTOR1_ENABLE = PF15;       // Y axis
-// Motor 2
-const int MOTOR2_STEP_PIN = PF11;     // Z axis y motion
-const int MOTOR2_DIRECTION_PIN = PG3; // Z axis
-const int MOTOR2_ENABLE = PG5;        // Z axis
-// Motor 3
-const int MOTOR3_STEP_PIN = PG4;      // E0 axis AoAt
-const int MOTOR3_DIRECTION_PIN = PC1; // E0 axis
-const int MOTOR3_ENABLE = PA0;        // E0 axis;
-// Motor 4
-const int MOTOR4_STEP_PIN = PF9;       // e1 axis AoAB
-const int MOTOR4_DIRECTION_PIN = PF10; // e1 axis //
-const int MOTOR4_ENABLE = PG2;         // e1 axis;
+// Motor 1 (Y axis)
+#define M1_STEP_PORT      GPIOG
+#define M1_STEP_PIN       GPIO_PIN_0
+#define M1_DIR_PORT       GPIOG
+#define M1_DIR_PIN        GPIO_PIN_1
+#define M1_EN_PORT        GPIOF
+#define M1_EN_PIN         GPIO_PIN_15
+
+// Motor 2 (Z/Y1)
+#define M2_STEP_PORT      GPIOF
+#define M2_STEP_PIN       GPIO_PIN_11
+#define M2_DIR_PORT       GPIOG
+#define M2_DIR_PIN        GPIO_PIN_3
+#define M2_EN_PORT        GPIOG
+#define M2_EN_PIN         GPIO_PIN_5
+
+// Motor 3 (E0/AoAt)
+#define M3_STEP_PORT      GPIOG
+#define M3_STEP_PIN       GPIO_PIN_4
+#define M3_DIR_PORT       GPIOC
+#define M3_DIR_PIN        GPIO_PIN_1
+#define M3_EN_PORT        GPIOA
+#define M3_EN_PIN         GPIO_PIN_0
+
+// Motor 4 (E1/AoAB)
+#define M4_STEP_PORT      GPIOF
+#define M4_STEP_PIN       GPIO_PIN_9
+#define M4_DIR_PORT       GPIOF
+#define M4_DIR_PIN        GPIO_PIN_10
+#define M4_EN_PORT        GPIOG
+#define M4_EN_PIN         GPIO_PIN_2
+
 // Motor 5
-const int MOTOR5_STEP_PIN = PC13;     // z axis
-const int MOTOR5_DIRECTION_PIN = PF0; // z axis
-const int MOTOR5_ENABLE = PF1;        // z axis;
+#define M5_STEP_PORT      GPIOC
+#define M5_STEP_PIN       GPIO_PIN_13
+#define M5_DIR_PORT       GPIOF
+#define M5_DIR_PIN        GPIO_PIN_0
+#define M5_EN_PORT        GPIOF
+#define M5_EN_PIN         GPIO_PIN_1
+
 // Motor 6
-const int MOTOR6_STEP_PIN = PE2;      // z axis
-const int MOTOR6_DIRECTION_PIN = PE3; // z axis
-const int MOTOR6_ENABLE = PD4;        // z axis;
-// Motor 7
-const int MOTOR7_STEP_PIN = PE6;  // z axis
-const int MOTOR7_DIRECTION_PIN  = PA14;  // z axis  // disabled for SWD programming
-const int MOTOR7_ENABLE= PE0;  // z axis;
+#define M6_STEP_PORT      GPIOE
+#define M6_STEP_PIN       GPIO_PIN_2
+#define M6_DIR_PORT       GPIOE
+#define M6_DIR_PIN        GPIO_PIN_3
+#define M6_EN_PORT        GPIOD
+#define M6_EN_PIN         GPIO_PIN_4
+
+// Motor 7 (shares SWD pins)
+#define M7_STEP_PORT      GPIOE
+#define M7_STEP_PIN       GPIO_PIN_6
+#define M7_DIR_PORT       GPIOA
+#define M7_DIR_PIN        GPIO_PIN_14
+#define M7_EN_PORT        GPIOE
+#define M7_EN_PIN         GPIO_PIN_0
 
 // Limit switches
+#define LIM0_PORT         GPIOG
+#define LIM0_PIN          GPIO_PIN_6
+#define LIM1_PORT         GPIOG
+#define LIM1_PIN          GPIO_PIN_12
+#define LIM2_PORT         GPIOG
+#define LIM2_PIN          GPIO_PIN_9
+#define LIM3_PORT         GPIOG
+#define LIM3_PIN          GPIO_PIN_13
+#define LIM4_PORT         GPIOG
+#define LIM4_PIN          GPIO_PIN_10
+#define LIM5_PORT         GPIOG
+#define LIM5_PIN          GPIO_PIN_14
+#define LIM6_PORT         GPIOG
+#define LIM6_PIN          GPIO_PIN_11
+#define LIM7_PORT         GPIOG
+#define LIM7_PIN          GPIO_PIN_15
 
-const int Motor0LimitSw = PG6;
-const int Motor1LimitSw = PG12;
-const int Motor2LimitSw = PG9;
-const int Motor3LimitSw = PG13;
-const int Motor4LimitSw = PG10;
-const int Motor5LimitSw = PG14;
-const int Motor6LimitSw = PG11;
-const int Motor7LimitSw = PG15;
+// Legacy pin constants for compatibility with other code
+const int BUTTON = 0;  // Placeholder - use HAL directly
+const int BEEPER = 0;
+const int ENCODER_RT = 0;
+const int ENCODER_LT = 0;
+const int RS485_READ_ENABLE = 0;
+const int RS485_WRITE_ENABLE = 0;
+const int FAN0 = 0;
+const int FAN1 = 0;
+const int FAN2 = 0;
+const int MOTOR0_STEP_PIN = 0;
+const int MOTOR0_DIRECTION_PIN = 0;
+const int MOTOR0_ENABLE = 0;
+const int MOTOR1_STEP_PIN = 0;
+const int MOTOR1_DIRECTION_PIN = 0;
+const int MOTOR1_ENABLE = 0;
+const int MOTOR2_STEP_PIN = 0;
+const int MOTOR2_DIRECTION_PIN = 0;
+const int MOTOR2_ENABLE = 0;
+const int MOTOR3_STEP_PIN = 0;
+const int MOTOR3_DIRECTION_PIN = 0;
+const int MOTOR3_ENABLE = 0;
+const int MOTOR4_STEP_PIN = 0;
+const int MOTOR4_DIRECTION_PIN = 0;
+const int MOTOR4_ENABLE = 0;
+const int MOTOR5_STEP_PIN = 0;
+const int MOTOR5_DIRECTION_PIN = 0;
+const int MOTOR5_ENABLE = 0;
+const int MOTOR6_STEP_PIN = 0;
+const int MOTOR6_DIRECTION_PIN = 0;
+const int MOTOR6_ENABLE = 0;
+const int MOTOR7_STEP_PIN = 0;
+const int MOTOR7_DIRECTION_PIN = 0;
+const int MOTOR7_ENABLE = 0;
+const int Motor0LimitSw = 0;
+const int Motor1LimitSw = 0;
+const int Motor2LimitSw = 0;
+const int Motor3LimitSw = 0;
+const int Motor4LimitSw = 0;
+const int Motor5LimitSw = 0;
+const int Motor6LimitSw = 0;
+const int Motor7LimitSw = 0;
 
-
-// Interrupts Varible declerations
+// Interrupts Variable declarations
 volatile bool x0home = false;
 volatile bool x1home = false;
 volatile bool y0home = false;
@@ -81,104 +180,124 @@ volatile bool y3home = false;
 volatile bool aoathome = false;
 volatile bool aoabhome = false;
 
+// ============================================================================
+// Helper to configure output pin
+// ============================================================================
+static void configureOutputPin(GPIO_TypeDef* port, uint16_t pin) {
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(port, &GPIO_InitStruct);
+}
+
+// ============================================================================
+// Helper to configure input pin with EXTI interrupt
+// ============================================================================
+static void configureInputWithInterrupt(GPIO_TypeDef* port, uint16_t pin, IRQn_Type irqn) {
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(port, &GPIO_InitStruct);
+    
+    HAL_NVIC_SetPriority(irqn, 5, 0);
+    HAL_NVIC_EnableIRQ(irqn);
+}
+
 void pin_setup()
 {
-    // RESET
-    // pinMode(Reset,OUTPUT);
-    // digitalWrite(Reset,HIGH);
-
     // RS485
-    pinMode(RS485_READ_ENABLE, OUTPUT);
-    pinMode(RS485_WRITE_ENABLE, OUTPUT);
+    configureOutputPin(RS485_RE_PORT, RS485_RE_PIN);
+    configureOutputPin(RS485_WE_PORT, RS485_WE_PIN);
 
-    // X Stepper
-    pinMode(MOTOR0_STEP_PIN, OUTPUT);
-    pinMode(MOTOR0_DIRECTION_PIN, OUTPUT);
-    pinMode(MOTOR0_ENABLE, OUTPUT);
-    // Y0 Stepper
-    pinMode(MOTOR1_STEP_PIN, OUTPUT);
-    pinMode(MOTOR1_DIRECTION_PIN, OUTPUT);
-    pinMode(MOTOR1_ENABLE, OUTPUT);
-    // "Z" Y Stepper 1// Hardware Doubled
-    pinMode(MOTOR2_STEP_PIN, OUTPUT);
-    pinMode(MOTOR2_DIRECTION_PIN, OUTPUT);
-    pinMode(MOTOR2_ENABLE, OUTPUT);
-    // Y2
-    pinMode(MOTOR3_STEP_PIN, OUTPUT);
-    pinMode(MOTOR3_DIRECTION_PIN, OUTPUT);
-    pinMode(MOTOR3_ENABLE, OUTPUT);
-    // A0A Top
-    pinMode(MOTOR4_STEP_PIN, OUTPUT);
-    pinMode(MOTOR4_DIRECTION_PIN, OUTPUT);
-    pinMode(MOTOR4_ENABLE, OUTPUT);
-    // AoA Bottom
-    pinMode(MOTOR5_STEP_PIN, OUTPUT);
-    pinMode(MOTOR5_DIRECTION_PIN, OUTPUT);
-    pinMode(MOTOR5_ENABLE, OUTPUT);
-    // x2 Motor
-    pinMode(MOTOR6_STEP_PIN, OUTPUT);
-    pinMode(MOTOR6_DIRECTION_PIN, OUTPUT);
-    pinMode(MOTOR6_ENABLE, OUTPUT);
-    // Y motor 4
-    if (DevConstants::SWD_PROGRAMING_MODE == false)
-    {
-        pinMode(MOTOR7_STEP_PIN, OUTPUT);
-        pinMode(MOTOR7_DIRECTION_PIN, OUTPUT);
-        pinMode(MOTOR7_ENABLE, OUTPUT);
+    // Motor 0 (X)
+    configureOutputPin(M0_STEP_PORT, M0_STEP_PIN);
+    configureOutputPin(M0_DIR_PORT, M0_DIR_PIN);
+    configureOutputPin(M0_EN_PORT, M0_EN_PIN);
+    
+    // Motor 1 (Y0)
+    configureOutputPin(M1_STEP_PORT, M1_STEP_PIN);
+    configureOutputPin(M1_DIR_PORT, M1_DIR_PIN);
+    configureOutputPin(M1_EN_PORT, M1_EN_PIN);
+    
+    // Motor 2 (Y1)
+    configureOutputPin(M2_STEP_PORT, M2_STEP_PIN);
+    configureOutputPin(M2_DIR_PORT, M2_DIR_PIN);
+    configureOutputPin(M2_EN_PORT, M2_EN_PIN);
+    
+    // Motor 3 (Y2)
+    configureOutputPin(M3_STEP_PORT, M3_STEP_PIN);
+    configureOutputPin(M3_DIR_PORT, M3_DIR_PIN);
+    configureOutputPin(M3_EN_PORT, M3_EN_PIN);
+    
+    // Motor 4 (AoA Top)
+    configureOutputPin(M4_STEP_PORT, M4_STEP_PIN);
+    configureOutputPin(M4_DIR_PORT, M4_DIR_PIN);
+    configureOutputPin(M4_EN_PORT, M4_EN_PIN);
+    
+    // Motor 5 (AoA Bottom)
+    configureOutputPin(M5_STEP_PORT, M5_STEP_PIN);
+    configureOutputPin(M5_DIR_PORT, M5_DIR_PIN);
+    configureOutputPin(M5_EN_PORT, M5_EN_PIN);
+    
+    // Motor 6 (X2)
+    configureOutputPin(M6_STEP_PORT, M6_STEP_PIN);
+    configureOutputPin(M6_DIR_PORT, M6_DIR_PIN);
+    configureOutputPin(M6_EN_PORT, M6_EN_PIN);
+    
+    // Motor 7 (Y4) - only if not in SWD mode
+    if (DevConstants::SWD_PROGRAMING_MODE == false) {
+        configureOutputPin(M7_STEP_PORT, M7_STEP_PIN);
+        configureOutputPin(M7_DIR_PORT, M7_DIR_PIN);
+        configureOutputPin(M7_EN_PORT, M7_EN_PIN);
     }
-    // Limit Switches
-    pinMode(Motor0LimitSw, INPUT);
-    pinMode(Motor1LimitSw, INPUT);
-    pinMode(Motor2LimitSw, INPUT);
-    pinMode(Motor3LimitSw, INPUT);
-    pinMode(Motor4LimitSw, INPUT);
-    pinMode(Motor5LimitSw, INPUT);
-    pinMode(Motor6LimitSw, INPUT);
-    if(DevConstants::SWD_PROGRAMING_MODE == false){
-        pinMode(Motor7LimitSw, INPUT);
+
+    // Beeper, Button, Encoder
+    configureOutputPin(BEEPER_PORT, BEEPER_PIN);
+    
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = BUTTON_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(BUTTON_PORT, &GPIO_InitStruct);
+    
+    GPIO_InitStruct.Pin = ENCODER_RT_PIN;
+    HAL_GPIO_Init(ENCODER_RT_PORT, &GPIO_InitStruct);
+    
+    GPIO_InitStruct.Pin = ENCODER_LT_PIN;
+    HAL_GPIO_Init(ENCODER_LT_PORT, &GPIO_InitStruct);
+
+    // Fans
+    configureOutputPin(FAN0_PORT, FAN0_PIN);
+    configureOutputPin(FAN1_PORT, FAN1_PIN);
+    configureOutputPin(FAN2_PORT, FAN2_PIN);
+    HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_SET);
+
+    // Enable stepper drivers (active low)
+    HAL_GPIO_WritePin(M0_EN_PORT, M0_EN_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(M1_EN_PORT, M1_EN_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(M2_EN_PORT, M2_EN_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(M3_EN_PORT, M3_EN_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(M4_EN_PORT, M4_EN_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(M5_EN_PORT, M5_EN_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(M6_EN_PORT, M6_EN_PIN, GPIO_PIN_RESET);
+    if (DevConstants::SWD_PROGRAMING_MODE == false) {
+        HAL_GPIO_WritePin(M7_EN_PORT, M7_EN_PIN, GPIO_PIN_RESET);
     }
-    //  Extras
-    //  pinMode(4, OUTPUT); // Fan Pin Initilization
-    pinMode(BEEPER, OUTPUT);    // Beeper on LCD
-    pinMode(BUTTON, INPUT);     // Encoder button
-    pinMode(ENCODER_RT, INPUT); // Encoder Move Direction
-    pinMode(ENCODER_LT, INPUT); // Encoder Move Direction
 
-    // Fan Stuff
-    pinMode(FAN0, OUTPUT);
-    pinMode(FAN1, OUTPUT);
-    pinMode(FAN2, OUTPUT);
-    digitalWrite(FAN0, HIGH);
-    digitalWrite(FAN1, HIGH);
-    digitalWrite(FAN2, HIGH);
-    /*
-    Fan 6 and 7 are on by default.
-    The remaining fan pins can be reused the top pin is hot as defined by the jumpers see pin diagram.
-    */
-    // Stepper Enables
-    digitalWrite(MOTOR0_ENABLE, LOW); // Set the Enable Pin to Low to Enable the Driver
-    digitalWrite(MOTOR1_ENABLE, LOW);
-    digitalWrite(MOTOR2_ENABLE, LOW);
-    digitalWrite(MOTOR3_ENABLE, LOW);
-    digitalWrite(MOTOR4_ENABLE, LOW);
-    digitalWrite(MOTOR5_ENABLE, LOW);
-    digitalWrite(MOTOR6_ENABLE, LOW); // Extras disabled for now
-    if(DevConstants::SWD_PROGRAMING_MODE == false){
-        digitalWrite(MOTOR7_ENABLE , LOW);
-    }
-    // digitalWrite(BEEPER, HIGH); // test if board is running code without lcd
-    // Connect the Stepper Library To the Correct Pins
-
-    // Attach intrrupts 
-    attachInterrupt(digitalPinToInterrupt(Motor0LimitSw), x0HomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor1LimitSw), y0HomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor2LimitSw), y1HomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor3LimitSw), y2HomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor4LimitSw), y3HomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor5LimitSw), aoatHomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor6LimitSw), aoabHomeIsr, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Motor7LimitSw), x1HomeIsr, CHANGE);
-
+    // Limit switch interrupts
+    configureInputWithInterrupt(LIM0_PORT, LIM0_PIN, EXTI9_5_IRQn);   // PG6
+    configureInputWithInterrupt(LIM1_PORT, LIM1_PIN, EXTI15_10_IRQn); // PG12
+    configureInputWithInterrupt(LIM2_PORT, LIM2_PIN, EXTI9_5_IRQn);   // PG9
+    configureInputWithInterrupt(LIM3_PORT, LIM3_PIN, EXTI15_10_IRQn); // PG13
+    configureInputWithInterrupt(LIM4_PORT, LIM4_PIN, EXTI15_10_IRQn); // PG10
+    configureInputWithInterrupt(LIM5_PORT, LIM5_PIN, EXTI15_10_IRQn); // PG14
+    configureInputWithInterrupt(LIM6_PORT, LIM6_PIN, EXTI15_10_IRQn); // PG11
+    configureInputWithInterrupt(LIM7_PORT, LIM7_PIN, EXTI15_10_IRQn); // PG15
 }
 
 void driver_setup()
@@ -315,3 +434,56 @@ void estopIsr()
 {
   NVIC_SystemReset(); // use a software reset to kill the board
 }
+
+// ============================================================================
+// EXTI Interrupt Handlers - dispatch to limit switch ISRs
+// ============================================================================
+extern "C" {
+
+void EXTI9_5_IRQHandler(void) {
+    // PG6 - Motor 0 limit (x0)
+    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_6) != RESET) {
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_6);
+        x0HomeIsr();
+    }
+    // PG9 - Motor 2 limit (y1)
+    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_9) != RESET) {
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_9);
+        y1HomeIsr();
+    }
+}
+
+void EXTI15_10_IRQHandler(void) {
+    // PG10 - Motor 4 limit (y3)
+    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_10) != RESET) {
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_10);
+        y3HomeIsr();
+    }
+    // PG11 - Motor 6 limit (aoab)
+    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_11) != RESET) {
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_11);
+        aoabHomeIsr();
+    }
+    // PG12 - Motor 1 limit (y0)
+    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_12) != RESET) {
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_12);
+        y0HomeIsr();
+    }
+    // PG13 - Motor 3 limit (y2)
+    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_13) != RESET) {
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_13);
+        y2HomeIsr();
+    }
+    // PG14 - Motor 5 limit (aoat)
+    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_14) != RESET) {
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_14);
+        aoatHomeIsr();
+    }
+    // PG15 - Motor 7 limit (x1)
+    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_15) != RESET) {
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_15);
+        x1HomeIsr();
+    }
+}
+
+} // extern "C"
