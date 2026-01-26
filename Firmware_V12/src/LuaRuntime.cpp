@@ -150,8 +150,9 @@ void LuaRuntime::registerCustomFunctions() {
     // Register a print function that goes to UART
     lua_register(mLuaState, "serial_print", lua_serial_print);
     lua_register(mLuaState, "delay_ms", lua_delay_ms);
-    
-    // TODO: Add more custom functions for motor control, etc.
+
+    // Register motion control functions
+    MovementLua::register(mLuaState);
 }
 
 int LuaRuntime::lua_serial_print(lua_State* L) {
