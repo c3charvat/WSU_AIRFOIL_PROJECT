@@ -1,4 +1,0 @@
-#ifndef OO_FREE_RTOS_CONFIG_H
-#define OO_FREE_RTOS_CONFIG_H
-#define CPP_FREERTOS_NO_EXCEPTIONS
-#endif

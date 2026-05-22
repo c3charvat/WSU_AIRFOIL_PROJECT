@@ -1,9 +1,24 @@
 #include "MovementLua.hpp"
 #include "Movement.hpp"
+#include "Data_structures.h"
 #include "HalSerial.hpp"
 #include "amt21_driver.hpp"
 #include "SpeedyStepper.h"
 #include <cstring>
+extern "C" {
+#include "lua/lauxlib.h"
+#include "lua/lualib.h"
+}
+
+// Stepper externs (defined in Pin_Setup.cpp)
+extern SpeedyStepper x0_Stepper;
+extern SpeedyStepper x1_Stepper;
+extern SpeedyStepper y0_Stepper;
+extern SpeedyStepper y1_Stepper;
+extern SpeedyStepper y2_Stepper;
+extern SpeedyStepper y3_Stepper;
+extern SpeedyStepper aoat_Stepper;
+extern SpeedyStepper aoab_Stepper;
 
 // External serial object
 extern HalSerial Serial;
@@ -148,7 +163,7 @@ static int lua_set_speed(lua_State* L) {
     SpeedyStepper* stepper = get_stepper(axis);
     if (stepper) {
         stepper->setSpeedInStepsPerSecond(speed);
-        Serial.println((String("[LUA] set_speed ") + axis + " = " + String(speed)).c_str());
+        Serial.println((String("[LUA] set_speed ") + axis + " = " + std::to_string(speed)).c_str());
     } else {
         Serial.println((String("[LUA] set_speed: unknown axis ") + axis).c_str());
     }
@@ -162,7 +177,7 @@ static int lua_set_accel(lua_State* L) {
     SpeedyStepper* stepper = get_stepper(axis);
     if (stepper) {
         stepper->setAccelerationInStepsPerSecondPerSecond(accel);
-        Serial.println((String("[LUA] set_accel ") + axis + " = " + String(accel)).c_str());
+        Serial.println((String("[LUA] set_accel ") + axis + " = " + std::to_string(accel)).c_str());
     } else {
         Serial.println((String("[LUA] set_accel: unknown axis ") + axis).c_str());
     }

@@ -199,6 +199,35 @@ TMC2209Stepper gDriverAOAT(&gTmcStream, 0.11f, 0);
 TMC2209Stepper gDriverAOAB(&gTmcStream, 0.11f, 0);
 
 // ============================================================================
+// SpeedyStepper motion objects (connected to GPIO pins in pin_setup())
+// ============================================================================
+SpeedyStepper x0_Stepper;
+SpeedyStepper x1_Stepper;
+SpeedyStepper y0_Stepper;
+SpeedyStepper y1_Stepper;
+SpeedyStepper y2_Stepper;
+SpeedyStepper y3_Stepper;
+SpeedyStepper aoat_Stepper;
+SpeedyStepper aoab_Stepper;
+
+// ============================================================================
+// RS485 serial port for AMT21 absolute encoders
+// TODO: Verify UART peripheral and GPIO pins for the RS485 transceiver on
+//       the target board (currently placeholder: UART4 PA0/PA1, AF8).
+// ============================================================================
+static HalSerial gEncoderSerial(UART4, GPIOA, GPIO_PIN_0, GPIO_PIN_1, GPIO_AF8_UART4);
+
+// ============================================================================
+// AMT21 absolute encoder objects (AoA top + bottom)
+// ============================================================================
+Amt21Encoder aoat_Encoder(gEncoderSerial, Amt21Encoder::i14BIT, Amt21Encoder::i54,
+                          RS485_RE_PORT, RS485_RE_PIN,
+                          RS485_WE_PORT, RS485_WE_PIN);
+Amt21Encoder aoab_Encoder(gEncoderSerial, Amt21Encoder::i14BIT, Amt21Encoder::i74,
+                          RS485_RE_PORT, RS485_RE_PIN,
+                          RS485_WE_PORT, RS485_WE_PIN);
+
+// ============================================================================
 // Helper to configure output pin
 // ============================================================================
 static void configureOutputPin(GPIO_TypeDef* port, uint16_t pin) {
@@ -316,6 +345,18 @@ void pin_setup()
     configureInputWithInterrupt(LIM5_PORT, LIM5_PIN, EXTI15_10_IRQn); // PG14
     configureInputWithInterrupt(LIM6_PORT, LIM6_PIN, EXTI15_10_IRQn); // PG11
     configureInputWithInterrupt(LIM7_PORT, LIM7_PIN, EXTI15_10_IRQn); // PG15
+
+    // Connect SpeedyStepper objects to their GPIO step/dir pins
+    x0_Stepper.connectToPins(M0_STEP_PORT, M0_STEP_PIN, M0_DIR_PORT, M0_DIR_PIN);
+    y0_Stepper.connectToPins(M1_STEP_PORT, M1_STEP_PIN, M1_DIR_PORT, M1_DIR_PIN);
+    y1_Stepper.connectToPins(M2_STEP_PORT, M2_STEP_PIN, M2_DIR_PORT, M2_DIR_PIN);
+    y3_Stepper.connectToPins(M3_STEP_PORT, M3_STEP_PIN, M3_DIR_PORT, M3_DIR_PIN);
+    aoat_Stepper.connectToPins(M4_STEP_PORT, M4_STEP_PIN, M4_DIR_PORT, M4_DIR_PIN);
+    aoab_Stepper.connectToPins(M5_STEP_PORT, M5_STEP_PIN, M5_DIR_PORT, M5_DIR_PIN);
+    y2_Stepper.connectToPins(M6_STEP_PORT, M6_STEP_PIN, M6_DIR_PORT, M6_DIR_PIN);
+    if (DevConstants::SWD_PROGRAMING_MODE == false) {
+        x1_Stepper.connectToPins(M7_STEP_PORT, M7_STEP_PIN, M7_DIR_PORT, M7_DIR_PIN);
+    }
 }
 
 void driver_setup()

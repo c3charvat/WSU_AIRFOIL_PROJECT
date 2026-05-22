@@ -12,14 +12,17 @@
 
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_ll_gpio.h"
-#include <cstdint>
-#include <string>
+#include <stdint.h>
 
+#ifdef __cplusplus
+#include <string>
 // ============================================================================
 // String type alias for code compatibility
 // ============================================================================
 using String = std::string;
+#endif // __cplusplus
 
+#ifdef __cplusplus
 // ============================================================================
 // DWT Initialization (call once at startup for microsecond timing)
 // ============================================================================
@@ -38,12 +41,15 @@ inline void delayMicroseconds(uint32_t us) {
     while ((DWT->CYCCNT - start) < cycles) {}
 }
 
+#ifndef DELAY_DEFINED
+#define DELAY_DEFINED
 // ============================================================================
 // Convenience alias for HAL_Delay
 // ============================================================================
 inline void delay(uint32_t ms) {
     HAL_Delay(ms);
 }
+#endif
 
 // ============================================================================
 // micros() - microseconds since startup using DWT cycle counter
@@ -52,5 +58,6 @@ inline void delay(uint32_t ms) {
 inline uint32_t micros() {
     return DWT->CYCCNT / (SystemCoreClock / 1000000);
 }
+#endif // __cplusplus
 
 #endif // HAL_GPIO_HPP

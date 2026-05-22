@@ -1,5 +1,7 @@
 #include "HalStream.hpp"   // Must come before TMCStepper so 'Stream' is defined
 #include<TMCStepper.h>
+#include "SpeedyStepper.h"
+#include "amt21_driver.hpp"
 /* 
 This file sets up the Pin Modes
 It its important to note that Stepper driver 7 shares pins with the swd interface... 
@@ -94,6 +96,20 @@ extern TMC2209Stepper gDriverY2;
 extern TMC2209Stepper gDriverY3;
 extern TMC2209Stepper gDriverAOAT;
 extern TMC2209Stepper gDriverAOAB;
+
+// Stepper motion objects (one per motor axis)
+extern SpeedyStepper x0_Stepper;
+extern SpeedyStepper x1_Stepper;
+extern SpeedyStepper y0_Stepper;
+extern SpeedyStepper y1_Stepper;
+extern SpeedyStepper y2_Stepper;
+extern SpeedyStepper y3_Stepper;
+extern SpeedyStepper aoat_Stepper;
+extern SpeedyStepper aoab_Stepper;
+
+// AMT21 absolute encoders (AoA top + bottom)
+extern Amt21Encoder aoat_Encoder;
+extern Amt21Encoder aoab_Encoder;
 
 
 

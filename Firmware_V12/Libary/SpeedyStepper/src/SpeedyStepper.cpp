@@ -191,6 +191,7 @@
 
 #include "SpeedyStepper.h"
 #include "HalGpio.hpp"
+#include <math.h>
 
 
 // ---------------------------------------------------------------------------------
@@ -785,7 +786,8 @@ bool SpeedyStepper::moveToHomeInSteps(long directionTowardHome,
   // successfully homed, set the current position to 0
   //
   setCurrentPositionInSteps(0L);
-
+  return(true);
+}
 
 
 //

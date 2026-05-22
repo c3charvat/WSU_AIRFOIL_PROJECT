@@ -68,6 +68,11 @@ public:
      */
     CommandHandlerThread(osMessageQueueId_t scriptQueue, osMutexId_t serialLock);
 
+    /**
+     * @brief Print help/welcome message
+     */
+    void printHelp();
+
 private:
     static void threadEntry(void* arg);
     void run();
@@ -108,11 +113,6 @@ private:
      * @param script The script text
      */
     void handleDirectScript(const char* script);
-    
-    /**
-     * @brief Print help/welcome message
-     */
-    void printHelp();
 };
 
 #endif // COMMAND_HANDLER_HPP

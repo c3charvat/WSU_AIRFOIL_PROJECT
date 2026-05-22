@@ -13,8 +13,8 @@
 #ifndef HAL_STREAM_HPP
 #define HAL_STREAM_HPP
 
-#include <cstdint>
-#include <cstddef>
+#include <stdint.h>
+#include <stddef.h>
 
 // ---------------------------------------------------------------------------
 // Abstract Stream base – satisfies TMCStepper's Stream* constructor

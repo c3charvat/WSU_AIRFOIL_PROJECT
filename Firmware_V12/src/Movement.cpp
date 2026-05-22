@@ -74,9 +74,9 @@ PositionStruct rel_movement_calc(struct PositionStruct *current_pos, struct Posi
         {
             // Display Bounds Error
             error->error_name = "Bounds Check Failed";
-            error->error_information_1 = String(Settings::MIN_MAX_ARRAY[i * 2]);
-            error->error_information_2 = String(Settings::MIN_MAX_ARRAY[(i * 2) + 1]);
-            error->error_information_3 = String(input_position_data[i]);
+            error->error_information_1 = std::to_string(Settings::MIN_MAX_ARRAY[i * 2]);
+            error->error_information_2 = std::to_string(Settings::MIN_MAX_ARRAY[(i * 2) + 1]);
+            error->error_information_3 = std::to_string(input_position_data[i]);
             next_pos.xpos = 0;
             next_pos.ypos = 0;
             next_pos.aoatpos = 0;

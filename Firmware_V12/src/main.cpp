@@ -16,6 +16,7 @@
 #include "cmsis_os2.h"
 #include "HalSerial.hpp"
 #include "HalGpio.hpp"
+#include "Data_structures.h"
 #include "CommandHandler.hpp"
 #include "LuaRuntime.hpp"
 
@@ -151,14 +152,12 @@ int main(void) {
     static LuaExecutorThread luaExecutor(scriptQueue, serialMutex);
     
     // Suppress unused variable warnings
-    (void)cmdHandler;
     (void)luaExecutor;
     
     // ========================================================================
     // Print Help and Start Scheduler
     // ========================================================================
     
-    printHelp();
     Serial.println("******************************");
     Serial.println("      Starting Scheduler      ");
     Serial.println("******************************");

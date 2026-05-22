@@ -173,7 +173,7 @@ void CommandHandlerThread::handleStatus() {
     Serial.println("");
     Serial.println("=== SYSTEM STATUS ===");
     Serial.print("Free heap: ");
-    Serial.print(xPortGetFreeHeapSize());
+    Serial.print(static_cast<uint32_t>(xPortGetFreeHeapSize()));
     Serial.println(" bytes");
     Serial.println("=====================");
 }

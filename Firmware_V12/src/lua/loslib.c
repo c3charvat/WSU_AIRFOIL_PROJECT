@@ -21,11 +21,11 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-#include "delay.h"
+#include "stm32f4xx_hal.h"
 
 time_t time(time_t * time)  
 {  
-    return millis();  
+    return (time_t)HAL_GetTick();  
 }  
   
 void exit(int status)  

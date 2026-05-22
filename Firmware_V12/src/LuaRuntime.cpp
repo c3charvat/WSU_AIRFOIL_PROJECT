@@ -4,10 +4,18 @@
  */
 
 #include "LuaRuntime.hpp"
+#include "MovementLua.hpp"
 #include <cstring>
 
 // External serial instance (defined in main.cpp)
 extern HalSerial Serial;
+
+// ============================================================================
+// Lua output hook — called by lua_writestring macro in lauxlib.h
+// ============================================================================
+extern "C" void Lua_output(const char *s) {
+    Serial.print(s);
+}
 
 // ============================================================================
 // Static Member Initialization
@@ -268,7 +276,7 @@ void LuaExecutorThread::handleAbort() {
     {
         osMutexAcquire(mSerialLock, osWaitForever);
         Serial.print("[LUA] Cleared ");
-        Serial.print(clearedCount);
+        Serial.print(static_cast<int32_t>(clearedCount));
         Serial.println(" pending scripts from queue");
         Serial.println("[LUA] ABORT complete");
         osMutexRelease(mSerialLock);
