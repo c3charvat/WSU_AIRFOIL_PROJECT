@@ -12,16 +12,12 @@
  */
 
 #include "stm32f4xx_hal.h"
-#include <STM32FreeRTOS.h>
-#include <Seeed_Arduino_ooFreeRTOS.h>
-#include "thread.hpp"
-#include "queue.hpp"
+#include "FreeRTOS.h"
+#include "cmsis_os2.h"
 #include "HalSerial.hpp"
 #include "HalGpio.hpp"
 #include "CommandHandler.hpp"
 #include "LuaRuntime.hpp"
-
-using namespace cpp_freertos;
 
 // ============================================================================
 // Global Serial Instance
@@ -29,6 +25,46 @@ using namespace cpp_freertos;
 
 // USART3 on PD8 (TX) and PD9 (RX) - exposed on Raspberry Pi header
 HalSerial Serial(USART3, GPIOD, GPIO_PIN_8, GPIO_PIN_9, GPIO_AF7_USART3);
+
+// ============================================================================
+// Global Motion State
+// ============================================================================
+
+// Tracks the machine's current position as moves complete.
+// Updated by move_function() after every move; valid at any inter-move abort point.
+PositionStruct gCurrentPosition = {0.0f, 0.0f, 0.0f, 0.0f, nullptr};
+Error gError;
+
+// AOA encoder counts recorded at the end of the last home_all().
+// Used by sync_aoa_position() to convert raw counts to degrees without re-homing.
+uint16_t gAoatEncoderZero = 0;
+uint16_t gAoabEncoderZero = 0;
+
+// Set by LuaRuntime::requestAbort(); polled inside move_function's stepper loop.
+// Allows a running move to be interrupted without waiting for it to finish.
+volatile bool gMotionAbortFlag = false;
+// Set true when move_function halts a move early due to gMotionAbortFlag.
+// Cleared by move_function at the start of each new move.
+volatile bool gMotionWasAborted = false;
+// Abort sequence:
+// User sends <ABORT>
+//   → CommandHandlerThread::handleAbort()
+//   → LuaRuntime::requestAbort()
+//       sets sAbortRequested = true       ← catches abort between Lua instructions (existing)
+//       sets gMotionAbortFlag = true      ← NEW: catches abort inside a running move
+  
+//   Inside move_function's stepper loop:
+//       detects gMotionAbortFlag
+//       calls setupStop() on all 8 axes  ← controlled deceleration, no mechanical shock
+//       polls processMovement() until decel complete
+//       computes X/Y displacement from actual step counts
+//       sets gMotionWasAborted = true
+//       returns early
+  
+//   Back in lua_move_absolute / lua_move_relative:
+//       sees gMotionWasAborted → calls luaL_error()
+//       lua_pcall() catches the error → script terminates cleanly
+
 
 // ============================================================================
 // System Clock Configuration (Forward Declaration)
@@ -94,12 +130,15 @@ int main(void) {
     // Create RTOS Objects
     // ========================================================================
     
+    // Initialize CMSIS-RTOS v2 kernel (must be done before any osXxx calls)
+    osKernelInitialize();
+
     // Initialize Lua abort mutex (must be done before threads start)
     LuaRuntime::initAbortMutex();
-    
+
     // Create script queue and serial mutex
-    static Queue scriptQueue(SCRIPT_QUEUE_DEPTH, sizeof(LuaQueueMessage));
-    static MutexStandard serialMutex;
+    static osMessageQueueId_t scriptQueue = osMessageQueueNew(SCRIPT_QUEUE_DEPTH, sizeof(LuaQueueMessage), NULL);
+    static osMutexId_t        serialMutex = osMutexNew(NULL);
     
     // ========================================================================
     // Create Threads
@@ -125,7 +164,7 @@ int main(void) {
     Serial.println("******************************");
     
     HAL_Delay(500);
-    Thread::StartScheduler();
+    osKernelStart();
     
     // Should never reach here
     Serial.println("FATAL ERROR: Scheduler ended - Restart required");

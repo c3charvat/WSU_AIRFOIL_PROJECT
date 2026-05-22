@@ -45,4 +45,12 @@ inline void delay(uint32_t ms) {
     HAL_Delay(ms);
 }
 
+// ============================================================================
+// micros() - microseconds since startup using DWT cycle counter
+// initDWT() must be called once at startup before using this
+// ============================================================================
+inline uint32_t micros() {
+    return DWT->CYCCNT / (SystemCoreClock / 1000000);
+}
+
 #endif // HAL_GPIO_HPP

@@ -181,6 +181,24 @@ volatile bool aoathome = false;
 volatile bool aoabhome = false;
 
 // ============================================================================
+// TMC2209 driver objects
+// R_SENSE = 0.11 ohm (standard BTT Octopus sense resistors)
+// All use slave address 0; NullStream until real UART pins are wired in.
+// TODO: Replace gTmcStream with a HalUartStream pointing to the board's
+//       TMC UART peripheral once the pin mapping is confirmed.
+// ============================================================================
+static NullStream gTmcStream;
+
+TMC2209Stepper gDriverX (&gTmcStream, 0.11f, 0);
+TMC2209Stepper gDriverX2(&gTmcStream, 0.11f, 0);
+TMC2209Stepper gDriverY0(&gTmcStream, 0.11f, 0);
+TMC2209Stepper gDriverY1(&gTmcStream, 0.11f, 0);
+TMC2209Stepper gDriverY2(&gTmcStream, 0.11f, 0);
+TMC2209Stepper gDriverY3(&gTmcStream, 0.11f, 0);
+TMC2209Stepper gDriverAOAT(&gTmcStream, 0.11f, 0);
+TMC2209Stepper gDriverAOAB(&gTmcStream, 0.11f, 0);
+
+// ============================================================================
 // Helper to configure output pin
 // ============================================================================
 static void configureOutputPin(GPIO_TypeDef* port, uint16_t pin) {
@@ -302,7 +320,6 @@ void pin_setup()
 
 void driver_setup()
 {
-  gDriverX.beginSerial(115200); // X driver Coms begin
   Serial.println("Driver X Enabled\n");
   gDriverX.begin();
   gDriverX.rms_current(1100); // mA
@@ -313,7 +330,6 @@ void driver_setup()
   gDriverX.pwm_autoscale(1);
   gDriverX.toff(5);
 
-  gDriverX2.beginSerial(115200);
   Serial.println("Driver X2 Enabled\n");
   gDriverX2.begin();
   gDriverX2.rms_current(1100); // mA
@@ -323,7 +339,6 @@ void driver_setup()
   gDriverX2.pwm_autoscale(1);
   gDriverX2.toff(5);
 
-  gDriverY0.beginSerial(115200);
   Serial.println("Driver Y0 Enabled\n");
   gDriverY0.begin();
   gDriverY0.rms_current(900); // mA
@@ -333,10 +348,8 @@ void driver_setup()
   gDriverY0.pwm_autoscale(1);
   gDriverY0.pwm_autograd(1);
   gDriverY0.toff(5);
-  
 
-  gDriverY1.beginSerial(115200);
-  Serial.println("Driver Y12 Enabled\n");
+  Serial.println("Driver Y1 Enabled\n");
   gDriverY1.begin();
   gDriverY1.rms_current(900); // mA
   gDriverY1.microsteps(64);
@@ -345,8 +358,7 @@ void driver_setup()
   gDriverY1.pwm_autoscale(1);
   gDriverY1.toff(5);
 
-  gDriverY2.beginSerial(115200);
-  Serial.println("Driver Y12 Enabled\n");
+  Serial.println("Driver Y2 Enabled\n");
   gDriverY2.begin();
   gDriverY2.rms_current(900); // mA
   gDriverY2.microsteps(64);
@@ -355,7 +367,6 @@ void driver_setup()
   gDriverY2.pwm_autoscale(1);
   gDriverY2.toff(5);
 
-  gDriverY3.beginSerial(115200);
   Serial.println("Driver Y3 Enabled\n");
   gDriverY3.begin();
   gDriverY3.rms_current(850); // mA
@@ -365,8 +376,7 @@ void driver_setup()
   gDriverY3.pwm_autoscale(1);
   gDriverY3.toff(5);
 
-  gDriverAOAT.beginSerial(115200);
-  Serial.println("driver e1 enabled\n");
+  Serial.println("Driver AOAT Enabled\n");
   gDriverAOAT.begin();
   gDriverAOAT.rms_current(900); // ma
   gDriverAOAT.microsteps(64);
@@ -375,8 +385,7 @@ void driver_setup()
   gDriverAOAT.pwm_autoscale(1);
   gDriverAOAT.toff(5);
 
-  gDriverAOAB.beginSerial(115200);
-  Serial.println("Driver E2 Enabled\n");
+  Serial.println("Driver AOAB Enabled\n");
   gDriverAOAB.begin();
   gDriverAOAB.rms_current(900); // mA
   gDriverAOAB.microsteps(64);

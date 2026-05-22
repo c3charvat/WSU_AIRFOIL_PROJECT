@@ -55,25 +55,32 @@ void checkBootloaderFlag(void) {
 // CommandHandlerThread Implementation
 // ============================================================================
 
-CommandHandlerThread::CommandHandlerThread(cpp_freertos::Queue& scriptQueue, cpp_freertos::Mutex& serialLock)
-    : Thread("CmdHandler", 512, 2)
-    , mScriptQueue(scriptQueue)
+CommandHandlerThread::CommandHandlerThread(osMessageQueueId_t scriptQueue, osMutexId_t serialLock)
+    : mScriptQueue(scriptQueue)
     , mSerialLock(serialLock)
     , mBufferIndex(0)
     , mReceiving(false)
 {
     memset(mReceiveBuffer, 0, COMMAND_BUFFER_SIZE);
-    Start();
+    osThreadAttr_t attr = {};
+    attr.name       = "CmdHandler";
+    attr.stack_size = 512 * 4;
+    attr.priority   = osPriorityNormal;
+    mHandle = osThreadNew(threadEntry, this, &attr);
 }
 
-void CommandHandlerThread::Run() {
+void CommandHandlerThread::threadEntry(void* arg) {
+    static_cast<CommandHandlerThread*>(arg)->run();
+}
+
+void CommandHandlerThread::run() {
     Serial.println("[CMD] Command handler thread started");
     
     while (true) {
         // Small delay to prevent tight loop
-        Delay(cpp_freertos::Ticks::MsToTicks(10));
+        osDelay(10);
         
-        cpp_freertos::LockGuard guard(mSerialLock);
+        osMutexAcquire(mSerialLock, osWaitForever);
         
         int c;
         while ((c = Serial.readNonBlocking()) >= 0) {
@@ -98,6 +105,8 @@ void CommandHandlerThread::Run() {
                 }
             }
         }
+        
+        osMutexRelease(mSerialLock);
     }
 }
 
@@ -144,7 +153,7 @@ void CommandHandlerThread::handleAbort() {
     msg.payloadLength = 0;
     
     // Send abort message - this has highest priority
-    if (!mScriptQueue.Enqueue(&msg, cpp_freertos::Ticks::MsToTicks(100))) {
+    if (osMessageQueuePut(mScriptQueue, &msg, 0, 100) != osOK) {
         // If queue is full, force abort anyway
         LuaRuntime::requestAbort();
     }
@@ -158,7 +167,7 @@ void CommandHandlerThread::handleStatus() {
     msg.type = LuaMessageType::STATUS_REQUEST;
     msg.payloadLength = 0;
     
-    mScriptQueue.Enqueue(&msg, cpp_freertos::Ticks::MsToTicks(100));
+    osMessageQueuePut(mScriptQueue, &msg, 0, 100);
     
     // Also print system-level status
     Serial.println("");
@@ -190,7 +199,7 @@ void CommandHandlerThread::handleScript(const char* scriptStart) {
     strncpy(msg.payload, scriptStart, MAX_SCRIPT_SIZE - 1);
     msg.payloadLength = scriptLen;
     
-    if (mScriptQueue.Enqueue(&msg, cpp_freertos::Ticks::MsToTicks(100))) {
+    if (osMessageQueuePut(mScriptQueue, &msg, 0, 100) == osOK) {
         Serial.println("[CMD] Script queued successfully");
     } else {
         Serial.println("[CMD] ERROR: Script queue full");
@@ -215,7 +224,7 @@ void CommandHandlerThread::handleDirectScript(const char* script) {
     strncpy(msg.payload, script, MAX_SCRIPT_SIZE - 1);
     msg.payloadLength = scriptLen;
     
-    if (mScriptQueue.Enqueue(&msg, cpp_freertos::Ticks::MsToTicks(100))) {
+    if (osMessageQueuePut(mScriptQueue, &msg, 0, 100) == osOK) {
         Serial.println("[CMD] Direct script queued");
     } else {
         Serial.println("[CMD] ERROR: Script queue full");

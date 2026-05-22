@@ -11,11 +11,8 @@
 #define COMMAND_HANDLER_HPP
 
 #include "stm32f4xx_hal.h"
-#include <STM32FreeRTOS.h>
-#include <Seeed_Arduino_ooFreeRTOS.h>
-#include "thread.hpp"
-#include "queue.hpp"
-#include "ticks.hpp"
+#include "FreeRTOS.h"
+#include "cmsis_os2.h"
 #include "HalSerial.hpp"
 #include "LuaRuntime.hpp"
 
@@ -62,25 +59,26 @@ void checkBootloaderFlag(void);
 /**
  * @brief Thread that handles serial input and routes commands to appropriate queues
  */
-class CommandHandlerThread : public cpp_freertos::Thread {
+class CommandHandlerThread {
 public:
     /**
      * @brief Construct and start the command handler thread
-     * @param scriptQueue Queue for sending script messages to Lua executor
-     * @param serialLock Mutex for serial output synchronization
+     * @param scriptQueue CMSIS-RTOS v2 message queue for Lua scripts
+     * @param serialLock  CMSIS-RTOS v2 mutex for serial output synchronization
      */
-    CommandHandlerThread(cpp_freertos::Queue& scriptQueue, cpp_freertos::Mutex& serialLock);
-
-protected:
-    virtual void Run() override;
+    CommandHandlerThread(osMessageQueueId_t scriptQueue, osMutexId_t serialLock);
 
 private:
-    cpp_freertos::Queue& mScriptQueue;
-    cpp_freertos::Mutex& mSerialLock;
-    
+    static void threadEntry(void* arg);
+    void run();
+
+    osMessageQueueId_t mScriptQueue;
+    osMutexId_t        mSerialLock;
+    osThreadId_t       mHandle;
+
     // Receive buffer
     char mReceiveBuffer[COMMAND_BUFFER_SIZE];
-    int mBufferIndex;
+    int  mBufferIndex;
     bool mReceiving;
     
     /**

@@ -133,6 +133,11 @@ void move_function(struct PositionStruct *current_pos, struct PositionStruct *in
     aoat_Stepper.setupRelativeMoveInSteps(next_pos.aoatpos / 1.8 * 5.18 * 8);
     aoab_Stepper.setupRelativeMoveInSteps(next_pos.aoabpos / 1.8 * 5.18 * 8);
 
+    // Capture step positions before the move for accurate position recovery on abort.
+    long x0_steps_start = x0_Stepper.getCurrentPositionInSteps();
+    long y0_steps_start = y0_Stepper.getCurrentPositionInSteps();
+    gMotionWasAborted = false;
+
     // Call A Blocking Function that Stops the Machine from doing anything else while the stepper is moving  This is desired since we aren not updating mid move.
     Serial.println("Entering while loop");
     while ((!x0_Stepper.motionComplete()) || (!y0_Stepper.motionComplete()) || (!y1_Stepper.motionComplete()) || (!y2_Stepper.motionComplete()) || (!y3_Stepper.motionComplete()) || (!aoat_Stepper.motionComplete()) || (!aoab_Stepper.motionComplete()))
@@ -140,6 +145,28 @@ void move_function(struct PositionStruct *current_pos, struct PositionStruct *in
         if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)
         {
             break;
+        }
+        if (gMotionAbortFlag) {
+            // Decelerate all axes to a controlled stop.
+            x0_Stepper.setupStop(); x1_Stepper.setupStop();
+            y0_Stepper.setupStop(); y1_Stepper.setupStop();
+            y2_Stepper.setupStop(); y3_Stepper.setupStop();
+            aoat_Stepper.setupStop(); aoab_Stepper.setupStop();
+            while (!x0_Stepper.motionComplete() || !y0_Stepper.motionComplete() ||
+                   !y1_Stepper.motionComplete() || !y2_Stepper.motionComplete() ||
+                   !y3_Stepper.motionComplete() || !aoat_Stepper.motionComplete() ||
+                   !aoab_Stepper.motionComplete()) {
+                x0_Stepper.processMovement(); x1_Stepper.processMovement();
+                y0_Stepper.processMovement(); y1_Stepper.processMovement();
+                y2_Stepper.processMovement(); y3_Stepper.processMovement();
+                aoat_Stepper.processMovement(); aoab_Stepper.processMovement();
+            }
+            // Update X/Y from steps actually completed; AOA corrected via sync_aoa_position().
+            current_pos->xpos += (float)(x0_Stepper.getCurrentPositionInSteps() - x0_steps_start) * (5.0f / (200.0f * 8.0f));
+            current_pos->ypos += (float)(y0_Stepper.getCurrentPositionInSteps() - y0_steps_start) * (2.0f / (200.0f * 8.0f));
+            gMotionWasAborted = true;
+            Serial.println("[MOVE] Aborted mid-move");
+            return;
         }
         x0_Stepper.processMovement();
         x1_Stepper.processMovement();
@@ -328,6 +355,11 @@ void move_function(struct PositionStruct *current_pos, struct PositionStruct *in
     aoat_Stepper.setupRelativeMoveInSteps(next_pos.aoatpos / 1.8 * 5.18 * 8);
     aoab_Stepper.setupRelativeMoveInSteps(next_pos.aoabpos / 1.8 * 5.18 * 8);
 
+    // Capture step positions before the move for accurate position recovery on abort.
+    long x0_steps_start = x0_Stepper.getCurrentPositionInSteps();
+    long y0_steps_start = y0_Stepper.getCurrentPositionInSteps();
+    gMotionWasAborted = false;
+
     // Call A Blocking Function that Stops the Machine from doing anything else while the stepper is moving  This is desired since we aren not updating mid move.
     Serial.println("Entering while loop");
     while ((!x0_Stepper.motionComplete()) || (!y0_Stepper.motionComplete()) || (!y1_Stepper.motionComplete()) || (!y2_Stepper.motionComplete()) || (!y3_Stepper.motionComplete()) || (!aoat_Stepper.motionComplete()) || (!aoab_Stepper.motionComplete()))
@@ -335,6 +367,28 @@ void move_function(struct PositionStruct *current_pos, struct PositionStruct *in
         if (DevConstants::ENDSTOP_BYPASS_ENABLE == true)
         {
             break;
+        }
+        if (gMotionAbortFlag) {
+            // Decelerate all axes to a controlled stop.
+            x0_Stepper.setupStop(); x1_Stepper.setupStop();
+            y0_Stepper.setupStop(); y1_Stepper.setupStop();
+            y2_Stepper.setupStop(); y3_Stepper.setupStop();
+            aoat_Stepper.setupStop(); aoab_Stepper.setupStop();
+            while (!x0_Stepper.motionComplete() || !y0_Stepper.motionComplete() ||
+                   !y1_Stepper.motionComplete() || !y2_Stepper.motionComplete() ||
+                   !y3_Stepper.motionComplete() || !aoat_Stepper.motionComplete() ||
+                   !aoab_Stepper.motionComplete()) {
+                x0_Stepper.processMovement(); x1_Stepper.processMovement();
+                y0_Stepper.processMovement(); y1_Stepper.processMovement();
+                y2_Stepper.processMovement(); y3_Stepper.processMovement();
+                aoat_Stepper.processMovement(); aoab_Stepper.processMovement();
+            }
+            // Update X/Y from steps actually completed; AOA corrected via sync_aoa_position().
+            current_pos->xpos += (float)(x0_Stepper.getCurrentPositionInSteps() - x0_steps_start) * (5.0f / (200.0f * 8.0f));
+            current_pos->ypos += (float)(y0_Stepper.getCurrentPositionInSteps() - y0_steps_start) * (2.0f / (200.0f * 8.0f));
+            gMotionWasAborted = true;
+            Serial.println("[MOVE] Aborted mid-move");
+            return;
         }
         x0_Stepper.processMovement();
         x1_Stepper.processMovement();

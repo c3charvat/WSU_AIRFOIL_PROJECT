@@ -14,7 +14,10 @@ extern HalSerial Serial;
 // ============================================================================
 
 volatile bool LuaRuntime::sAbortRequested = false;
-cpp_freertos::MutexStandard* LuaRuntime::sAbortMutex = nullptr;
+osMutexId_t   LuaRuntime::sAbortMutex     = nullptr;
+
+// Forward declaration: flag polled by move_function to stop motors mid-move.
+extern volatile bool gMotionAbortFlag;
 
 // ============================================================================
 // LuaRuntime Implementation
@@ -32,32 +35,34 @@ LuaRuntime::~LuaRuntime() {
 
 void LuaRuntime::initAbortMutex() {
     if (!sAbortMutex) {
-        sAbortMutex = new cpp_freertos::MutexStandard();
+        sAbortMutex = osMutexNew(NULL);
     }
 }
 
 void LuaRuntime::requestAbort() {
     if (sAbortMutex) {
-        sAbortMutex->Lock();
+        osMutexAcquire(sAbortMutex, osWaitForever);
         sAbortRequested = true;
-        sAbortMutex->Unlock();
+        osMutexRelease(sAbortMutex);
     }
+    gMotionAbortFlag = true;
 }
 
 void LuaRuntime::clearAbort() {
     if (sAbortMutex) {
-        sAbortMutex->Lock();
+        osMutexAcquire(sAbortMutex, osWaitForever);
         sAbortRequested = false;
-        sAbortMutex->Unlock();
+        osMutexRelease(sAbortMutex);
     }
+    gMotionAbortFlag = false;
 }
 
 bool LuaRuntime::isAbortRequested() {
     bool result = false;
     if (sAbortMutex) {
-        sAbortMutex->Lock();
+        osMutexAcquire(sAbortMutex, osWaitForever);
         result = sAbortRequested;
-        sAbortMutex->Unlock();
+        osMutexRelease(sAbortMutex);
     }
     return result;
 }
@@ -152,7 +157,7 @@ void LuaRuntime::registerCustomFunctions() {
     lua_register(mLuaState, "delay_ms", lua_delay_ms);
 
     // Register motion control functions
-    MovementLua::register(mLuaState);
+    MovementLua::registerFunctions(mLuaState);
 }
 
 int LuaRuntime::lua_serial_print(lua_State* L) {
@@ -163,7 +168,7 @@ int LuaRuntime::lua_serial_print(lua_State* L) {
 
 int LuaRuntime::lua_delay_ms(lua_State* L) {
     int ms = luaL_checkinteger(L, 1);
-    vTaskDelay(pdMS_TO_TICKS(ms));
+    osDelay(ms);
     return 0;
 }
 
@@ -171,17 +176,24 @@ int LuaRuntime::lua_delay_ms(lua_State* L) {
 // LuaExecutorThread Implementation
 // ============================================================================
 
-LuaExecutorThread::LuaExecutorThread(cpp_freertos::Queue& scriptQueue, cpp_freertos::Mutex& serialLock)
-    : Thread("LuaExecutor", 2048, 1)  // Larger stack for Lua
-    , mScriptQueue(scriptQueue)
+LuaExecutorThread::LuaExecutorThread(osMessageQueueId_t scriptQueue, osMutexId_t serialLock)
+    : mScriptQueue(scriptQueue)
     , mSerialLock(serialLock)
     , mScriptsExecuted(0)
     , mScriptsAborted(0)
 {
-    Start();
+    osThreadAttr_t attr = {};
+    attr.name       = "LuaExecutor";
+    attr.stack_size = 2048 * 4;  // larger stack for Lua
+    attr.priority   = osPriorityBelowNormal;
+    mHandle = osThreadNew(threadEntry, this, &attr);
 }
 
-void LuaExecutorThread::Run() {
+void LuaExecutorThread::threadEntry(void* arg) {
+    static_cast<LuaExecutorThread*>(arg)->run();
+}
+
+void LuaExecutorThread::run() {
     Serial.println("[LUA] Lua executor thread started");
     
     // Initialize Lua runtime
@@ -195,7 +207,7 @@ void LuaExecutorThread::Run() {
     
     while (true) {
         // Wait for message from queue
-        if (mScriptQueue.Dequeue(&msg, portMAX_DELAY)) {
+        if (osMessageQueueGet(mScriptQueue, &msg, NULL, osWaitForever) == osOK) {
             processMessage(msg);
         }
     }
@@ -219,45 +231,47 @@ void LuaExecutorThread::processMessage(LuaQueueMessage& msg) {
 
 void LuaExecutorThread::executeScript(const char* script) {
     {
-        cpp_freertos::LockGuard guard(mSerialLock);
+        osMutexAcquire(mSerialLock, osWaitForever);
         Serial.println("[LUA] Starting script execution");
+        osMutexRelease(mSerialLock);
     }
     
     bool success = mLuaRuntime.execute(script);
     
     {
-        cpp_freertos::LockGuard guard(mSerialLock);
+        osMutexAcquire(mSerialLock, osWaitForever);
         if (success) {
             mScriptsExecuted++;
         } else if (LuaRuntime::isAbortRequested()) {
             mScriptsAborted++;
         }
+        osMutexRelease(mSerialLock);
     }
 }
 
 void LuaExecutorThread::handleAbort() {
     {
-        cpp_freertos::LockGuard guard(mSerialLock);
+        osMutexAcquire(mSerialLock, osWaitForever);
         Serial.println("[LUA] Processing ABORT command");
+        osMutexRelease(mSerialLock);
     }
     
-    // Request abort of current script
     LuaRuntime::requestAbort();
     
-    // Clear all pending scripts from queue
     LuaQueueMessage discardMsg;
     int clearedCount = 0;
     
-    while (mScriptQueue.Dequeue(&discardMsg, 0)) {
+    while (osMessageQueueGet(mScriptQueue, &discardMsg, NULL, 0) == osOK) {
         clearedCount++;
     }
     
     {
-        cpp_freertos::LockGuard guard(mSerialLock);
+        osMutexAcquire(mSerialLock, osWaitForever);
         Serial.print("[LUA] Cleared ");
         Serial.print(clearedCount);
         Serial.println(" pending scripts from queue");
         Serial.println("[LUA] ABORT complete");
+        osMutexRelease(mSerialLock);
     }
     
     // Clear abort flag for next script
@@ -265,7 +279,7 @@ void LuaExecutorThread::handleAbort() {
 }
 
 void LuaExecutorThread::printStatus() {
-    cpp_freertos::LockGuard guard(mSerialLock);
+    osMutexAcquire(mSerialLock, osWaitForever);
     Serial.println("");
     Serial.println("=== LUA STATUS ===");
     Serial.print("Scripts executed: ");
@@ -278,4 +292,5 @@ void LuaExecutorThread::printStatus() {
     Serial.println(mLuaRuntime.scriptRunning() ? "YES" : "NO");
     Serial.println("==================");
     Serial.println("");
+    osMutexRelease(mSerialLock);
 }

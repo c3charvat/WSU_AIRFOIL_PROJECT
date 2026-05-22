@@ -190,6 +190,7 @@
 
 
 #include "SpeedyStepper.h"
+#include "HalGpio.hpp"
 
 
 // ---------------------------------------------------------------------------------
@@ -204,7 +205,9 @@ SpeedyStepper::SpeedyStepper()
   //
   // initialize constants
   //
+  stepPort = nullptr;
   stepPin = 0;
+  directionPort = nullptr;
   directionPin = 0;
   stepsPerRevolution = 200.0;
   stepsPerMillimeter = 25.0;
@@ -223,22 +226,25 @@ SpeedyStepper::SpeedyStepper()
 //          enablePinNumber = IO pin number for the enable bit (LOW is enabled)
 //            set to 0 if enable is not supported
 //
-void SpeedyStepper::connectToPins(byte stepPinNumber, byte directionPinNumber)
+void SpeedyStepper::connectToPins(GPIO_TypeDef* sPort, uint16_t sPin, GPIO_TypeDef* dPort, uint16_t dPin)
 {
-  //
-  // remember the pin numbers
-  //
-  stepPin = stepPinNumber;
-  directionPin = directionPinNumber;
-  
-  //
-  // configure the IO bits
-  //
-  pinMode(stepPin, OUTPUT);
-  digitalWrite(stepPin, LOW);
+  stepPort      = sPort;
+  stepPin       = sPin;
+  directionPort = dPort;
+  directionPin  = dPin;
 
-  pinMode(directionPin, OUTPUT);
-  digitalWrite(directionPin, LOW);
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull  = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+
+  GPIO_InitStruct.Pin = stepPin;
+  HAL_GPIO_Init(stepPort, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(stepPort, stepPin, GPIO_PIN_RESET);
+
+  GPIO_InitStruct.Pin = directionPin;
+  HAL_GPIO_Init(directionPort, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(directionPort, directionPin, GPIO_PIN_RESET);
 }
 
 
@@ -324,12 +330,12 @@ void SpeedyStepper::setAccelerationInMillimetersPerSecondPerSecond(
 //
 bool SpeedyStepper::moveToHomeInMillimeters(long directionTowardHome,  
   float speedInMillimetersPerSecond, long maxDistanceToMoveInMillimeters, 
-  int homeLimitSwitchPin)
+  GPIO_TypeDef* homePort, uint16_t homePin)
 {
   return(moveToHomeInSteps(directionTowardHome, 
                           speedInMillimetersPerSecond * stepsPerMillimeter, 
                           maxDistanceToMoveInMillimeters * stepsPerMillimeter, 
-                          homeLimitSwitchPin));
+                          homePort, homePin));
 }
 
 
@@ -497,12 +503,12 @@ void SpeedyStepper::setAccelerationInRevolutionsPerSecondPerSecond(
 //
 bool SpeedyStepper::moveToHomeInRevolutions(long directionTowardHome, 
   float speedInRevolutionsPerSecond, long maxDistanceToMoveInRevolutions, 
-  int homeLimitSwitchPin)
+  GPIO_TypeDef* homePort, uint16_t homePin)
 {
   return(moveToHomeInSteps(directionTowardHome, 
                           speedInRevolutionsPerSecond * stepsPerRevolution, 
                           maxDistanceToMoveInRevolutions * stepsPerRevolution, 
-                          homeLimitSwitchPin));
+                          homePort, homePin));
 }
 
 
@@ -676,7 +682,7 @@ void SpeedyStepper::setAccelerationInStepsPerSecondPerSecond(
 //  Exit:   true returned if successful, else false
 //
 bool SpeedyStepper::moveToHomeInSteps(long directionTowardHome, 
-  float speedInStepsPerSecond, long maxDistanceToMoveInSteps, int homeLimitSwitchPin)
+  float speedInStepsPerSecond, long maxDistanceToMoveInSteps, GPIO_TypeDef* homePort, uint16_t homePin)
 {
   float originalDesiredSpeed_InStepsPerSecond;
   bool limitSwitchFlag;
@@ -685,7 +691,14 @@ bool SpeedyStepper::moveToHomeInSteps(long directionTowardHome,
   //
   // setup the home switch input pin
   //
-  pinMode(homeLimitSwitchPin, INPUT_PULLUP);
+  {
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin   = homePin;
+    GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull  = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(homePort, &GPIO_InitStruct);
+  }
   
   
   //
@@ -697,7 +710,7 @@ bool SpeedyStepper::moveToHomeInSteps(long directionTowardHome,
   //
   // if the home switch is not already set, move toward it
   //
-  if (digitalRead(homeLimitSwitchPin) == HIGH)
+  if (HAL_GPIO_ReadPin(homePort, homePin) == GPIO_PIN_SET)
   {
     //
     // move toward the home switch
@@ -707,7 +720,7 @@ bool SpeedyStepper::moveToHomeInSteps(long directionTowardHome,
     limitSwitchFlag = false;
     while(!processMovement())
     {
-      if (digitalRead(homeLimitSwitchPin) == LOW)
+      if (HAL_GPIO_ReadPin(homePort, homePin) == GPIO_PIN_RESET)
       {
         limitSwitchFlag = true;
         break;
@@ -720,7 +733,7 @@ bool SpeedyStepper::moveToHomeInSteps(long directionTowardHome,
     if (limitSwitchFlag == false)
       return(false);
   }
-  delay(25);
+  HAL_Delay(25);
 
 
   //
@@ -730,13 +743,13 @@ bool SpeedyStepper::moveToHomeInSteps(long directionTowardHome,
   limitSwitchFlag = false;
   while(!processMovement())
   {
-    if (digitalRead(homeLimitSwitchPin) == HIGH)
+    if (HAL_GPIO_ReadPin(homePort, homePin) == GPIO_PIN_SET)
     {
       limitSwitchFlag = true;
       break;
     }
   }
-  delay(25);
+  HAL_Delay(25);
   
   //
   // check if switch never detected
@@ -753,13 +766,13 @@ bool SpeedyStepper::moveToHomeInSteps(long directionTowardHome,
   limitSwitchFlag = false;
   while(!processMovement())
   {
-    if (digitalRead(homeLimitSwitchPin) == LOW)
+    if (HAL_GPIO_ReadPin(homePort, homePin) == GPIO_PIN_RESET)
     {
       limitSwitchFlag = true;
       break;
     }
   }
-  delay(25);
+  HAL_Delay(25);
   
   //
   // check if switch never detected
@@ -771,14 +784,7 @@ bool SpeedyStepper::moveToHomeInSteps(long directionTowardHome,
   //
   // successfully homed, set the current position to 0
   //
-  setCurrentPositionInSteps(0L);    
-
-  //
-  // restore original velocity
-  //
-  setSpeedInStepsPerSecond(originalDesiredSpeed_InStepsPerSecond);
-  return(true);
-}
+  setCurrentPositionInSteps(0L);
 
 
 
@@ -874,12 +880,12 @@ void SpeedyStepper::setupMoveInSteps(long absolutePositionToMoveToInSteps)
   {
     distanceToTravel_InSteps = -distanceToTravel_InSteps;
     direction_Scaler = -1;
-    digitalWrite(directionPin, HIGH);
+    HAL_GPIO_WritePin(directionPort, directionPin, GPIO_PIN_SET);
   }
   else
   {
     direction_Scaler = 1;
-    digitalWrite(directionPin, LOW);
+    HAL_GPIO_WritePin(directionPort, directionPin, GPIO_PIN_RESET);
   }
 
 
@@ -956,12 +962,12 @@ bool SpeedyStepper::processMovement(void)
   //
   // execute the step on the rising edge
   //
-  digitalWrite(stepPin, HIGH);
+  HAL_GPIO_WritePin(stepPort, stepPin, GPIO_PIN_SET);
   
   //
   // delay set to almost nothing because there is so much code between rising and 
   // falling edges
-  delayMicroseconds(2);        
+  delayMicroseconds(2);
   
   //
   // update the current position and speed
@@ -981,9 +987,9 @@ bool SpeedyStepper::processMovement(void)
 
 
   //
-  // return the step line high
+  // return the step line low
   //
-  digitalWrite(stepPin, LOW);
+  HAL_GPIO_WritePin(stepPort, stepPin, GPIO_PIN_RESET);
  
  
   //

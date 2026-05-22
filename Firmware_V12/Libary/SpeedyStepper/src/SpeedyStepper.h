@@ -34,7 +34,7 @@
 #ifndef SpeedyStepper_h
 #define SpeedyStepper_h
 
-#include <arduino.h>
+#include "stm32f4xx_hal.h"
 #include <stdlib.h>
 
 
@@ -48,14 +48,14 @@ class SpeedyStepper
     // public functions
     //
     SpeedyStepper();
-    void connectToPins(byte stepPinNumber, byte directionPinNumber);
+    void connectToPins(GPIO_TypeDef* stepPort, uint16_t stepPin, GPIO_TypeDef* dirPort, uint16_t dirPin);
     
     void setStepsPerMillimeter(float motorStepPerMillimeter);
     float getCurrentPositionInMillimeters();
     void setCurrentPositionInMillimeters(float currentPositionInMillimeter);
     void setSpeedInMillimetersPerSecond(float speedInMillimetersPerSecond);
     void setAccelerationInMillimetersPerSecondPerSecond(float accelerationInMillimetersPerSecondPerSecond);
-    bool moveToHomeInMillimeters(long directionTowardHome, float speedInMillimetersPerSecond, long maxDistanceToMoveInMillimeters, int homeLimitSwitchPin);
+    bool moveToHomeInMillimeters(long directionTowardHome, float speedInMillimetersPerSecond, long maxDistanceToMoveInMillimeters, GPIO_TypeDef* homePort, uint16_t homePin);
     void moveRelativeInMillimeters(float distanceToMoveInMillimeters);
     void setupRelativeMoveInMillimeters(float distanceToMoveInMillimeters);
     void moveToPositionInMillimeters(float absolutePositionToMoveToInMillimeters);
@@ -68,7 +68,7 @@ class SpeedyStepper
     void setSpeedInRevolutionsPerSecond(float speedInRevolutionsPerSecond);
     void setCurrentPositionInRevolutions(float currentPositionInRevolutions);
     void setAccelerationInRevolutionsPerSecondPerSecond(float accelerationInRevolutionsPerSecondPerSecond);
-    bool moveToHomeInRevolutions(long directionTowardHome, float speedInRevolutionsPerSecond, long maxDistanceToMoveInRevolutions, int homeLimitSwitchPin);
+    bool moveToHomeInRevolutions(long directionTowardHome, float speedInRevolutionsPerSecond, long maxDistanceToMoveInRevolutions, GPIO_TypeDef* homePort, uint16_t homePin);
     void moveRelativeInRevolutions(float distanceToMoveInRevolutions);
     void setupRelativeMoveInRevolutions(float distanceToMoveInRevolutions);
     void moveToPositionInRevolutions(float absolutePositionToMoveToInRevolutions);
@@ -82,7 +82,7 @@ class SpeedyStepper
     void setupStop();
     void setSpeedInStepsPerSecond(float speedInStepsPerSecond);
     void setAccelerationInStepsPerSecondPerSecond(float accelerationInStepsPerSecondPerSecond);
-    bool moveToHomeInSteps(long directionTowardHome, float speedInStepsPerSecond, long maxDistanceToMoveInSteps, int homeSwitchPin);
+    bool moveToHomeInSteps(long directionTowardHome, float speedInStepsPerSecond, long maxDistanceToMoveInSteps, GPIO_TypeDef* homePort, uint16_t homePin);
     void moveRelativeInSteps(long distanceToMoveInSteps);
     void setupRelativeMoveInSteps(long distanceToMoveInSteps);
     void moveToPositionInSteps(long absolutePositionToMoveToInSteps);
@@ -96,8 +96,10 @@ class SpeedyStepper
     //
     // private member variables
     //
-    byte stepPin;
-    byte directionPin;
+    GPIO_TypeDef* stepPort;
+    uint16_t stepPin;
+    GPIO_TypeDef* directionPort;
+    uint16_t directionPin;
     float desiredSpeed_InStepsPerSecond;
     float acceleration_InStepsPerSecondPerSecond;
     long targetPosition_InSteps;

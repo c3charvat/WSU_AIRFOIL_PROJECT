@@ -1,3 +1,4 @@
+#include "HalStream.hpp"   // Must come before TMCStepper so 'Stream' is defined
 #include<TMCStepper.h>
 /* 
 This file sets up the Pin Modes

@@ -12,11 +12,8 @@
 #define LUA_RUNTIME_HPP
 
 #include "stm32f4xx_hal.h"
-#include <STM32FreeRTOS.h>
-#include <Seeed_Arduino_ooFreeRTOS.h>
-#include "thread.hpp"
-#include "queue.hpp"
-#include "ticks.hpp"
+#include "FreeRTOS.h"
+#include "cmsis_os2.h"
 #include "HalSerial.hpp"
 
 extern "C" {
@@ -105,7 +102,7 @@ private:
     
     // Static abort mechanism shared across instances
     static volatile bool sAbortRequested;
-    static cpp_freertos::MutexStandard* sAbortMutex;
+    static osMutexId_t   sAbortMutex;
     
     /**
      * @brief Register custom C functions available to Lua scripts
@@ -130,40 +127,30 @@ private:
 /**
  * @brief Thread that executes Lua scripts from the queue with abort support
  */
-class LuaExecutorThread : public cpp_freertos::Thread {
+class LuaExecutorThread {
 public:
     /**
      * @brief Construct and start the Lua executor thread
-     * @param scriptQueue Queue for receiving script messages
-     * @param serialLock Mutex for serial output synchronization
+     * @param scriptQueue CMSIS-RTOS v2 message queue for script messages
+     * @param serialLock  CMSIS-RTOS v2 mutex for serial output synchronization
      */
-    LuaExecutorThread(cpp_freertos::Queue& scriptQueue, cpp_freertos::Mutex& serialLock);
+    LuaExecutorThread(osMessageQueueId_t scriptQueue, osMutexId_t serialLock);
     
-    /**
-     * @brief Get number of scripts successfully executed
-     */
     uint32_t getScriptsExecuted() const { return mScriptsExecuted; }
-    
-    /**
-     * @brief Get number of scripts aborted
-     */
-    uint32_t getScriptsAborted() const { return mScriptsAborted; }
-    
-    /**
-     * @brief Check if Lua runtime is currently executing a script
-     */
-    bool isScriptRunning() const { return mLuaRuntime.scriptRunning(); }
-
-protected:
-    virtual void Run() override;
+    uint32_t getScriptsAborted()  const { return mScriptsAborted; }
+    bool     isScriptRunning()    const { return mLuaRuntime.scriptRunning(); }
 
 private:
-    cpp_freertos::Queue& mScriptQueue;
-    cpp_freertos::Mutex& mSerialLock;
-    LuaRuntime mLuaRuntime;
-    uint32_t mScriptsExecuted;
-    uint32_t mScriptsAborted;
-    
+    static void threadEntry(void* arg);
+    void run();
+
+    osMessageQueueId_t mScriptQueue;
+    osMutexId_t        mSerialLock;
+    osThreadId_t       mHandle;
+    LuaRuntime         mLuaRuntime;
+    uint32_t           mScriptsExecuted;
+    uint32_t           mScriptsAborted;
+
     void processMessage(LuaQueueMessage& msg);
     void executeScript(const char* script);
     void handleAbort();

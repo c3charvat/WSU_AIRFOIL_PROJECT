@@ -10,7 +10,7 @@
  *   set_speed(axis, speed)
  *   set_accel(axis, accel)
  *
- * Usage: Call MovementLua::register(lua_State*) in LuaRuntime
+ * Usage: Call MovementLua::registerFunctions(lua_State*) in LuaRuntime
  */
 
 #ifndef MOVEMENT_LUA_HPP
@@ -22,7 +22,7 @@ extern "C" {
 
 namespace MovementLua {
     // Register all motion functions to Lua
-    void register(lua_State* L);
+    void registerFunctions(lua_State* L);
 }
 
 #endif // MOVEMENT_LUA_HPP
